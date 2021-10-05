@@ -34,7 +34,7 @@ echo_header "Executing container runtime tests"
 
 # Run the container tests, note that we also build the binaries into /tmp for the next step.
 pushd ${ROOT}/tests
-GOOS=linux go test -c -o /tmp/pulumi-test-containers ./containers/...
+GOOS=linux go test -c -o /tmp/pulumi-test-containers ./...
 popd
 
 # Run tests _within_ the "pulumi" container, ensuring that the CLI is installed
