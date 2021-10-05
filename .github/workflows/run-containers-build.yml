@@ -5,7 +5,8 @@ on:
   pull_request:
     paths:
     - 'docker/**'
-    - '!docker/README.md'
+    - '!README.md'
+    - '!LICENSE'
 
 env:
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}

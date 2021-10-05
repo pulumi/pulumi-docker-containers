@@ -4,7 +4,7 @@
 # Builds the Pulumi docker containers locally. Optionally running tests or
 # publishing to a container registry.
 #
-# Usage: build-docker cli-version [--test] [--publish]
+# Usage: build-docker cli-version
 set -o nounset
 set -o errexit
 set -o pipefail
