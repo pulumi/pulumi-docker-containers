@@ -1,8 +1,9 @@
-name: pulumi sdk containers build
+name: Pulumi Docker Containers Release Build
 on:
   repository_dispatch:
     types:
-      - docker-build
+      - docker-build # Legacy event name, will delete once no longer used.
+      - release-build # Current event name.
 env:
   VERSION: ${{ github.event.client_payload.ref }}
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}

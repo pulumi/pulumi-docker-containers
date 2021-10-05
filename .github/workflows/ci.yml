@@ -1,16 +1,18 @@
-name: Testing Containers Build
+name: Pulumi Docker Containers CI Build
 on:
   repository_dispatch:
-    types: [ run-containers-command ]
+    types:
+      - run-containers-command # Legacy event name, will delete once no longer used.
+      - ci-build # Current event name.
   pull_request:
     paths:
-    - 'docker/**'
-    - '!README.md'
-    - '!LICENSE'
+      - "docker/**"
+      - "!README.md"
+      - "!LICENSE"
 
 env:
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
-  PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_PROD_ACCESS_TOKEN }}
+  PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_PROD_ACCESS_TOKEN }} # Used by test-containers.sh
   PR_COMMIT_SHA: ${{ github.event.client_payload.pull_request.head.sha }}
 
 jobs:
@@ -38,7 +40,7 @@ jobs:
     if: github.event_name == 'repository_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       matrix:
-        go-version: [ 1.16.x ]
+        go-version: [1.16.x]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go ${{ matrix.go-version }}
