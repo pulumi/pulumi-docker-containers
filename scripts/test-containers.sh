@@ -3,10 +3,10 @@
 # Builds the Pulumi docker containers locally. Optionally running tests or
 # publishing to a container registry.
 #
-# Usage: test-containersr cli-version
+# Usage: test-containers cli-version
 set -o nounset
 set -o errexit
-set -o pipefail
+#set -o pipefail
 
 readonly SCRIPT_DIR="$( cd "$( dirname "${0}" )" && pwd )"
 readonly ROOT=${SCRIPT_DIR}/..
