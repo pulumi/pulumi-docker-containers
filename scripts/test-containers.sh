@@ -1,10 +1,9 @@
-# Clean up the CLI version for dev builds, since they aren't valid tag names.
-# #!/bin/bash
+#!/bin/bash
 #
 # Builds the Pulumi docker containers locally. Optionally running tests or
 # publishing to a container registry.
 #
-# Usage: build-docker cli-version
+# Usage: test-containersr cli-version
 set -o nounset
 set -o errexit
 set -o pipefail
