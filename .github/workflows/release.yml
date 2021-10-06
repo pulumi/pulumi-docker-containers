@@ -1,4 +1,4 @@
-name: Pulumi Docker Containers Release Build
+name: Release Build
 on:
   repository_dispatch:
     types:
