@@ -10,9 +10,7 @@ FROM node:lts-buster-slim
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git
-RUN --mount=target=/var/lib/apt/lists,type=cache \
-    --mount=target=/var/cache/apt,type=cache \
-    apt-get update -y && \
+RUN apt-get update -y && \
     apt-get install -y \
     git \
     ca-certificates
