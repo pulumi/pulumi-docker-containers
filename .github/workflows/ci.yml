@@ -29,7 +29,7 @@ env:
 
 jobs:
   comment-notification:
-    if: github.event_name == 'repository_dispatch'
+    if: github.event_name == 'repository_dispatch' && github.event.client_payload.github.payload.issue.number
     runs-on: ubuntu-latest
     steps:
       - name: Create URL to the run output
