@@ -10,7 +10,12 @@ on:
       - "docker/**"
       - "!README.md"
       - "!LICENSE"
-      - ".github/ci.yml"
+      - ".github/workflows/*.yml"
+  # "Push" is a somewhat unintuitive name - the event will fire after a PR is
+  # merged to the main branch.
+  push:
+    branches:
+      - "main"
 
 env:
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
