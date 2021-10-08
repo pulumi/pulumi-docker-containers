@@ -78,14 +78,6 @@ jobs:
         os: ["debian", "ubi"]
     steps:
       - uses: actions/checkout@master
-      # This workflow does not push images (yet, but will once
-      # https://github.com/pulumi/pulumi-docker-containers/issues/13 is
-      # resolved), we have no need to log in.
-      # - name: Log in to Docker Hub
-      #   uses: docker/login-action@v1
-      #   with:
-      #     username: ${{ env.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Setup docker buildx
@@ -103,3 +95,107 @@ jobs:
             . \
             -t ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }}
+      # This workflow does not push images (yet, but will once
+      # https://github.com/pulumi/pulumi-docker-containers/issues/13 is
+      # resolved), we have no need to log in.
+      # - name: Log in to Docker Hub
+      #   uses: docker/login-action@v1
+      #   with:
+      #     username: ${{ env.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+  debian_sdk:
+    name: Debian SDK images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # For now, we're just building the node SDK, but will add in the rest in future PRs:
+        # sdk: ["nodejs", "python", "dotnet", "go"]
+        sdk: ["nodejs"]
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup docker buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          install: true
+      - name: Set version
+        run: |
+          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
+      - name: Build
+        # We supply a working directory to the command below due to the
+        # dnf/nodej2.module file that has to mounted into the container.
+        run: |
+          docker build \
+            -f docker/${{ matrix.sdk }}/Dockerfile.debian \
+            --platform linux/arm64,linux/amd64 \
+            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian \
+            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            docker/${{ matrix.sdk }}
+  ubi_sdk:
+    name: UBI SDK images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # For now, we're just building the node SDK, but will add in the rest in future PRs:
+        # sdk: ["nodejs", "python", "dotnet", "go"]
+        sdk: ["nodejs"]
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup docker buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          install: true
+      - name: Set version
+        run: |
+          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
+      - name: Build
+        # We only build UBI for amd64 due to arm64 builds hanging on `npm
+        # install -g yarn` with no additional output, plus the apparent
+        # requirement of a paid subscription in order to file a bug with RedHat.
+        #
+        # We supply a working directory to the command below due to the
+        # dnf/nodej2.module file that has to mounted into the container.
+        run: |
+          docker build \
+            -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
+            --platform linux/amd64 \
+            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            docker/${{ matrix.sdk }}
+      # - name: Build image
+      #   uses: pulumi/action-docker-build@e98e474ca0312b1a0300cdbf9357dd2df3c62c22
+      #   with:
+      #     repository: pulumi/pulumi-${{matrix.sdk}}
+      #     buildkit: true
+      #     username: "pulumibot"
+      #     password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      #     dockerfile: docker/${{ matrix.sdk }}/Dockerfile.${{ matrix.os }}
+      #     additional-tags: ${{ env.VERSION }}-${{ matrix.os }}
+      #     build-args: PULUMI_VERSION=${{ env.VERSION }}
+      #     tag-latest: false
+      # We're not pushing images in this workflow (yet):
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-region: us-east-2
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     role-duration-seconds: 3600
+      #     role-external-id: upload-pulumi-release
+      #     role-session-name: pulumi@githubActions
+      #     role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
+      # - name: Get Public ECR Authorization token
+      #   run: |
+      #     aws --region us-east-1 ecr-public get-authorization-token \
+      #       --query 'authorizationData.authorizationToken' | \
+      #       tr -d '"' | base64 --decode | cut -d: -f2 | \
+      #       docker login -u AWS --password-stdin https://public.ecr.aws
+      # - name: Publish pulumi/pulumi-${{matrix.sdk}} image to AWS Public ECR
+      #   run: |
+      #     docker tag pulumi/pulumi-${{matrix.sdk}}:${{ env.VERSION }}-${{ matrix.os }} public.ecr.aws/pulumi/pulumi-${{matrix.sdk}}:${{ env.VERSION }}-${{ matrix.os }}
+      #     docker push public.ecr.aws/pulumi/pulumi-${{matrix.sdk}}:${{ env.VERSION }}-${{ matrix.os }}
