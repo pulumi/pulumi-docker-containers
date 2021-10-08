@@ -109,9 +109,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # For now, we're just building the node SDK, but will add in the rest in future PRs:
-        # sdk: ["nodejs", "python", "dotnet", "go"]
-        sdk: ["nodejs"]
+        sdk: ["nodejs", "python"]
     steps:
       - uses: actions/checkout@master
       - name: Set up QEMU
@@ -139,9 +137,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # For now, we're just building the node SDK, but will add in the rest in future PRs:
-        # sdk: ["nodejs", "python", "dotnet", "go"]
-        sdk: ["nodejs"]
+        sdk: ["nodejs", "python"]
     steps:
       - uses: actions/checkout@master
       - name: Set up QEMU
