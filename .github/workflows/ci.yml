@@ -103,8 +103,9 @@ jobs:
       #   with:
       #     username: ${{ env.DOCKER_USERNAME }}
       #     password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-  debian_sdk:
+  debian-sdk:
     name: Debian SDK images
+    needs: base
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -131,8 +132,9 @@ jobs:
             -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             docker/${{ matrix.sdk }}
-  ubi_sdk:
+  ubi-sdk:
     name: UBI SDK images
+    needs: base
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
