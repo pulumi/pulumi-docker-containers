@@ -19,21 +19,19 @@ RUN curl -o - https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor 
 FROM debian:buster-slim
 WORKDIR /pulumi/projects
 
-ARG RUNTIME_VERSION="3.1"
+ARG DOTNET_RUNTIME_VERSION="3.1"
 
-# We need to install ca certs before copying the ms prod debs packages
-RUN apt-get update -y && \
-    apt-get install -y \
-    ca-certificates
-
-COPY --from=builder /tmp/microsoft.asc.gpg /etc/apt/trusted.gpg.d/microsoft.asc.gpg
-COPY --from=builder /tmp/microsoft-prod.list /etc/apt/sources.list.d/microsoft-prod.list
-
-# Install needed tools, like git
 RUN apt-get update -y && \
     apt-get install -y \
     git \
-    dotnet-sdk-${RUNTIME_VERSION}
+    curl
+
+# arm64 packages are not available in apt-get, per
+# https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian, so we need
+# to install via another method:
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c ${DOTNET_RUNTIME_VERSION} && \
+    echo "PATH=$PATH:$HOME/.dotnet" >> ~/.bashrc && \
+    echo "export DOTNET_ROOT=$HOME/.dotnet" >> ~/.bashrc
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=pulumi /pulumi/bin/pulumi /pulumi/bin/pulumi

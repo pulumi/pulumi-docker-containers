@@ -3,19 +3,27 @@
 # Must be defined first
 ARG PULUMI_VERSION=latest
 ARG PULUMI_IMAGE=pulumi/pulumi-base
-ARG RUNTIME_VERSION=3.1
 FROM ${PULUMI_IMAGE}:${PULUMI_VERSION}-ubi as pulumi
 
 # The runtime container
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM redhat/ubi8-minimal:latest
+ARG DOTNET_RUNTIME_VERSION=3.1
 WORKDIR /pulumi/projects
 
-RUN --mount=target=/var/cache/yum,type=cache \
-    microdnf install -y \
+RUN microdnf install -y \
     ca-certificates \
     tar \
-    dotnet-sdk-3.1 \
-    git
+    git \
+    curl \
+    # Required by the dotnet-install script, which calls `find`:
+    findutils
+
+# arm64 packages are not available for 3.1 (at least, possibly later versions as
+# well), so we need to install via another method:
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c ${DOTNET_RUNTIME_VERSION} && \
+    echo "PATH=$PATH:$HOME/.dotnet" >> ~/.bashrc && \
+    echo "export DOTNET_ROOT=$HOME/.dotnet" >> ~/.bashrc
+
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=pulumi /pulumi/bin/pulumi /pulumi/bin/pulumi
