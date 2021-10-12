@@ -109,7 +109,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: ["nodejs", "python", "dotnet"]
+        sdk: ["nodejs", "python", "dotnet", "go"]
     steps:
       - uses: actions/checkout@master
       - name: Set up QEMU
@@ -137,7 +137,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: ["nodejs", "python", "dotnet"]
+        sdk: ["nodejs", "python", "dotnet", "go"]
     steps:
       - uses: actions/checkout@master
       - name: Set up QEMU

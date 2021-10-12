@@ -2,24 +2,42 @@
 # Interim container so we can copy pulumi binaries
 # Must be defined first
 ARG PULUMI_VERSION=latest
-ARG PULUMI_IMAGE=pulumi/pulumi-base
-FROM ${PULUMI_IMAGE}:${PULUMI_VERSION} as pulumi
 
 # Build container
 FROM ubuntu:bionic AS builder
 
 # Set go versions
-ARG RUNTIME_VERSION=1.16.2
+ARG RUNTIME_VERSION=1.16.9
 
 WORKDIR /golang
 RUN apt-get update -y && \
-      apt-get install -y \
-      curl \
-      git \
-      build-essential \
-      tar \
-      git
-RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${RUNTIME_VERSION}.linux-amd64.tar.gz; \
+    apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    tar \
+    git
+
+# Install the Pulumi SDK, including the CLI and language runtimes.
+RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
+    curl -fsSL https://get.pulumi.com/ | bash; \
+    else \
+    curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION ; \
+    fi
+
+
+RUN case $(uname -m) in \
+    aarch64) \
+    ARCH="arm64" \
+    ;; \
+    x86_64) \
+    ARCH="amd64" \
+    ;; \
+    *) \
+    ARCH=$(uname -m) \
+    ;; \
+    esac && \
+    curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${RUNTIME_VERSION}.linux-${ARCH}.tar.gz; \
     mkdir -p bin; \
     tar -C /golang -xzf /tmp/go.tgz; \
     rm /tmp/go.tgz; \
@@ -42,9 +60,9 @@ RUN --mount=target=/var/lib/apt/lists,type=cache \
 # Uses the workdir
 COPY --from=builder /golang/go /usr/local
 # Uses the workdir, copies from pulumi interim container
-COPY --from=pulumi /pulumi/bin/pulumi /pulumi/bin/pulumi
-COPY --from=pulumi /pulumi/bin/pulumi-language-go /pulumi/bin/pulumi-language-go
-COPY --from=pulumi /pulumi/bin/pulumi-analyzer-policy /pulumi/bin/pulumi-analyzer-policy
+COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
+COPY --from=builder /root/.pulumi/bin/pulumi-language-go /pulumi/bin/pulumi-language-go
+COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/pulumi-analyzer-policy
 ENV GOPATH=/go
 ENV PATH "/pulumi/bin:${PATH}"
 

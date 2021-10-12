@@ -1,24 +1,34 @@
 # syntax = docker/dockerfile:experimental
-# Interim container so we can copy pulumi binaries
-# Must be defined first
-ARG PULUMI_VERSION=latest
-ARG PULUMI_IMAGE=pulumi/pulumi-base
-FROM ${PULUMI_IMAGE}:${PULUMI_VERSION} as pulumi
 
 # Build container
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest as builder
+ARG PULUMI_VERSION=latest
+RUN microdnf install -y \
+    curl \
+    make \
+    gcc \
+    git \
+    tar \
+    gcc-c++
+
+# Install the Pulumi SDK, including the CLI and language runtimes.
+RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
+    curl -fsSL https://get.pulumi.com/ | bash; \
+    else \
+    curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION ; \
+    fi
 
 # Set go versions
 ARG RUNTIME_VERSION=1.16.2
 
 WORKDIR /golang
 RUN microdnf install -y \
-      curl \
-      make \
-      gcc \
-      git \
-      tar \
-      gcc-c++
+    curl \
+    make \
+    gcc \
+    git \
+    tar \
+    gcc-c++
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${RUNTIME_VERSION}.linux-amd64.tar.gz; \
     mkdir -p bin; \
     tar -C /golang -xzf /tmp/go.tgz; \
@@ -40,9 +50,9 @@ RUN microdnf install -y \
 # Uses the workdir
 COPY --from=builder /golang/go /usr/local
 # Uses the workdir, copies from pulumi interim container
-COPY --from=pulumi /pulumi/bin/pulumi /pulumi/bin/pulumi
-COPY --from=pulumi /pulumi/bin/pulumi-language-go /pulumi/bin/pulumi-language-go
-COPY --from=pulumi /pulumi/bin/pulumi-analyzer-policy /pulumi/bin/pulumi-analyzer-policy
+COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
+COPY --from=builder /root/.pulumi/bin/pulumi-language-go /pulumi/bin/pulumi-language-go
+COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/pulumi-analyzer-policy
 ENV GOPATH=/go
 ENV PATH "/pulumi/bin:${PATH}"
 
