@@ -1,25 +1,26 @@
 # syntax = docker/dockerfile:experimental
-# Interim container so we can copy pulumi binaries
-# Must be defined first
-ARG PULUMI_VERSION=latest
-ARG PULUMI_IMAGE=pulumi/pulumi-base
-FROM ${PULUMI_IMAGE}:${PULUMI_VERSION} as pulumi
 
-# Build container
-FROM ubuntu:bionic AS builder
-WORKDIR /dotnet
+FROM debian:buster-slim AS builder
+ARG PULUMI_VERSION=latest
 RUN apt-get update -y && \
+    apt-get upgrade -y && \
     apt-get install -y \
     curl \
-    gpg
-RUN curl -o - https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /tmp/microsoft.asc.gpg; \
-    curl -o /tmp/microsoft-prod.list https://packages.microsoft.com/config/debian/10/prod.list
+    build-essential \
+    git
+
+# Install the Pulumi SDK, including the CLI and language runtimes.
+RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
+    curl -fsSL https://get.pulumi.com/ | bash; \
+    else \
+    curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION ; \
+    fi
 
 # The runtime container
 FROM debian:buster-slim
 WORKDIR /pulumi/projects
 
-ARG DOTNET_RUNTIME_VERSION="3.1"
+ARG DOTNET_VERSION="3.1"
 
 RUN apt-get update -y && \
     apt-get install -y \
@@ -29,13 +30,13 @@ RUN apt-get update -y && \
 # arm64 packages are not available in apt-get, per
 # https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian, so we need
 # to install via another method:
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c ${DOTNET_RUNTIME_VERSION} && \
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c ${DOTNET_VERSION} && \
     echo "PATH=$PATH:$HOME/.dotnet" >> ~/.bashrc && \
     echo "export DOTNET_ROOT=$HOME/.dotnet" >> ~/.bashrc
 
 # Uses the workdir, copies from pulumi interim container
-COPY --from=pulumi /pulumi/bin/pulumi /pulumi/bin/pulumi
-COPY --from=pulumi /pulumi/bin/*-dotnet* /pulumi/bin/
+COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
+COPY --from=builder /root/.pulumi/bin/*-dotnet* /pulumi/bin/
 ENV PATH "/pulumi/bin:${PATH}"
 
 CMD ["pulumi"]

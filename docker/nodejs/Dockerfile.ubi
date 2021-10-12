@@ -1,9 +1,21 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
 # Must be defined first
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest as builder
 ARG PULUMI_VERSION=latest
-ARG PULUMI_IMAGE=pulumi/pulumi-base
-FROM ${PULUMI_IMAGE}:${PULUMI_VERSION} as pulumi
+RUN microdnf install -y \
+    curl \
+    make \
+    gcc \
+    git \
+    tar \
+    gcc-c++
+# Install the Pulumi SDK, including the CLI and language runtimes.
+RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
+    curl -fsSL https://get.pulumi.com/ | bash; \
+    else \
+    curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION ; \
+    fi
 
 # The runtime container
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
@@ -11,8 +23,7 @@ WORKDIR /pulumi/projects
 
 COPY dnf/nodejs.module /etc/dnf/modules.d/nodejs.module
 
-RUN --mount=target=/var/cache/yum,type=cache \
-    microdnf install -y \
+RUN microdnf install -y \
     git \
     tar \
     nodejs \
@@ -20,9 +31,9 @@ RUN --mount=target=/var/cache/yum,type=cache \
     npm install -g yarn
 
 # Uses the workdir, copies from pulumi interim container
-COPY --from=pulumi /pulumi/bin/pulumi /pulumi/bin/pulumi
-COPY --from=pulumi /pulumi/bin/*-nodejs* /pulumi/bin/
-COPY --from=pulumi /pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
+COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
+COPY --from=builder /root/.pulumi/bin/*-nodejs* /pulumi/bin/
+COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
 ENV PATH "/pulumi/bin:${PATH}"
 
 CMD ["pulumi"]
