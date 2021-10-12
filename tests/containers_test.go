@@ -14,7 +14,6 @@ package containers
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -26,19 +25,7 @@ import (
 //
 // NOTE: This test is intended to be run inside the aforementioned container, unlike the actions test below.
 func TestPulumiDockerImage(t *testing.T) {
-	const stackOwner = "moolumi"
-
-	if os.Getenv("RUN_CONTAINER_TESTS") == "" {
-		t.Skip("Skipping container runtime tests because RUN_CONTAINER_TESTS not set.")
-	}
-
-	// Confirm we have credentials.
-	if os.Getenv("PULUMI_ACCESS_TOKEN") == "" {
-		t.Fatal("PULUMI_ACCESS_TOKEN not found, aborting tests.")
-	}
-
 	base := integration.ProgramTestOptions{
-		Tracing:              "https://tracing.pulumi-engineering.com/collector/api/v1/spans",
 		ExpectRefreshChanges: true,
 		Quick:                true,
 		SkipRefresh:          true,
@@ -51,11 +38,12 @@ func TestPulumiDockerImage(t *testing.T) {
 
 			e := ptesting.NewEnvironment(t)
 			defer func() {
+				e.SetBackend(e.LocalURL())
 				e.RunCommand("pulumi", "stack", "rm", "--force", "--yes")
 				e.DeleteEnvironment()
 			}()
 
-			stackName := fmt.Sprintf("%s/container-%s-%x", stackOwner, template, time.Now().UnixNano())
+			stackName := fmt.Sprintf("%s/container-%s-%x", "gha", template, time.Now().UnixNano())
 			e.RunCommand("pulumi", "new", template, "-y", "-f", "-s", stackName)
 
 			example := base.With(integration.ProgramTestOptions{
