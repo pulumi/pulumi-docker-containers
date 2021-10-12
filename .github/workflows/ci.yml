@@ -105,7 +105,6 @@ jobs:
       #     password: ${{ secrets.DOCKER_HUB_PASSWORD }}
   debian-sdk:
     name: Debian SDK images
-    needs: base
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -134,7 +133,6 @@ jobs:
             docker/${{ matrix.sdk }}
   ubi-sdk:
     name: UBI SDK images
-    needs: base
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
