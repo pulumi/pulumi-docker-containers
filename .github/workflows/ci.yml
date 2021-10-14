@@ -20,6 +20,7 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
   PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} # Used by test-containers.sh
+  PULUMI_ORG: "pulumi-test"
   PR_COMMIT_SHA: ${{ github.event.client_payload.pull_request.head.sha }}
   # We parameterize the Docker Hub username to allow forks to easily test
   # changes on a separate repo without having to change the username in multiple
@@ -46,7 +47,7 @@ jobs:
 
             [1]: ${{ steps.vars.outputs.run-url }}
   test-containers:
-    name: Test Container Changes
+    name: Test All SDKs container
     # Verify that the event is not triggered by a fork since forks cannot
     # access secrets other than the default GITHUB_TOKEN.
     if: github.event_name == 'repository_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
@@ -163,6 +164,37 @@ jobs:
             -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             docker/${{ matrix.sdk }}
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.9"
+      - name: Compile tests
+        working-directory: tests
+        run: |
+          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+
+      - name: Set SDKS_TO_TEST (dotnet)
+        if: ${{ matrix.sdk == 'dotnet' }}
+        run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
+      - name: Set SDKS_TO_TEST (nodejs)
+        if: ${{ matrix.sdk == 'nodejs' }}
+        run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
+      - name: Set SDKS_TO_TEST (default)
+        if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
+        run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV \
+
+      - name: Run tests
+        run: |
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            --volume /tmp:/src \
+            --entrypoint /bin/bash \
+            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+
       # - name: Build image
       #   uses: pulumi/action-docker-build@e98e474ca0312b1a0300cdbf9357dd2df3c62c22
       #   with:

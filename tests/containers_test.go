@@ -15,6 +15,7 @@ package containers
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,8 +27,6 @@ import (
 //
 // NOTE: This test is intended to be run inside the aforementioned container, unlike the actions test below.
 func TestPulumiDockerImage(t *testing.T) {
-	const stackOwner = "moolumi"
-
 	if os.Getenv("RUN_CONTAINER_TESTS") == "" {
 		t.Skip("Skipping container runtime tests because RUN_CONTAINER_TESTS not set.")
 	}
@@ -35,6 +34,16 @@ func TestPulumiDockerImage(t *testing.T) {
 	// Confirm we have credentials.
 	if os.Getenv("PULUMI_ACCESS_TOKEN") == "" {
 		t.Fatal("PULUMI_ACCESS_TOKEN not found, aborting tests.")
+	}
+
+	var stackOwner = os.Getenv("PULUMI_ORG")
+	if stackOwner == "" {
+		t.Fatal("PULUMI_ORG must be set.  Aborting tests.")
+	}
+
+	sdksToTest := []string{"csharp", "python", "typescript", "go"}
+	if os.Getenv("SDKS_TO_TEST") != "" {
+		sdksToTest = strings.Split(os.Getenv("SDKS_TO_TEST"), ",")
 	}
 
 	base := integration.ProgramTestOptions{
@@ -45,7 +54,7 @@ func TestPulumiDockerImage(t *testing.T) {
 		NoParallel:           true, // we mark tests as Parallel manually when instantiating
 	}
 
-	for _, template := range []string{"csharp", "python", "typescript"} {
+	for _, template := range sdksToTest {
 		t.Run(template, func(t *testing.T) {
 			t.Parallel()
 

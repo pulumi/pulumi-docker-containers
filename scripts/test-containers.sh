@@ -41,6 +41,7 @@ popd
 # and working correctly.
 docker run -e RUN_CONTAINER_TESTS=true \
     -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+    -e PULUMI_ORG=${PULUMI_ORG} \
     --volume /tmp:/src \
     --entrypoint /bin/bash \
     pulumi/pulumi:latest \
