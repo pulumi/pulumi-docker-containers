@@ -10,14 +10,14 @@ ENV GOLANG_SHA256 542e936b19542e62679766194364f45141fde55169db2d8d01046555ca9eb4
 # Install deps all in one step
 RUN apt-get update -y && \
   apt-get install -y \
-    apt-transport-https \
-    build-essential \
-    ca-certificates \
-    curl \
-    git \
-    gnupg \
-    software-properties-common \
-    wget && \
+  apt-transport-https \
+  build-essential \
+  ca-certificates \
+  curl \
+  git \
+  gnupg \
+  software-properties-common \
+  wget && \
   # Get all of the signatures we need all at once.
   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key  | apt-key add - && \
   curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg              | apt-key add - && \
@@ -37,36 +37,36 @@ RUN apt-get update -y && \
   # Install second wave of dependencies
   apt-get update -y && \
   apt-get install -y \
-    azure-cli \
-    docker-ce \
-    google-cloud-sdk \
-    kubectl \
-    nodejs \
-    yarn && \
+  azure-cli \
+  docker-ce \
+  google-cloud-sdk \
+  kubectl \
+  nodejs \
+  yarn && \
   pip install awscli --upgrade && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
 
 # Install Go
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz; \
-    echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c -; \
-    tar -C /usr/local -xzf /tmp/go.tgz; \
-    rm /tmp/go.tgz; \
-    export PATH="/usr/local/go/bin:$PATH"; \
-    go version
+  echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c -; \
+  tar -C /usr/local -xzf /tmp/go.tgz; \
+  rm /tmp/go.tgz; \
+  export PATH="/usr/local/go/bin:$PATH"; \
+  go version
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
-    
+
 
 # Install .NET Core SDK
 RUN wget -q https://packages.microsoft.com/config/ubuntu/19.04/packages-microsoft-prod.deb \
-    -O packages-microsoft-prod.deb && \
+  -O packages-microsoft-prod.deb && \
   dpkg -i packages-microsoft-prod.deb && \
   rm packages-microsoft-prod.deb && \
   apt-get update -y && \
   apt-get install -y \
-    apt-transport-https \
-    dotnet-sdk-3.1
+  apt-transport-https \
+  dotnet-sdk-3.1
 
 # Install Helm
 # Explicitly set env variables that helm reads to their defaults, so that subsequent calls to
@@ -85,9 +85,9 @@ ARG PULUMI_VERSION=latest
 
 # Install the Pulumi SDK, including the CLI and language runtimes.
 RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
-    curl -fsSL https://get.pulumi.com/ | bash; \
+  curl -fsSL https://get.pulumi.com/ | bash; \
   else \
-    curl -fsSL https://get.pulumi.com/ | bash -s -- --version $(echo $PULUMI_VERSION | cut -c 2-); \
+  curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION ; \
   fi && \
   mv ~/.pulumi/bin/* /usr/bin
 
