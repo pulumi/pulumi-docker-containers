@@ -30,13 +30,14 @@ RUN apt-get update -y && \
 # arm64 packages are not available in apt-get, per
 # https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian, so we need
 # to install via another method:
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c ${DOTNET_VERSION} && \
-    echo "PATH=$PATH:$HOME/.dotnet" >> ~/.bashrc && \
-    echo "export DOTNET_ROOT=$HOME/.dotnet" >> ~/.bashrc
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c ${DOTNET_VERSION}
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 COPY --from=builder /root/.pulumi/bin/*-dotnet* /pulumi/bin/
-ENV PATH "/pulumi/bin:${PATH}"
+
+ENV PATH "/root/.dotnet:/pulumi/bin:${PATH}"
+ENV DOTNET_ROOT /root/.dotnet
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT 1
 
 CMD ["pulumi"]
