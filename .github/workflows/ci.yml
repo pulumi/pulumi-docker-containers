@@ -150,6 +150,7 @@ jobs:
       fail-fast: false
       matrix:
         sdk: ["nodejs", "python", "dotnet", "go"]
+        arch: ["amd64", "arm64"]
     steps:
       - uses: actions/checkout@master
       - name: Set up QEMU
@@ -167,10 +168,42 @@ jobs:
         run: |
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.debian \
-            --platform linux/arm64,linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian \
+            --platform linux/${{ matrix.arch }} \
+            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            docker/${{ matrix.sdk }}
+            docker/${{ matrix.sdk }} \
+            --load
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.9"
+      - name: Compile tests
+        working-directory: tests
+        run: |
+          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
+
+      - name: Set SDKS_TO_TEST (dotnet)
+        if: ${{ matrix.sdk == 'dotnet' }}
+        run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
+      - name: Set SDKS_TO_TEST (nodejs)
+        if: ${{ matrix.sdk == 'nodejs' }}
+        run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
+      - name: Set SDKS_TO_TEST (default)
+        if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
+        run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
+
+      - name: Run tests
+        run: |
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            --volume /tmp:/src \
+            --entrypoint /bin/bash \
+            --platform ${{ matrix.arch }} \
+            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
   ubi-sdk:
     name: UBI SDK images
     runs-on: ubuntu-latest
@@ -220,7 +253,7 @@ jobs:
         run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
       - name: Set SDKS_TO_TEST (default)
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
-        run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV \
+        run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
