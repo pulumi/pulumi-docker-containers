@@ -1,9 +1,17 @@
 name: Release Build
 on:
+  # Allow the workflow to be triggered manually, e.g. for testing, or after
+  # changing the Dockerfiles:
+  workflow_dispatch: {}
+  # Trigger the release workflow for Docker containers when a new version of
+  # Pulumi is released.  This dispatch event is fired in pulumi/pulumi's release
+  # workflow:
   repository_dispatch:
     types:
       - docker-build # Legacy event name, will delete once no longer used.
       - release-build # Current event name.
+  # We may want to add push: main as a trigger in the future once we're
+  # confident this workflow is stable and correct.
 env:
   VERSION: ${{ github.event.client_payload.ref }}
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
