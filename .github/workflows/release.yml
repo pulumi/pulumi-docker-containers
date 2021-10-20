@@ -20,7 +20,8 @@ env:
   # We parameterize the Docker Hub username to allow forks to easily test
   # changes on a separate repo without having to change the username in multiple
   # places:
-  DOCKER_USERNAME: pulumi
+  DOCKER_USERNAME: pulumibot
+  DOCKER_ORG: pulumi
   DISPATCH_REF: ${{ github.event.client_payload.ref }}
 
 jobs:
@@ -53,8 +54,8 @@ jobs:
           docker build \
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi:latest \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi:latest \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
@@ -74,12 +75,12 @@ jobs:
             -e PULUMI_ORG=${PULUMI_ORG} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
-          docker push ${{ env.DOCKER_USERNAME }}/pulumi:latest
+          docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker push ${{ env.DOCKER_ORG }}/pulumi:latest
 
   base:
     name: Base image
@@ -111,30 +112,12 @@ jobs:
             -f docker/base/Dockerfile.${{ matrix.os }} \
             --platform linux/${{ matrix.arch }} \
             . \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load
-      - name: Install go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "1.16.9"
-      - name: Compile tests
-        working-directory: tests
-        run: |
-          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
-      - name: Run tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            --volume /tmp:/src \
-            --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os}}-${{ matrix.arch }}
+          docker push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os}}-${{ matrix.arch }}
   base-manifests:
     name: Base image manifests
     needs: ["base"]
@@ -151,24 +134,33 @@ jobs:
       - name: Debian manifest
         run: |
           docker manifest create \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian \
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian
       - name: UBI manifest
         run: |
           docker manifest create \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi-arm64 \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi-amd64
-          docker manifest push ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi
-      - name: Suffix-less manifest
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi \
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi
+      - name: Suffix-less manifest (version)
         run: |
           docker manifest create \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }} \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}
+      - name: Suffix-less manifest (latest)
+        # It doesn't appear that a manifest can be a source for `docker tag`, so
+        # we create an additional copy of the previous manifest to tag latest:
+        run: |
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi-base:latest \
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:latest
   debian-sdk:
     name: Debian SDK images
     runs-on: ubuntu-latest
@@ -200,7 +192,7 @@ jobs:
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.debian \
             --platform linux/${{ matrix.arch }} \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             docker/${{ matrix.sdk }} \
             --load
@@ -233,11 +225,11 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             --platform ${{ matrix.arch }} \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}
+          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}
   debian-sdk-manifests:
     name: Debian SDK manifests
     needs: ["debian-sdk"]
@@ -258,17 +250,26 @@ jobs:
       - name: Debian manifest
         run: |
           docker manifest create \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian
       - name: Suffix-less manifest
         run: |
           docker manifest create \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }} \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}
+      - name: Suffix-less manifest (latest)
+        # It doesn't appear that a manifest can be a source for `docker tag`, so
+        # we create an additional copy of the previous manifest to tag latest:
+        run: |
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest
 
   ubi-sdk:
     name: UBI SDK images
@@ -304,7 +305,7 @@ jobs:
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             docker/${{ matrix.sdk }} \
             --load
@@ -336,8 +337,8 @@ jobs:
             -e PULUMI_ORG=${PULUMI_ORG} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
+          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi

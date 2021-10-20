@@ -95,20 +95,6 @@ jobs:
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
-      # - name: Set up Go ${{ matrix.go-version }}
-      #   uses: actions/setup-go@v1
-      #   with:
-      #     go-version: ${{ matrix.go-version }}
-      # - name: Install pulumictl
-      #   uses: jaxxstorm/action-install-gh-release@v1.2.0
-      #   with:
-      #     repo: pulumi/pulumictl
-      # - name: Checkout Repo
-      #   uses: actions/checkout@v2
-      #   with:
-      #     ref: ${{ env.PR_COMMIT_SHA }}
-      # - name: Run Container Tests
-      #   run: make test_containers VERSION=v$(curl https://www.pulumi.com/latest-version)
   base:
     name: Base image
     runs-on: ubuntu-latest
@@ -135,14 +121,6 @@ jobs:
             . \
             -t ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }}
-      # This workflow does not push images (yet, but will once
-      # https://github.com/pulumi/pulumi-docker-containers/issues/13 is
-      # resolved), we have no need to log in.
-      # - name: Log in to Docker Hub
-      #   uses: docker/login-action@v1
-      #   with:
-      #     username: ${{ env.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_HUB_PASSWORD }}
   debian-sdk:
     name: Debian SDK images
     runs-on: ubuntu-latest
