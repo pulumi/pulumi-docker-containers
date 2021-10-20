@@ -235,7 +235,8 @@ jobs:
             --platform linux/amd64 \
             -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            docker/${{ matrix.sdk }}
+            docker/${{ matrix.sdk }} \
+            --load
       - name: Install go
         uses: actions/setup-go@v2
         with:
