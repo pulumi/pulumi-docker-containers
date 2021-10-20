@@ -1,0 +1,22 @@
+#     # - name: Configure AWS Credentials
+#     #   uses: aws-actions/configure-aws-credentials@v1
+#     #   with:
+#     #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#     #     aws-region: us-east-2
+#     #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#     #     role-duration-seconds: 3600
+#     #     role-external-id: upload-pulumi-release
+#     #     role-session-name: pulumi@githubActions
+#     #     role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
+#     # - name: Get Public ECR Authorization token
+#     #   run: |
+#     #     aws --region us-east-1 ecr-public get-authorization-token \
+#     #       --query 'authorizationData.authorizationToken' | \
+#     #       tr -d '"' | base64 --decode | cut -d: -f2 | \
+#     #       docker login -u AWS --password-stdin https://public.ecr.aws
+#     # - name: Publish ${{ env.DOCKER_USERNAME }}/pulumi image to AWS Public ECR
+#     #   run: |
+#     #     docker tag ${{ env.DOCKER_USERNAME }}/pulumi:v${{ env.VERSION }} public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:v${{ env.VERSION }}
+#     #     docker tag ${{ env.DOCKER_USERNAME }}/pulumi:latest public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest
+#     #     docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:v${{ env.VERSION }}
+#     #     docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest

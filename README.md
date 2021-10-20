@@ -24,6 +24,8 @@ Images with no suffix tag are identical to the corresponding `-debian` tag.
 
 Pulumi currently only supports the `linux/amd64` platform.  `linux/arm64` support is a work currently in progress.
 
+Images are pushed to both [Docker Hub](https://hub.docker.com/u/pulumi) and the [Amazon ECR Public Gallery](https://gallery.ecr.aws/pulumi/).
+
 ## Usage
 
 In order to try and keep the images flexible and try to meet as many use cases as possible, none of these images have `CMD` or entrypoint set, so you'll need to specify the commands you want to run, for example:
