@@ -6,7 +6,9 @@
 name: Sync to ECR
 on:
   workflow_dispatch: {}
-  # TODO: repository_dispatch, need to figure out command names.
+  repository_dispatch:
+    types:
+      - sync-ecr
 
 env:
   DOCKER_USERNAME: pulumi
