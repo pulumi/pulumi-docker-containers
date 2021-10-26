@@ -344,7 +344,7 @@ jobs:
 
   start-sync-ecr:
     name: Start ECR sync
-    # needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
+    needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
     runs-on: ubuntu-latest
     steps:
       - name: Repository Dispatch
