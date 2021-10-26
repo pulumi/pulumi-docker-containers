@@ -341,3 +341,14 @@ jobs:
       - name: Push image
         run: |
           docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
+
+  start-sync-ecr:
+    name: Start ECR sync
+    # needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ env.GITHUB_TOKEN }}
+          event-type: sync-ecr
