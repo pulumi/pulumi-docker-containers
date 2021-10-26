@@ -153,8 +153,8 @@ jobs:
             ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}
       - name: Suffix-less manifest (latest)
-        # It doesn't appear that a manifest can be a source for `docker tag`, so
-        # we create an additional copy of the previous manifest to tag latest:
+        # Manifest lists can't be a source for `docker tag`, so we create an
+        # additional copy of the previous manifest to tag latest:
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-base:latest \
@@ -262,8 +262,8 @@ jobs:
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}
       - name: Suffix-less manifest (latest)
-        # It doesn't appear that a manifest can be a source for `docker tag`, so
-        # we create an additional copy of the previous manifest to tag latest:
+        # Manifest lists can't be a source for `docker tag`, so we create an
+        # additional copy of the previous manifest to tag latest:
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest \
@@ -296,8 +296,7 @@ jobs:
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Build
         # We only build UBI for amd64 due to arm64 builds hanging on `npm
-        # install -g yarn` with no additional output, plus the apparent
-        # requirement of a paid subscription in order to file a bug with RedHat.
+        # install -g yarn` with no additional output.
         #
         # We supply a working directory to the command below due to the
         # dnf/nodej2.module file that has to mounted into the container.
