@@ -1,3 +1,8 @@
+# NOTE: This workflow as currently authored will fail if `curl
+# https://www.pulumi.com/latest-version` has changed since the last time the
+# Release workflow finished successfully.  In this case, the latest version in
+# Docker Hub (e.g. 3.15.0) would not match the latest version retrieved via
+# `curl` (e.g. 3.16.0)/
 name: Sync to ECR
 on:
   workflow_dispatch: {}
@@ -13,7 +18,7 @@ jobs:
     steps:
       - name: Set version
         run: |
-          "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -30,66 +35,37 @@ jobs:
             --query 'authorizationData.authorizationToken' | \
             tr -d '"' | base64 --decode | cut -d: -f2 | \
             docker login -u AWS --password-stdin https://public.ecr.aws
-      - name: Publish ${{ env.DOCKER_USERNAME }}/pulumi image to AWS Public ECR
+      - name: Tag ${{ env.PULUMI_VERSION }} and push to AWS Public ECR
         run: |
-          docker tag ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.VERSION }} public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.VERSION }}
-          docker tag ${{ env.DOCKER_USERNAME }}/pulumi:latest public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest
-          # docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.VERSION }}
-          # docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
+      - name: Tag latest and push to AWS Public ECR
+        run: |
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/pulumi:latest
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/pulumi:latest public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest
+          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest
 
-  sdk-and-base-images:
-    name: SDK and base images (all tags except latest)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        image:
-          [
-            "pulumi-base",
-            "pulumi-go",
-            "pulumi-nodejs",
-            "pulumi-python",
-            "pulumi-dotnet",
-          ]
-        suffix: ["", "-ubi", "-debian"]
-    steps:
-      - name: Set version
-        run: |
-          "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-region: us-east-2
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          role-duration-seconds: 3600
-          role-external-id: upload-pulumi-release
-          role-session-name: pulumi@githubActions
-          role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
-      - name: Get Public ECR Authorization token
-        run: |
-          aws --region us-east-1 ecr-public get-authorization-token \
-            --query 'authorizationData.authorizationToken' | \
-            tr -d '"' | base64 --decode | cut -d: -f2 | \
-            docker login -u AWS --password-stdin https://public.ecr.aws
-      - name: Publish ${{ env.DOCKER_USERNAME }}/pulumi image to AWS Public ECR
-        run: |
-          docker tag ${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.VERSION }}-${{ matrix.suffix }} public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.VERSION }}-${{ matrix.suffix }}
-          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.VERSION }}-${{ matrix.suffix }}
-  sdk-and-base-images-tag-latest:
-    name: SDK and base images (latest)
+  debian-images:
+    name: Debian SDK and base images
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        image:
-          [
-            "pulumi-base",
+        image: [
+            # There is currently no pulumi-base image in ECR.  For additional
+            # information, see:
+            # https://github.com/pulumi/pulumi-docker-containers/issues/50
+            #"pulumi-base",
             "pulumi-go",
             "pulumi-nodejs",
             "pulumi-python",
             "pulumi-dotnet",
           ]
     steps:
+      - name: Set version
+        run: |
+          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -106,7 +82,84 @@ jobs:
             --query 'authorizationData.authorizationToken' | \
             tr -d '"' | base64 --decode | cut -d: -f2 | \
             docker login -u AWS --password-stdin https://public.ecr.aws
-      - name: Publish ${{ env.DOCKER_USERNAME }}/pulumi image to AWS Public ECR
+      # NOTE: The process we use for the Kichen Sink image, which is
+      # single-platform, will not work here.  Pulling a multi-arch manifest from
+      # Docker Hub, tagging, then pushing will only result in the image of the
+      # host's architecture (e.g. linux/amd64) getting pushed to the desintation repo.
+      # For more information, see: https://docs.docker.com/registry/spec/manifest-v2-2/
+      #
+      # Prior to re-creating the manifests, we must pull, tag, and push the
+      # consituent images in the manifests because manifests cannot use source
+      # images from a different registry.
+      - name: Tag ${{ env.PULUMI_VERSION }}-debian-amd64 image and push to AWS Public ECR
         run: |
-          docker tag ${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
-          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64
+
+      - name: Tag ${{ env.PULUMI_VERSION }}-debian-arm64 and push to AWS Public ECR
+        run: |
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64 public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+      - name: Push ${{ env.PULUMI_VERSION }}-debian manifest
+        run: |
+          docker manifest create \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+          docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian
+      - name: Push ${{ env.PULUMI_VERSION }} manifest
+        run: |
+          docker manifest create \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }} \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+          docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
+      - name: Push latest manifest
+        run: |
+          docker manifest create \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+          docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+  # NOTE: If UBI images become multi platform, this job can be replaced by adding a similar step to "-debian" for "-ubi" the previous job.
+  ubi-images:
+    name: UBI SDK and base images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [
+            # See above RE pulumi-base image.
+            # "pulumi-base",
+            "pulumi-go",
+            "pulumi-nodejs",
+            "pulumi-python",
+            "pulumi-dotnet",
+          ]
+    steps:
+      - name: Set version
+        run: |
+          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-region: us-east-2
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-duration-seconds: 3600
+          role-external-id: upload-pulumi-release
+          role-session-name: pulumi@githubActions
+          role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
+      - name: Get Public ECR Authorization token
+        run: |
+          aws --region us-east-1 ecr-public get-authorization-token \
+            --query 'authorizationData.authorizationToken' | \
+            tr -d '"' | base64 --decode | cut -d: -f2 | \
+            docker login -u AWS --password-stdin https://public.ecr.aws
+      - name: Tag ${{ env.PULUMI_VERSION }}-ubi image and push to AWS Public ECR
+        run: |
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-ubi
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-ubi public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-ubi
+          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-ubi
