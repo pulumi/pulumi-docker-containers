@@ -45,7 +45,7 @@ RUN case $(uname -m) in \
     go version
 
 # The runtime container
-FROM debian:buster-slim
+FROM debian:11-slim
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git

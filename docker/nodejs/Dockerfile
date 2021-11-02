@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
 # Must be defined first
-FROM debian:buster-slim AS builder
+FROM debian:bullseye-slim AS builder
 ARG PULUMI_VERSION=latest
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -18,7 +18,7 @@ RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
     fi
 
 # The runtime container
-FROM node:lts-buster-slim
+FROM node:lts-bullseye-slim
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git

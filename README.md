@@ -1,28 +1,29 @@
 # pulumi-docker-images
 
-This repository contains the official Pulumi docker images.  Pulumi publishes and supports the following images:
+This repository contains the source for Pulumi's official Docker images.  Pulumi publishes and supports the following images:
 
 - [`pulumi/pulumi`](https://hub.docker.com/r/pulumi/pulumi): A "kitchen sink" image that includes the Pulumi CLI and all supported SDKs (Golang, Python, Node, Dotnet).
-- [`pulumi/pulumi-base`](https://hub.docker.com/r/pulumi/pulumi-go): A slim image that contains the Pulumi CLI, but no SDK(s).
+- [`pulumi/pulumi-base`](https://hub.docker.com/r/pulumi/pulumi-base): A slim image that contains the Pulumi CLI, but no SDK(s).
 - [`pulumi/pulumi-go`](https://hub.docker.com/r/pulumi/pulumi-go): A slim image that contains the Pulumi CLI along with the Golang Pulumi SDK.
 - [`pulumi/pulumi-python`](https://hub.docker.com/r/pulumi/pulumi-python): A slim image that contains the Pulumi CLI along with the Python runtime and Pulumi SDK.
 - [`pulumi/pulumi-nodejs`](https://hub.docker.com/r/pulumi/pulumi-nodejs): A slim image that contains the Pulumi CLI along with the Node runtime and Pulumi SDK and is suitable for both TypeScript and JavaScript development.
 - [`pulumi/pulumi-dotnet`](https://hub.docker.com/r/pulumi/pulumi-dotnet): A slim image that contains the Pulumi CLI along with the .NET runtime and Pulumi SDK.
 
-Tags on each image match the installed version of Pulumi.  `latest` matches the latest production version of Pulumi.
+Tags on each image match the installed version of Pulumi.  The `latest` tag matches the latest production version of Pulumi.
 
 The base and SDK-specific images are considerably smaller than the combined `pulumi/pulumi` container (100 to 150 MB, compared to ~1 GB for the combined image, depending on the base OS).
 
 ## Build Matrix
 
-In addition, each of the images above (except the full `pulumi/pulumi` image) are built on a matrix of the following OS base images:
+Each of the images described above (except the full `pulumi/pulumi` image) are built on a matrix of the following base images and platforms:
 
-- [redhat/ubi-minimal](https://hub.docker.com/r/redhat/ubi8-minimal), tagged with a suffix of `-ubi`.  UBI images use [`microdnf`](https://github.com/rpm-software-management/microdnf) as a package manager instead of yum to minimize the size of the image.
-- [debian/debian:buster-slim](https://hub.docker.com/layers/debian/library/debian/buster-slim/images/sha256-56983a389d63d1a094980897864c44d6ac3da4a91a5594992388a87f34ffaf22?context=explore), tagged with a suffix of `-debian`.
+- [debian/debian:11-slim](https://github.com/debuerreotype/docker-debian-artifacts/blob/d99a48edaa18ad2bbb260c388b274c8c093f2d32/bullseye/slim/Dockerfile), (AKA "bullseye") tagged with the following suffixes:
+  - `-debian-amd64`: Image manifest for the `linux/amd64` platform.
+  - `-debian-arm64`: Image manifest for the `linux/arm64` platform.
+  - `-debian`:  Manifest list of `-debian-amd64` and `-debian-arm64`.  Executing `docker pull` against this tag will grab the appropriate image for the supported platform you are currently running, and thus should be the default choice.
+- [redhat/ubi8-minimal](https://hub.docker.com/r/redhat/ubi8-minimal), tagged with a suffix of `-ubi`.  UBI images use [`microdnf`](https://github.com/rpm-software-management/microdnf) as a package manager instead of yum to minimize the size of the image.  We currently only support `linux/amd64` for our UBI SDK images.
 
 Images with no suffix tag are identical to the corresponding `-debian` tag.
-
-Pulumi currently only supports the `linux/amd64` platform.  `linux/arm64` support is a work currently in progress.
 
 Images are pushed to both [Docker Hub](https://hub.docker.com/u/pulumi) and the [Amazon ECR Public Gallery](https://gallery.ecr.aws/pulumi/).
 
@@ -40,4 +41,4 @@ docker run -e PULUMI_ACCESS_TOKEN=<TOKEN> -v "$(pwd)":/pulumi/projects $IMG /bin
 
 ## Considerations
 
-The base and SDK images _do not_ include additional tools you might want to use when running a pulumi provider. For example, if you're using the [pulumi-kubernetes](https://github.com/pulumi/pulumi-kubernetes) with [Helm](https://helm.sh/), you'll need to use these images as a base image, or install the `helm` command as part of your CI setup.
+The base and SDK images _do not_ include additional tools you might want to use when running a pulumi provider. For example, if you're using the [pulumi-kubernetes](https://github.com/pulumi/pulumi-kubernetes) provider with [Helm](https://helm.sh/), you'll need to use these images as a base image, and install `helm` as part of your CI setup.

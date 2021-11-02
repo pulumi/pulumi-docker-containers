@@ -20,7 +20,7 @@ RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
     fi
 
 # The runtime container
-FROM python:${PYTHON_VERSION}-slim-buster
+FROM python:${PYTHON_VERSION}-slim
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git

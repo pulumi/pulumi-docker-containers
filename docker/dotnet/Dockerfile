@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:experimental
 
-FROM debian:buster-slim AS builder
+FROM debian:11-slim AS builder
 ARG PULUMI_VERSION=latest
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -17,7 +17,7 @@ RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
     fi
 
 # The runtime container
-FROM debian:buster-slim
+FROM debian:11-slim
 WORKDIR /pulumi/projects
 
 ARG DOTNET_VERSION="3.1"

@@ -1,4 +1,4 @@
-FROM python:3.7-slim-stretch
+FROM python:3.9-slim
 
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
@@ -59,8 +59,7 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 
 # Install .NET Core SDK
-RUN wget -q https://packages.microsoft.com/config/ubuntu/19.04/packages-microsoft-prod.deb \
-  -O packages-microsoft-prod.deb && \
+RUN wget -q https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
   dpkg -i packages-microsoft-prod.deb && \
   rm packages-microsoft-prod.deb && \
   apt-get update -y && \
