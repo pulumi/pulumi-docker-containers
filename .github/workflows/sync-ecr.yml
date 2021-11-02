@@ -54,11 +54,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [
-            # There is currently no pulumi-base image in ECR.  For additional
-            # information, see:
-            # https://github.com/pulumi/pulumi-docker-containers/issues/50
-            #"pulumi-base",
+        image:
+          [
+            "pulumi-base",
             "pulumi-go",
             "pulumi-nodejs",
             "pulumi-python",
@@ -132,9 +130,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [
-            # See above RE pulumi-base image.
-            # "pulumi-base",
+        image:
+          [
+            "pulumi-base",
             "pulumi-go",
             "pulumi-nodejs",
             "pulumi-python",
