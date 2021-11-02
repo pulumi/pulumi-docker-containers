@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
 # Must be defined first
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest as builder
+FROM redhat/ubi8-minimal:latest as builder
 ARG PULUMI_VERSION=latest
 RUN microdnf install -y \
     curl \
@@ -17,7 +17,7 @@ RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
     curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION ; \
     fi
 # The runtime container
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM redhat/ubi8-minimal:latest
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git
