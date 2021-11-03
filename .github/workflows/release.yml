@@ -347,8 +347,9 @@ jobs:
     needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
     runs-on: ubuntu-latest
     steps:
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v1
+      - name: Install Pulumictl
+        uses: jaxxstorm/action-install-gh-release@v1.2.0
         with:
-          token: ${{ env.GITHUB_TOKEN }}
-          event-type: sync-ecr
+          repo: pulumi/pulumictl
+      - name: Repository Dispatch
+        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ecr ${{ env.DISPATCH_REF }}
