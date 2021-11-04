@@ -17,7 +17,8 @@ RUN apt-get update -y && \
   git \
   gnupg \
   software-properties-common \
-  wget && \
+  wget \
+  unzip && \
   # Get all of the signatures we need all at once.
   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key  | apt-key add - && \
   curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg              | apt-key add - && \
@@ -27,6 +28,11 @@ RUN apt-get update -y && \
   # IAM Authenticator for EKS
   curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-07-26/bin/linux/amd64/aws-iam-authenticator && \
   chmod +x /usr/bin/aws-iam-authenticator && \
+  # AWS v2 cli
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+  unzip awscliv2.zip && \
+  ./aws/install && \
+  rm -rf aws && \
   # Add additional apt repos all at once
   echo "deb https://deb.nodesource.com/node_14.x $(lsb_release -cs) main"                         | tee /etc/apt/sources.list.d/node.list             && \
   echo "deb https://dl.yarnpkg.com/debian/ stable main"                                           | tee /etc/apt/sources.list.d/yarn.list             && \
@@ -43,7 +49,6 @@ RUN apt-get update -y && \
   kubectl \
   nodejs \
   yarn && \
-  pip install awscli --upgrade && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
 
