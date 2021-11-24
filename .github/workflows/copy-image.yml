@@ -31,6 +31,7 @@ on:
       dest_registry_password:
         description: The password for the destination registry to use to execute `docker login` to push containers.
         required: true
+        type: string
 
 jobs:
   copy-image:

@@ -9,7 +9,7 @@ on:
 jobs:
   simple-test:
     name: Simple test
-    uses: pulumi/pulumi-docker-containers/.github/workflows/copy-image.yml@mirror-to-ghcr
+    uses: pulumi/pulumi-docker-containers/.github/workflows/copy-image.yml@${{ env.GITHUB_SHA }}
     with:
       dest_registry_uri: ghcr.io
       dest_registry_username: pulumibot
