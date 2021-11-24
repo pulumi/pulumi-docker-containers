@@ -1,0 +1,19 @@
+# Syncs the outputs of a release build from Docker Hub to GitHub Container Registry.
+name: Sync to GHCR
+on:
+  workflow_dispatch: {}
+  repository_dispatch:
+    types:
+      - sync-ghcr
+
+jobs:
+  simple-test: Simple test
+    uses: pulumi/pulumi-docker-containers/.github/workflows/copy-image.yml
+    with:
+      dest_registry_uri: ghcr.io
+      dest_registry_username: pulumibot
+      image: pulumi
+      tag: 3.18.1
+    secrets:
+      dest_registry_password: ${{ secrets.PULUMI_BOT_TOKEN }}
+
