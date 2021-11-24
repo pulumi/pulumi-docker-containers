@@ -7,8 +7,9 @@ on:
       - sync-ghcr
 
 jobs:
-  simple-test: Simple test
-    uses: pulumi/pulumi-docker-containers/.github/workflows/copy-image.yml
+  simple-test:
+    name: Simple test
+    uses: pulumi/pulumi-docker-containers/.github/workflows/copy-image.yml@mirror-to-ghcr
     with:
       dest_registry_uri: ghcr.io
       dest_registry_username: pulumibot
@@ -16,4 +17,3 @@ jobs:
       tag: 3.18.1
     secrets:
       dest_registry_password: ${{ secrets.PULUMI_BOT_TOKEN }}
-
