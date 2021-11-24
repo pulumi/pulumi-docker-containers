@@ -1,4 +1,8 @@
-# Syncs the outputs of a release build from Docker Hub to GitHub Container Registry.
+# NOTE: This workflow as currently authored will fail if `curl
+# https://www.pulumi.com/latest-version` has changed since the last time the
+# Release workflow finished successfully.  In this case, the latest version in
+# Docker Hub (e.g. 3.15.0) would not match the latest version retrieved via
+# `curl` (e.g. 3.16.0)/
 name: Sync to GHCR
 on:
   workflow_dispatch: {}
@@ -6,14 +10,147 @@ on:
     types:
       - sync-ghcr
 
+env:
+  DOCKER_USERNAME: pulumi
+  DISPATCH_REF: ${{ github.event.client_payload.ref }}
+
 jobs:
-  simple-test:
-    name: Simple test
-    uses: pulumi/pulumi-docker-containers/.github/workflows/copy-image.yml@${{ env.GITHUB_SHA }}
-    with:
-      dest_registry_uri: ghcr.io
-      dest_registry_username: pulumibot
-      image: pulumi
-      tag: 3.18.1
-    secrets:
-      dest_registry_password: ${{ secrets.PULUMI_BOT_TOKEN }}
+  sync-to-ecr:
+    name: Kitchen Sink image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set version
+        run: |
+          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: pulumibot
+          password: ${{ secrets.PULUMI_BOT_TOKEN }}
+      - name: Tag ${{ env.PULUMI_VERSION }} and push to GHCR
+        run: |
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} ghcr.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker push ghcr.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
+      - name: Tag latest and push to AWS Public ECR
+        run: |
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/pulumi:latest
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/pulumi:latest ghcr.io/${{ env.DOCKER_USERNAME }}/pulumi:latest
+          docker push ghcr.io/${{ env.DOCKER_USERNAME }}/pulumi:latest
+
+  # debian-images:
+  #   name: Debian SDK and base images
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       image:
+  #         [
+  #           "pulumi-base",
+  #           "pulumi-go",
+  #           "pulumi-nodejs",
+  #           "pulumi-python",
+  #           "pulumi-dotnet",
+  #         ]
+  #   steps:
+  #     - name: Set version
+  #       run: |
+  #         [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-region: us-east-2
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         role-duration-seconds: 3600
+  #         role-external-id: upload-pulumi-release
+  #         role-session-name: pulumi@githubActions
+  #         role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
+  #     - name: Get Public ECR Authorization token
+  #       run: |
+  #         aws --region us-east-1 ecr-public get-authorization-token \
+  #           --query 'authorizationData.authorizationToken' | \
+  #           tr -d '"' | base64 --decode | cut -d: -f2 | \
+  #           docker login -u AWS --password-stdin https://ghcr.io
+  #     # NOTE: The process we use for the Kichen Sink image, which is
+  #     # single-platform, will not work here.  Pulling a multi-arch manifest from
+  #     # Docker Hub, tagging, then pushing will only result in the image of the
+  #     # host's architecture (e.g. linux/amd64) getting pushed to the desintation repo.
+  #     # For more information, see: https://docs.docker.com/registry/spec/manifest-v2-2/
+  #     #
+  #     # Prior to re-creating the manifests, we must pull, tag, and push the
+  #     # consituent images in the manifests because manifests cannot use source
+  #     # images from a different registry.
+  #     - name: Tag ${{ env.PULUMI_VERSION }}-debian-amd64 image and push to AWS Public ECR
+  #       run: |
+  #         docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64
+  #         docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64
+  #         docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64
+
+  #     - name: Tag ${{ env.PULUMI_VERSION }}-debian-arm64 and push to AWS Public ECR
+  #       run: |
+  #         docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+  #         docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64 ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+  #         docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+  #     - name: Push ${{ env.PULUMI_VERSION }}-debian manifest
+  #       run: |
+  #         docker manifest create \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+  #         docker manifest push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian
+  #     - name: Push ${{ env.PULUMI_VERSION }} manifest
+  #       run: |
+  #         docker manifest create \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }} \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+  #         docker manifest push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
+  #     - name: Push latest manifest
+  #       run: |
+  #         docker manifest create \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
+  #           ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
+  #         docker manifest push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+  # # NOTE: If UBI images become multi platform, this job can be replaced by adding a similar step to "-debian" for "-ubi" the previous job.
+  # ubi-images:
+  #   name: UBI SDK and base images
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       image:
+  #         [
+  #           "pulumi-base",
+  #           "pulumi-go",
+  #           "pulumi-nodejs",
+  #           "pulumi-python",
+  #           "pulumi-dotnet",
+  #         ]
+  #   steps:
+  #     - name: Set version
+  #       run: |
+  #         [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-region: us-east-2
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         role-duration-seconds: 3600
+  #         role-external-id: upload-pulumi-release
+  #         role-session-name: pulumi@githubActions
+  #         role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
+  #     - name: Get Public ECR Authorization token
+  #       run: |
+  #         aws --region us-east-1 ecr-public get-authorization-token \
+  #           --query 'authorizationData.authorizationToken' | \
+  #           tr -d '"' | base64 --decode | cut -d: -f2 | \
+  #           docker login -u AWS --password-stdin https://ghcr.io
+  #     - name: Tag ${{ env.PULUMI_VERSION }}-ubi image and push to AWS Public ECR
+  #       run: |
+  #         docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-ubi
+  #         docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-ubi ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-ubi
+  #         docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-ubi
