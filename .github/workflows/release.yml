@@ -342,8 +342,8 @@ jobs:
         run: |
           docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
 
-  start-sync-ecr:
-    name: Start ECR sync
+  start-syncs:
+    name: Start syncs to other container registries
     needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
     runs-on: ubuntu-latest
     steps:
@@ -351,5 +351,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@v1.2.0
         with:
           repo: pulumi/pulumictl
-      - name: Repository Dispatch
+      - name: Kick off ECR sync
         run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ecr ${{ env.DISPATCH_REF }}
+      - name: Kick off GHCR sync
+        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ghcr ${{ env.DISPATCH_REF }}
