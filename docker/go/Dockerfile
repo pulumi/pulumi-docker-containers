@@ -1,13 +1,12 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
 # Must be defined first
-ARG PULUMI_VERSION=latest
 
 # Build container
 FROM ubuntu:bionic AS builder
 
-# Set go versions
-ARG RUNTIME_VERSION=1.16.9
+ARG PULUMI_VERSION=latest
+ARG GO_RUNTIME_VERSION=1.16.10
 
 WORKDIR /golang
 RUN apt-get update -y && \
@@ -37,7 +36,7 @@ RUN case $(uname -m) in \
     ARCH=$(uname -m) \
     ;; \
     esac && \
-    curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${RUNTIME_VERSION}.linux-${ARCH}.tar.gz; \
+    curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GO_RUNTIME_VERSION}.linux-${ARCH}.tar.gz; \
     mkdir -p bin; \
     tar -C /golang -xzf /tmp/go.tgz; \
     rm /tmp/go.tgz; \
