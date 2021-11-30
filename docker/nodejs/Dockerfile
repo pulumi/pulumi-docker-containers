@@ -2,7 +2,7 @@
 # Interim container so we can copy pulumi binaries
 # Must be defined first
 FROM debian:bullseye-slim AS builder
-ARG PULUMI_VERSION=latest
+ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y \
@@ -11,11 +11,8 @@ RUN apt-get update -y && \
     git
 
 # Install the Pulumi SDK, including the CLI and language runtimes.
-RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
-    curl -fsSL https://get.pulumi.com/ | bash; \
-    else \
-    curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION ; \
-    fi
+RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
+
 
 # The runtime container
 FROM node:lts-bullseye-slim
