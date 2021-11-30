@@ -85,14 +85,10 @@ RUN curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
 # of the SDK. Otherwise, we use whatever get.pulumi.com thinks is
 # the latest
-ARG PULUMI_VERSION=latest
+ARG PULUMI_VERSION
 
 # Install the Pulumi SDK, including the CLI and language runtimes.
-RUN if [ "$PULUMI_VERSION" = "latest" ]; then \
-  curl -fsSL https://get.pulumi.com/ | bash; \
-  else \
-  curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION ; \
-  fi && \
+RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
   mv ~/.pulumi/bin/* /usr/bin
 
 # I think it's safe to say if we're using this mega image, we want pulumi
