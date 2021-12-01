@@ -1,27 +1,31 @@
-# NOTE: This workflow as currently authored will fail if `curl
-# https://www.pulumi.com/latest-version` has changed since the last time the
-# Release workflow finished successfully.  In this case, the latest version in
-# Docker Hub (e.g. 3.15.0) would not match the latest version retrieved via
-# `curl` (e.g. 3.16.0)/
+# Copies all Pulumi Docker images for the supplied version from Docker Hub to
+# AWS ECR Public Gallery.
 name: Sync to ECR
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      pulumi_version:
+        description: The image tag to copy, fully specified, e.g. "3.18.1"
+        type: string
+        required: true
+      tag_latest:
+        description: Whether to also tag this version as "latest".
+        type: boolean
+        required: true
+        default: true
   repository_dispatch:
     types:
       - sync-ecr
 
 env:
   DOCKER_USERNAME: pulumi
-  DISPATCH_REF: ${{ github.event.client_payload.ref }}
+  PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
 
 jobs:
   sync-to-ecr:
     name: Kitchen Sink image
     runs-on: ubuntu-latest
     steps:
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -44,6 +48,7 @@ jobs:
           docker tag docker.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
           docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
       - name: Tag latest and push to AWS Public ECR
+        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         run: |
           docker pull docker.io/${{ env.DOCKER_USERNAME }}/pulumi:latest
           docker tag docker.io/${{ env.DOCKER_USERNAME }}/pulumi:latest public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest
@@ -64,9 +69,6 @@ jobs:
             "pulumi-dotnet",
           ]
     steps:
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -118,12 +120,14 @@ jobs:
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
           docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
       - name: Push latest manifest
+        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         run: |
           docker manifest create \
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest \
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
           docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+
   # NOTE: If UBI images become multi platform, this job can be replaced by adding a similar step to "-debian" for "-ubi" the previous job.
   ubi-images:
     name: UBI SDK and base images
@@ -140,9 +144,6 @@ jobs:
             "pulumi-dotnet",
           ]
     steps:
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:

@@ -2,7 +2,17 @@ name: Release Build
 on:
   # Allow the workflow to be triggered manually, e.g. for testing, or after
   # changing the Dockerfiles:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      pulumi_version:
+        description: The version of Pulumi to use to build the Docker images.  Full semver, e.g. "3.18.1".
+        type: string
+        required: true
+      tag_latest:
+        description: Whether to also tag this version as "latest".
+        type: boolean
+        required: true
+        default: true
   # Trigger the release workflow for Docker containers when a new version of
   # Pulumi is released.  This dispatch event is fired in pulumi/pulumi's release
   # workflow:
@@ -10,19 +20,19 @@ on:
     types:
       - docker-build # Legacy event name, will delete once no longer used.
       - release-build # Current event name.
-  # We may want to add push: main as a trigger in the future once we're
-  # confident this workflow is stable and correct.
 env:
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
-  PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} # Used by test-containers.sh
+  # Used to run the container tests:
+  PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+  # The organization in the Pulumi SaaS service against which the integration
+  # tests will run:
   PULUMI_ORG: "pulumi-test"
-  PR_COMMIT_SHA: ${{ github.event.client_payload.pull_request.head.sha }}
   # We parameterize the Docker Hub username to allow forks to easily test
   # changes on a separate repo without having to change the username in multiple
   # places:
   DOCKER_USERNAME: pulumibot
   DOCKER_ORG: pulumi
-  DISPATCH_REF: ${{ github.event.client_payload.ref }}
+  PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
 
 jobs:
   kitchen-sink:
@@ -44,9 +54,6 @@ jobs:
         uses: docker/setup-buildx-action@v1
         with:
           install: true
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Build
         # We only build the "kitchen sink" image for AMD64 as it's rather large
         # and we want to steer users to use the single SDK images going forward:
@@ -77,10 +84,11 @@ jobs:
             --entrypoint /bin/bash \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
-      - name: Push image
-        run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
-          docker push ${{ env.DOCKER_ORG }}/pulumi:latest
+      - name: Push ${{ env.PULUMI_VERSION }}
+        run: docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
+      - name: Push latest
+        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
+        run: docker push ${{ env.DOCKER_ORG }}/pulumi:latest
 
   base:
     name: Base image
@@ -103,9 +111,6 @@ jobs:
         uses: docker/setup-buildx-action@v1
         with:
           install: true
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Build
         run: |
           docker build \
@@ -128,9 +133,6 @@ jobs:
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Debian manifest
         run: |
           docker manifest create \
@@ -153,6 +155,7 @@ jobs:
             ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}
       - name: Suffix-less manifest (latest)
+        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         # Manifest lists can't be a source for `docker tag`, so we create an
         # additional copy of the previous manifest to tag latest:
         run: |
@@ -182,9 +185,6 @@ jobs:
         uses: docker/setup-buildx-action@v1
         with:
           install: true
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Build
         # We supply a working directory to the command below due to the
         # dnf/nodej2.module file that has to mounted into the container.
@@ -244,9 +244,6 @@ jobs:
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Debian manifest
         run: |
           docker manifest create \
@@ -264,6 +261,7 @@ jobs:
       - name: Suffix-less manifest (latest)
         # Manifest lists can't be a source for `docker tag`, so we create an
         # additional copy of the previous manifest to tag latest:
+        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest \
@@ -291,9 +289,6 @@ jobs:
         uses: docker/setup-buildx-action@v1
         with:
           install: true
-      - name: Set version
-        run: |
-          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Build
         # We only build UBI for amd64 due to arm64 builds hanging on `npm
         # install -g yarn` with no additional output.
@@ -346,12 +341,26 @@ jobs:
     name: Start syncs to other container registries
     needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
     runs-on: ubuntu-latest
+    # This workflow can be triggered by 2 events: workflow_dispatch, i.e., a
+    # manual run, or repository_dispatch, which is triggered by a Pulumi
+    # release.  In the case of a new Pulumi release (i.e. repository_dispatch),
+    # we will always want to sync to the other repos.  However, in the event of
+    # a workflow_dispatch we are probably debugging an issue and we do not
+    # necessarily want to automatically sync to the other repos.  Both repo sync
+    # workflows allow for their own manual trigger (i.e. repository_dispatch),
+    # so it's not too much work to run the sync workflows manually.
+    #
+    # This design choice also allows us avoid having to alter pulumictl to
+    # accept arbitrary parameters, as we would need to persist the tag_latest
+    # option from a workflow_dispatch in this workflow to each of the sync
+    # workflows.
+    if: ${{ github.event_name == 'repository_dispatch' }}
     steps:
       - name: Install Pulumictl
         uses: jaxxstorm/action-install-gh-release@v1.2.0
         with:
           repo: pulumi/pulumictl
       - name: Kick off ECR sync
-        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ecr ${{ env.DISPATCH_REF }}
+        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ecr ${{ env.PULUMI_VERSION }}
       - name: Kick off GHCR sync
-        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ghcr ${{ env.DISPATCH_REF }}
+        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ghcr ${{ env.PULUMI_VERSION }}
