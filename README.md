@@ -1,4 +1,4 @@
-# pulumi-docker-images
+# pulumi-docker-containers
 
 This repository contains the source for Pulumi's official Docker images.  Pulumi publishes and supports the following images:
 

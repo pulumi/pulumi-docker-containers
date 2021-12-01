@@ -3,9 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       pulumi_version:
-        description: The version of Pulumi to copy (in addtion to latest, which is always copied).  This version is expected to match the various tags on Pulumi Docker images and should be fully specified, e.g. "3.18.1"
+        description: The version of Pulumi to use to build the Docker images.  Full semver, e.g. "3.18.1".
         type: string
-        required: true
   repository_dispatch:
     types:
       - ci-build
@@ -22,9 +21,10 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
-  PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} # Used by test-containers.sh
+  PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} # Used by test-containers.sh\
+  # The organization in the Pulumi SaaS service against which the integration
+  # tests will run:
   PULUMI_ORG: "pulumi-test"
-  PR_COMMIT_SHA: ${{ github.event.client_payload.pull_request.head.sha }}
   # We parameterize the Docker Hub username to allow forks to easily test
   # changes on a separate repo without having to change the username in multiple
   # places:
@@ -51,14 +51,17 @@ jobs:
             [1]: ${{ steps.vars.outputs.run-url }}
   kitchen-sink:
     name: All SDKs image
-    # Verify that the event is not triggered by a fork since forks cannot
-    # access secrets other than the default GITHUB_TOKEN.
-    if: github.event_name == 'repository_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       matrix:
         go-version: [1.16.x]
     runs-on: ubuntu-latest
     steps:
+      # If no version of Pulumi is supplied by the incoming event (e.g. in the
+      # case of a PR or merge to main), we use the latest production version:
+      - name: Set version to latest
+        if: ${{ !env.PULUMI_VERSION }}
+        run: |
+          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -103,6 +106,12 @@ jobs:
       matrix:
         os: ["debian", "ubi"]
     steps:
+      # If no version of Pulumi is supplied by the incoming event (e.g. in the
+      # case of a PR or merge to main), we use the latest production version:
+      - name: Set version to latest
+        if: ${{ !env.PULUMI_VERSION }}
+        run: |
+          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -127,6 +136,12 @@ jobs:
         sdk: ["nodejs", "python", "dotnet", "go"]
         arch: ["amd64", "arm64"]
     steps:
+      # If no version of Pulumi is supplied by the incoming event (e.g. in the
+      # case of a PR or merge to main), we use the latest production version:
+      - name: Set version to latest
+        if: ${{ !env.PULUMI_VERSION }}
+        run: |
+          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -184,6 +199,12 @@ jobs:
       matrix:
         sdk: ["nodejs", "python", "dotnet", "go"]
     steps:
+      # If no version of Pulumi is supplied by the incoming event (e.g. in the
+      # case of a PR or merge to main), we use the latest production version:
+      - name: Set version to latest
+        if: ${{ !env.PULUMI_VERSION }}
+        run: |
+          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
