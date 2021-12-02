@@ -25,7 +25,11 @@ Each of the images described above (except the full `pulumi/pulumi` image) are b
 
 Images with no suffix tag are identical to the corresponding `-debian` tag.
 
-Images are pushed to both [Docker Hub](https://hub.docker.com/u/pulumi) and the [Amazon ECR Public Gallery](https://gallery.ecr.aws/pulumi/).
+Images are pushed to:
+
+* [Docker Hub](https://hub.docker.com/u/pulumi)
+* [Amazon ECR Public Gallery](https://gallery.ecr.aws/pulumi/)
+* [GitHub Container Registry](https://github.com/orgs/pulumi/packages)
 
 ## Scanning
 
@@ -41,4 +45,4 @@ docker run -e PULUMI_ACCESS_TOKEN=<TOKEN> -v "$(pwd)":/pulumi/projects $IMG /bin
 
 ## Considerations
 
-The base and SDK images _do not_ include additional tools you might want to use when running a pulumi provider. For example, if you're using the [pulumi-kubernetes](https://github.com/pulumi/pulumi-kubernetes) provider with [Helm](https://helm.sh/), you'll need to use these images as a base image, and install `helm` as part of your CI setup.
+The base and SDK images _do not_ include additional tools you might want to use when running a Pulumi provider. For example, if you're using the [pulumi-kubernetes](https://github.com/pulumi/pulumi-kubernetes) provider with [Helm](https://helm.sh/), you'll need to use these images as a base image, and install `helm` as part of your CI setup.
