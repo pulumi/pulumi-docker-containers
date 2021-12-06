@@ -3,6 +3,7 @@ FROM python:3.9-slim
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
+LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
 ENV GOLANG_VERSION 1.17.3
 ENV GOLANG_SHA256 550f9845451c0c94be679faf116291e7807a8d78b43149f9506c1b15eb89008c

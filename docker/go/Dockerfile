@@ -40,6 +40,7 @@ RUN case $(uname -m) in \
 
 # The runtime container
 FROM debian:11-slim
+LABEL org.opencontainers.image.description="Pulumi CLI container for go"
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git

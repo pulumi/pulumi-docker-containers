@@ -15,6 +15,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # The runtime container
 FROM redhat/ubi8-minimal:latest
+LABEL org.opencontainers.image.description="Pulumi CLI container for python"
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git

@@ -17,6 +17,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # The runtime container
 FROM python:${PYTHON_VERSION}-slim
+LABEL org.opencontainers.image.description="Pulumi CLI container for python"
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git
