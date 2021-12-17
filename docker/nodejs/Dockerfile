@@ -29,6 +29,7 @@ RUN apt-get update -y && \
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 COPY --from=builder /root/.pulumi/bin/*-nodejs* /pulumi/bin/
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
+COPY entrypoint.sh /usr/local/bin/
 ENV PATH "/pulumi/bin:${PATH}"
 
-CMD ["pulumi"]
+ENTRYPOINT [ "entrypoint.sh" ]
