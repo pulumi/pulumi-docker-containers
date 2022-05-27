@@ -41,7 +41,7 @@ func TestPulumiDockerImage(t *testing.T) {
 		t.Fatal("PULUMI_ORG must be set.  Aborting tests.")
 	}
 
-	sdksToTest := []string{"csharp", "python", "typescript", "go"}
+	sdksToTest := []string{"csharp", "python", "typescript", "go", "java"}
 	if os.Getenv("SDKS_TO_TEST") != "" {
 		sdksToTest = strings.Split(os.Getenv("SDKS_TO_TEST"), ",")
 	}

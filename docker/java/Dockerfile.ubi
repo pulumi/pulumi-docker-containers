@@ -1,0 +1,36 @@
+# syntax = docker/dockerfile:experimental
+# Interim container so we can copy pulumi binaries
+# Must be defined first
+FROM redhat/ubi8-minimal:latest as builder
+ARG PULUMI_VERSION
+RUN microdnf install -y \
+    curl \
+    make \
+    gcc \
+    git \
+    tar \
+    gcc-c++
+# Install the Pulumi SDK, including the CLI and language runtimes.
+RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
+
+# The runtime container
+FROM redhat/ubi8-minimal:latest
+LABEL org.opencontainers.image.description="Pulumi CLI container for nodejs"
+WORKDIR /pulumi/projects
+
+COPY dnf/nodejs.module /etc/dnf/modules.d/nodejs.module
+
+RUN microdnf install -y \
+    git \
+    tar \
+    nodejs \
+    ca-certificates && \
+    npm install -g yarn
+
+# Uses the workdir, copies from pulumi interim container
+COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
+COPY --from=builder /root/.pulumi/bin/*-nodejs* /pulumi/bin/
+COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
+ENV PATH "/pulumi/bin:${PATH}"
+
+CMD ["pulumi"]
