@@ -25,7 +25,8 @@ RUN microdnf install -y \
 
 RUN curl https://dlcdn.apache.org/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz -o maven.tar.gz \
     && tar -xvf maven.tar.gz \
-    && mv apache-maven-3.8.5 /pulumi/
+    && mv apache-maven-3.8.5 /pulumi/ \
+    && rm maven.tar.gz
 
 
 # Uses the workdir, copies from pulumi interim container

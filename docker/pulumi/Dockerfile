@@ -63,6 +63,10 @@ RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd6
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
+# Install Java
+RUN apt-get update -y && \
+  apt-get install -y \
+  maven
 
 # Install .NET Core SDK
 RUN wget -q https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
