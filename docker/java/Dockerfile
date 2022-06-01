@@ -22,6 +22,7 @@ WORKDIR /pulumi/projects
 RUN apt-get update -y && \
     apt-get install -y \
     java-common \
+    maven \
     git \
     curl
 
