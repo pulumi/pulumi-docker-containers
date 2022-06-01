@@ -23,8 +23,7 @@ RUN apt-get update -y && \
     apt-get install -y \
     java-common \
     maven \
-    git \
-    curl
+    git
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
