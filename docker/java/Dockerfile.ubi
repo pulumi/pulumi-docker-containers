@@ -21,14 +21,19 @@ WORKDIR /pulumi/projects
 RUN microdnf install -y \
     git \
     tar \
-    maven \
     java-11-openjdk \
+    curl \
     ca-certificates
+
+RUN curl https://dlcdn.apache.org/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz -o maven.tar.gz \
+    && tar -xvf maven.tar.gz \
+    && mv apache-maven-3.8.5 /pulumi/
+
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
-ENV PATH "/pulumi/bin:${PATH}"
+ENV PATH "/pulumi/bin:/pulumi/apache-maven-3.8.5/bin:${PATH}"
 
 CMD ["pulumi"]
