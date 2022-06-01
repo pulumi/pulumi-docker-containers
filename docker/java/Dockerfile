@@ -15,16 +15,15 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 
 # The runtime container
-FROM eclipse-temurin:18.0.1_10-jdk
+FROM debian:11-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for java"
 WORKDIR /pulumi/projects
 
-# Install needed tools, like git
 RUN apt-get update -y && \
     apt-get install -y \
+    java-common
     git \
-    ca-certificates \
-    maven
+    curl
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi

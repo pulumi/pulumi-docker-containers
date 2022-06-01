@@ -15,21 +15,18 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # The runtime container
 FROM redhat/ubi8-minimal:latest
-LABEL org.opencontainers.image.description="Pulumi CLI container for nodejs"
+LABEL org.opencontainers.image.description="Pulumi CLI container for Java"
 WORKDIR /pulumi/projects
-
-COPY dnf/nodejs.module /etc/dnf/modules.d/nodejs.module
 
 RUN microdnf install -y \
     git \
     tar \
-    nodejs \
-    ca-certificates && \
-    npm install -g yarn
+    java-11-openjdk \
+    ca-certificates
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
-COPY --from=builder /root/.pulumi/bin/*-nodejs* /pulumi/bin/
+COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
 ENV PATH "/pulumi/bin:${PATH}"
 

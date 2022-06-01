@@ -2,12 +2,13 @@
 
 This repository contains the source for Pulumi's official Docker images.  Pulumi publishes and supports the following images:
 
-- [`pulumi/pulumi`](https://hub.docker.com/r/pulumi/pulumi): A "kitchen sink" image that includes the Pulumi CLI and all supported SDKs (Golang, Python, Node, Dotnet).
+- [`pulumi/pulumi`](https://hub.docker.com/r/pulumi/pulumi): A "kitchen sink" image that includes the Pulumi CLI and all supported SDKs (Golang, Python, Node, Dotnet, Java).
 - [`pulumi/pulumi-base`](https://hub.docker.com/r/pulumi/pulumi-base): A slim image that contains the Pulumi CLI, but no SDK(s).
 - [`pulumi/pulumi-go`](https://hub.docker.com/r/pulumi/pulumi-go): A slim image that contains the Pulumi CLI along with the Golang Pulumi SDK.
 - [`pulumi/pulumi-python`](https://hub.docker.com/r/pulumi/pulumi-python): A slim image that contains the Pulumi CLI along with the Python runtime and Pulumi SDK.
 - [`pulumi/pulumi-nodejs`](https://hub.docker.com/r/pulumi/pulumi-nodejs): A slim image that contains the Pulumi CLI along with the Node runtime and Pulumi SDK and is suitable for both TypeScript and JavaScript development.
 - [`pulumi/pulumi-dotnet`](https://hub.docker.com/r/pulumi/pulumi-dotnet): A slim image that contains the Pulumi CLI along with the .NET runtime and Pulumi SDK.
+- [`pulumi/pulumi-java`](https://hub.docker.com/r/pulumi/pulumi-java): A slim image that contains the Pulumi CLI along with the Java runtime and Pulumi SDK.
 
 Tags on each image match the installed version of Pulumi.  The `latest` tag matches the latest production version of Pulumi.
 
