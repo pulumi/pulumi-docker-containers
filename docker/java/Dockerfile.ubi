@@ -21,6 +21,7 @@ WORKDIR /pulumi/projects
 RUN microdnf install -y \
     git \
     tar \
+    maven \
     java-11-openjdk \
     ca-certificates
 
