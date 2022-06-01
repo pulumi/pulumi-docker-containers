@@ -21,7 +21,7 @@ WORKDIR /pulumi/projects
 
 RUN apt-get update -y && \
     apt-get install -y \
-    java-common
+    java-common \
     git \
     curl
 
