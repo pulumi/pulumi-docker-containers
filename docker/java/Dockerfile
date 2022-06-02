@@ -32,7 +32,4 @@ COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
 ENV PATH "/pulumi/bin:${PATH}"
 
-RUN gradle --version
-RUN mvn --version
-
 CMD ["pulumi"]
