@@ -66,7 +66,10 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 # Install Java
 RUN apt-get update -y && \
   apt-get install -y \
-  maven
+      gradle \
+      maven
+RUN gradle --version
+RUN mvn --version
 
 # Install .NET Core SDK
 RUN wget -q https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \

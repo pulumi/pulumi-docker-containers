@@ -6,9 +6,9 @@ ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y \
-    curl \
-    build-essential \
-    git
+        curl \
+        build-essential \
+        git
 
 # Install the Pulumi SDK, including the CLI and language runtimes.
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
@@ -21,14 +21,18 @@ WORKDIR /pulumi/projects
 
 RUN apt-get update -y && \
     apt-get install -y \
-    java-common \
-    maven \
-    git
+        java-common \
+        maven \
+        gradle \
+        git
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
 ENV PATH "/pulumi/bin:${PATH}"
+
+RUN gradle --version
+RUN mvn --version
 
 CMD ["pulumi"]
