@@ -1,0 +1,46 @@
+# syntax = docker/dockerfile:experimental
+# Interim container so we can copy pulumi binaries
+# Must be defined first
+FROM redhat/ubi8-minimal:latest as builder
+ARG PULUMI_VERSION
+RUN microdnf install -y \
+    curl \
+    git \
+    tar \
+    unzip
+
+# Install the Pulumi SDK, including the CLI and language runtimes.
+RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
+
+RUN curl https://downloads.gradle-dn.com/distributions/gradle-7.4.2-bin.zip -o gradle.zip \
+    && unzip gradle.zip
+
+# The runtime container
+FROM redhat/ubi8-minimal:latest
+LABEL org.opencontainers.image.description="Pulumi CLI container for Java"
+WORKDIR /pulumi/projects
+
+RUN microdnf install -y \
+    git \
+    tar \
+    java-11-openjdk \
+    curl \
+    unzip \
+    ca-certificates
+
+RUN curl https://dlcdn.apache.org/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz -o maven.tar.gz \
+    && tar -xvf maven.tar.gz \
+    && mv apache-maven-3.8.5 /pulumi/ \
+    && rm maven.tar.gz
+
+
+# Uses the workdir, copies from pulumi interim container
+COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
+COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
+COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
+COPY --from=builder /gradle-7.4.2 /pulumi/
+
+ENV PATH "/pulumi/bin:/pulumi/apache-maven-3.8.5/bin:/pulumi/gradle-7.4.2/bin:${PATH}"
+ENV JAVA_HOME "/usr/lib/jvm/java-11-openjdk-11.0.15.0.10-2.el8_6.x86_64"
+
+CMD ["pulumi"]

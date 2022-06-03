@@ -133,7 +133,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: ["nodejs", "python", "dotnet", "go"]
+        sdk: ["nodejs", "python", "dotnet", "go", "java"]
         arch: ["amd64", "arm64"]
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
@@ -197,7 +197,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: ["nodejs", "python", "dotnet", "go"]
+        sdk: ["nodejs", "python", "dotnet", "go", "java"]
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
