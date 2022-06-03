@@ -6,7 +6,7 @@
 FROM ubuntu:bionic AS builder
 
 ARG PULUMI_VERSION
-ARG GO_RUNTIME_VERSION=1.17.3
+ARG GO_RUNTIME_VERSION=1.17.7
 
 WORKDIR /golang
 RUN apt-get update -y && \
