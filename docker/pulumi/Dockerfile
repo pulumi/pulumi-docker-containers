@@ -5,8 +5,8 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.17.3
-ENV GOLANG_SHA256 550f9845451c0c94be679faf116291e7807a8d78b43149f9506c1b15eb89008c
+ENV GOLANG_VERSION 1.17.7
+ENV GOLANG_SHA256 02b111284bedbfa35a7e5b74a06082d18632eff824fd144312f6063943d49259
 
 # Install deps all in one step
 RUN apt-get update -y && \
@@ -54,11 +54,11 @@ RUN apt-get update -y && \
   rm -rf /var/lib/apt/lists/*
 
 # Install Go
-RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz; \
-  echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c -; \
-  tar -C /usr/local -xzf /tmp/go.tgz; \
-  rm /tmp/go.tgz; \
-  export PATH="/usr/local/go/bin:$PATH"; \
+RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+  echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c - && \
+  tar -C /usr/local -xzf /tmp/go.tgz && \
+  rm /tmp/go.tgz && \
+  export PATH="/usr/local/go/bin:$PATH" && \
   go version
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
