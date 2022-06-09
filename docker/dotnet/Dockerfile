@@ -18,17 +18,16 @@ FROM debian:11-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for dotnet"
 WORKDIR /pulumi/projects
 
-ARG DOTNET_VERSION="3.1"
+ARG DOTNET_VERSION="6.0"
 
 RUN apt-get update -y && \
     apt-get install -y \
     git \
     curl
 
-# arm64 packages are not available in apt-get, per
-# https://docs.microsoft.com/en-us/dotnet/core/install/linux-debian, so we need
-# to install via another method:
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c ${DOTNET_VERSION}
+# Install dotnet 6.0 using instructions from:
+# https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel ${DOTNET_VERSION}
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi

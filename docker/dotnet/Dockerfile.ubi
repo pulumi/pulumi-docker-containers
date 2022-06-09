@@ -18,7 +18,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 # The runtime container
 FROM redhat/ubi8-minimal:latest
 LABEL org.opencontainers.image.description="Pulumi CLI container for dotnet"
-ARG DOTNET_VERSION=3.1
+ARG DOTNET_VERSION=6.0
 WORKDIR /pulumi/projects
 
 RUN microdnf install -y \
@@ -29,9 +29,9 @@ RUN microdnf install -y \
     # Required by the dotnet-install script, which calls `find`:
     findutils
 
-# arm64 packages are not available for 3.1 (at least, possibly later versions as
-# well), so we need to install via another method:
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c ${DOTNET_VERSION} 
+# Install dotnet 6.0 using instructions from:
+# https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel ${DOTNET_VERSION} 
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
