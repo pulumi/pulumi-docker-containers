@@ -40,5 +40,7 @@ COPY --from=builder /root/.pulumi/bin/*-dotnet* /pulumi/bin/
 ENV PATH "/root/.dotnet:/pulumi/bin:${PATH}"
 ENV DOTNET_ROOT /root/.dotnet
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT 1
+# Allow newer dotnet version (e.g. 6) to build projects targeting older frameworks (v3.1)
+ENV DOTNET_ROLL_FORWARD Major
 
 CMD ["pulumi"]
