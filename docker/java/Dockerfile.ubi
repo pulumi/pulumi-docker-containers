@@ -28,9 +28,9 @@ RUN microdnf install -y \
     unzip \
     ca-certificates
 
-RUN curl https://dlcdn.apache.org/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz -o maven.tar.gz \
+RUN curl https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -o maven.tar.gz \
     && tar -xvf maven.tar.gz \
-    && mv apache-maven-3.8.5 /pulumi/ \
+    && mv apache-maven-3.8.6 /pulumi/ \
     && rm maven.tar.gz
 
 
@@ -40,7 +40,7 @@ COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
 COPY --from=builder /gradle-7.4.2 /pulumi/
 
-ENV PATH "/pulumi/bin:/pulumi/apache-maven-3.8.5/bin:/pulumi/gradle-7.4.2/bin:${PATH}"
+ENV PATH "/pulumi/bin:/pulumi/apache-maven-3.8.6/bin:/pulumi/gradle-7.4.2/bin:${PATH}"
 ENV JAVA_HOME "/usr/lib/jvm/java-11-openjdk-11.0.15.0.10-2.el8_6.x86_64"
 
 CMD ["pulumi"]
