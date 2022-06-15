@@ -12,9 +12,6 @@ RUN microdnf install -y \
 # Install the Pulumi SDK, including the CLI and language runtimes.
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
-RUN curl https://downloads.gradle-dn.com/distributions/gradle-7.4.2-bin.zip -o gradle.zip \
-    && unzip gradle.zip
-
 # The runtime container
 FROM redhat/ubi8-minimal:latest
 LABEL org.opencontainers.image.description="Pulumi CLI container for Java"
@@ -23,24 +20,30 @@ WORKDIR /pulumi/projects
 RUN microdnf install -y \
     git \
     tar \
-    java-11-openjdk \
+    java-11-openjdk-headless \
     curl \
     unzip \
-    ca-certificates
+    zip \
+    findutils \
+    ca-certificates \
+    && microdnf clean all && [ ! -d /var/cache/yum ] || rm -rf /var/cache/yum
 
-RUN curl https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -o maven.tar.gz \
-    && tar -xvf maven.tar.gz \
-    && mv apache-maven-3.8.6 /pulumi/ \
-    && rm maven.tar.gz
-
+RUN curl -fsSL "https://get.sdkman.io" | bash \
+    && bash -c ". /root/.sdkman/bin/sdkman-init.sh \
+        && sdk install maven \
+        && sdk install gradle \
+        && sdk flush archives \
+        && sdk flush temp \
+        "
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
-COPY --from=builder /gradle-7.4.2 /pulumi/
 
-ENV PATH "/pulumi/bin:/pulumi/apache-maven-3.8.6/bin:/pulumi/gradle-7.4.2/bin:${PATH}"
-ENV JAVA_HOME "/usr/lib/jvm/java-11-openjdk-11.0.15.0.10-2.el8_6.x86_64"
+ENV PATH="/pulumi/bin:/root/.sdkman/candidates/maven/current/bin:/root/.sdkman/candidates/gradle/current/bin:${PATH}" \
+    JAVA_HOME="/usr/lib/jvm/jre-11-openjdk" \
+    JAVA_VENDOR="openjdk" \
+    JAVA_VERSION="11"
 
 CMD ["pulumi"]
