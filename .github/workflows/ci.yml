@@ -53,7 +53,7 @@ jobs:
     name: All SDKs image
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.18.x]
     runs-on: ubuntu-latest
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
@@ -83,7 +83,7 @@ jobs:
       - name: Install go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.17.3"
+          go-version: "1.18.3"
       - name: Compile tests
         working-directory: tests
         run: |
@@ -163,7 +163,7 @@ jobs:
       - name: Install go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.17.3"
+          go-version: "1.18.3"
       - name: Compile tests
         working-directory: tests
         run: |
@@ -230,7 +230,7 @@ jobs:
       - name: Install go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.17.3"
+          go-version: "1.18.3"
       - name: Compile tests
         working-directory: tests
         run: |

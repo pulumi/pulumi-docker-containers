@@ -5,8 +5,8 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.17.7
-ENV GOLANG_SHA256 02b111284bedbfa35a7e5b74a06082d18632eff824fd144312f6063943d49259
+ENV GOLANG_VERSION 1.18.3
+ENV GOLANG_SHA256 956f8507b302ab0bb747613695cdae10af99bbd39a90cae522b7c0302cc27245
 
 # Install deps all in one step
 RUN apt-get update -y && \
