@@ -18,6 +18,7 @@ on:
   push:
     branches:
       - "main"
+      - "mckinstry/repro-1.18"
 
 env:
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
