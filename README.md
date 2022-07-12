@@ -47,3 +47,9 @@ docker run -e PULUMI_ACCESS_TOKEN=<TOKEN> -v "$(pwd)":/pulumi/projects $IMG /bin
 ## Considerations
 
 The base and SDK images _do not_ include additional tools you might want to use when running a Pulumi provider. For example, if you're using the [pulumi-kubernetes](https://github.com/pulumi/pulumi-kubernetes) provider with [Helm](https://helm.sh/), you'll need to use these images as a base image, and install `helm` as part of your CI setup.
+
+## Release Cadence
+
+The images in this repository are released automatically as part of the release process for the `pulumi` CLI. You can expect **new minor releases** roughly every other week, with patch releases more frequently as necessary.
+
+The image tags for each image in this repository mirror the git tags on the `pulumi` CLI. Thus, when [`pulumi v3.35.1`](https://github.com/pulumi/pulumi/releases) is released, you will find a corresponding Docker image [`pulumi/pulumi:3.35.1`](https://hub.docker.com/r/pulumi/pulumi) in DockerHub, ECR, and GHCR.
