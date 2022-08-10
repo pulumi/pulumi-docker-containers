@@ -71,7 +71,7 @@ RUN apt-get update -y && \
 
 # Install dotnet 6.0 using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel ${DOTNET_VERSION}
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel 6.0
 ENV PATH "/root/.dotnet:/pulumi/bin:${PATH}"
 ENV DOTNET_ROOT /root/.dotnet
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT 1
