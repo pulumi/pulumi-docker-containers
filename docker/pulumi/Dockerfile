@@ -69,14 +69,14 @@ RUN apt-get update -y && \
       gradle \
       maven
 
-# Install .NET Core SDK
-RUN wget -q https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
-  dpkg -i packages-microsoft-prod.deb && \
-  rm packages-microsoft-prod.deb && \
-  apt-get update -y && \
-  apt-get install -y \
-  apt-transport-https \
-  dotnet-sdk-3.1
+# Install dotnet 6.0 using instructions from:
+# https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel 6.0
+ENV PATH "/root/.dotnet:/pulumi/bin:${PATH}"
+ENV DOTNET_ROOT /root/.dotnet
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT 1
+# Allow newer dotnet version (e.g. 6) to build projects targeting older frameworks (v3.1)
+ENV DOTNET_ROLL_FORWARD Major
 
 # Install Helm
 # Explicitly set env variables that helm reads to their defaults, so that subsequent calls to
