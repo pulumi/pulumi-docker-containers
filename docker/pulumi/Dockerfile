@@ -33,7 +33,7 @@ RUN apt-get update -y && \
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
   unzip awscliv2.zip && \
   ./aws/install && \
-  rm -rf aws && \
+  rm -rf aws && rm awscliv2.zip && \
   # Add additional apt repos all at once
   echo "deb https://deb.nodesource.com/node_16.x $(lsb_release -cs) main"                         | tee /etc/apt/sources.list.d/node.list             && \
   echo "deb https://dl.yarnpkg.com/debian/ stable main"                                           | tee /etc/apt/sources.list.d/yarn.list             && \
