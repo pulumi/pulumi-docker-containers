@@ -45,16 +45,15 @@ RUN apt-get update -y && \
   # Install second wave of dependencies
   apt-get update -y && \
   apt-get install -y \
-  azure-cli \ 
+  # Pin azure-cli to 2.33.1 as workaround for https://github.com/pulumi/pulumi-docker-containers/issues/106
+  "azure-cli=2.33.1-1~bullseye" \
   docker-ce \
   google-cloud-sdk \
   kubectl \
   nodejs \
   yarn && \
   # Clean up the lists work
-  rm -rf /var/lib/apt/lists/* && \
-  # Set "only_show_errors" as workaround for https://github.com/pulumi/pulumi-docker-containers/issues/106
-  az config set core.only_show_errors=true
+  rm -rf /var/lib/apt/lists/*
 
 # Install Go
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
