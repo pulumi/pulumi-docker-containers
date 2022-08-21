@@ -52,4 +52,20 @@ The base and SDK images _do not_ include additional tools you might want to use 
 
 The images in this repository are released automatically as part of the release process for the `pulumi` CLI. You can expect **new minor releases** roughly every other week, with patch releases more frequently as necessary.
 
-The image tags for each image in this repository mirror the git tags on the `pulumi` CLI. Thus, when [`pulumi v3.35.1`](https://github.com/pulumi/pulumi/releases) is released, you will find a corresponding Docker image [`pulumi/pulumi:3.35.1`](https://hub.docker.com/r/pulumi/pulumi) in DockerHub, ECR, and GHCR.
+The image tags for each image in this repository mirror the git tags on the `pulumi` CLI. Thus, when [`pulumi v3.35.1`](https://github.com/pulumi/pulumi/releases) is released, you can find a corresponding Docker image [`pulumi/pulumi:3.35.1`](https://hub.docker.com/r/pulumi/pulumi) in DockerHub, ECR, and GHCR.
+
+## Language Version Support
+
+We intend these images to serve as a stable base for our users, with as few breaking changes as possible. Users who are taargetting older language versions should still be able to use these images, as long as Pulumi supports their runtime. To this end, each image installs the newest language version backwards-compatible with the oldest Pulumi-supported language runtime. The Pulumi website lists supported versions of each language on the language homepages, linked in the chart below.
+
+| Language                                                     | Version Installed on Image |
+| ------------------------------------------------------------ | -------------------------- |
+| [Python](https://www.pulumi.com/docs/intro/languages/python/#python) | Python 3.6                 |
+| [Dotnet](https://www.pulumi.com/docs/intro/languages/dotnet/#prerequisites) | Dotnet 6                   |
+| [Go](https://www.pulumi.com/docs/intro/languages/go/#go)     | Go 1.19 (or latest)        |
+| [Node](Pulumi supports Dotnet 3.1, 5, or 6.)                 | Node 14 (until 2023-04-30) |
+| [Java](https://www.pulumi.com/docs/intro/languages/java/#java) | Java 11                    |
+
+## Contributing
+
+Want to get involved? We :heart: contributors! Check our [Contributing Guide](./CONTRIBUTING.md) for more information on getting started.
