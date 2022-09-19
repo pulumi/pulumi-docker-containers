@@ -14,8 +14,11 @@ env:
 
 jobs:
   kitchen-sink:
-    name: All SDKs image
+    name: All SDKs images
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: ["pulumi", "pulumi-provider-build-environment"]
     steps:
       - uses: actions/checkout@master
       - name: Set version
@@ -27,8 +30,9 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
+          image: ${{ env.DOCKER_ORG }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
           args: --severity-threshold=high --file=docker/pulumi/Dockerfile
+
   base:
     name: Base image
     runs-on: ubuntu-latest

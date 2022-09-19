@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.9-slim AS base
 
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
@@ -101,3 +101,68 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION &&
 
 # I think it's safe to say if we're using this mega image, we want pulumi
 ENTRYPOINT ["pulumi"]
+
+# Pulumi Bridged Terraform Provider Build Environment
+#
+# Bundles together everything needed to build a Terraform-based
+# provider.
+#
+# See https://github.com/pulumi/pulumi-docker-containers/issues/111
+# for more background.
+########################################################################
+
+FROM base AS build-environment
+
+# https://github.com/pulumi/pulumictl/releases
+ENV PULUMICTL_VERSION 0.0.32
+# https://github.com/golangci/golangci-lint/releases
+ENV GOLANGCI_LINT_VERSION 1.49.0
+# https://github.com/goreleaser/goreleaser/releases
+ENV GORELEASER_VERSION 1.11.4
+
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
+
+RUN curl \
+    --proto "=https" \
+    --tlsv1.2 \
+    --location \
+    --fail \
+    --verbose \
+    --output "pulumictl.tar.gz" \
+    "https://github.com/pulumi/pulumictl/releases/download/v${PULUMICTL_VERSION}/pulumictl-v${PULUMICTL_VERSION}-linux-amd64.tar.gz" && \
+    mkdir pulumictl_extraction && \
+    tar --extract --gunzip --verbose --directory pulumictl_extraction --file pulumictl.tar.gz && \
+    mv pulumictl_extraction/pulumictl /usr/local/bin/pulumictl && \
+    chmod a+x /usr/local/bin/pulumictl && \
+    rm -Rf pulumictl_extraction && \
+    rm pulumictl.tar.gz && \
+    # Install golangci-lint
+    curl --proto "=https" \
+    --tlsv1.2 \
+    --silent \
+    --show-error \
+    --fail \
+    --location \
+    https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+    | sh -s -- -b "$(go env GOPATH)/bin" "v${GOLANGCI_LINT_VERSION}" && \
+    # Install goreleaser
+    curl \
+    --proto "=https" \
+    --tlsv1.2 \
+    --location \
+    --fail \
+    --verbose \
+    --output "goreleaser.tar.gz" \
+    "https://github.com/goreleaser/goreleaser/releases/download/v${GORELEASER_VERSION}/goreleaser_Linux_x86_64.tar.gz" && \
+    mkdir goreleaser_extraction && \
+    tar --extract --gunzip --verbose --directory goreleaser_extraction --file goreleaser.tar.gz && \
+    mv goreleaser_extraction/goreleaser /usr/local/bin/goreleaser && \
+    chmod a+x /usr/local/bin/goreleaser && \
+    rm -Rf goreleaser_extraction && \
+    rm goreleaser.tar.gz
+
+# The entrypoint of the base image is `pulumi`; we don't
+# want that for this usecase, since we'll be performing different
+# build-related tasks.
+ENTRYPOINT []
+CMD ["bash"]
