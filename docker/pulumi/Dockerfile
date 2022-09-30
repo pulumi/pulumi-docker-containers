@@ -1,4 +1,8 @@
-FROM pulumi/pulumi-base:latest
+# Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
+# of the SDK. Otherwise, we use whatever get.pulumi.com thinks is
+# the latest
+ARG PULUMI_VERSION
+FROM pulumi/pulumi-base:$PULUMI_VERSION
 
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
@@ -10,12 +14,11 @@ ENV GOLANG_SHA256 956f8507b302ab0bb747613695cdae10af99bbd39a90cae522b7c0302cc272
 
 # Install deps all in one step
 RUN apt-get update -y && \
+  apt-get upgrade -y && \
   apt-get install -y \
   apt-transport-https \
   build-essential \
-  ca-certificates \
   curl \
-  git \
   gnupg \
   python3 \
   python-is-python3 \
@@ -92,14 +95,5 @@ RUN curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-
   helm repo add stable https://charts.helm.sh/stable && \
   helm repo update
 
-# Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
-# of the SDK. Otherwise, we use whatever get.pulumi.com thinks is
-# the latest
-ARG PULUMI_VERSION
-
-# Install the Pulumi SDK, including the CLI and language runtimes.
-RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
-  mv ~/.pulumi/bin/* /usr/bin
-
-# I think it's safe to say if we're using this mega image, we want pulumi
+# It's safe to say if we're using this mega image, we want pulumi
 ENTRYPOINT ["pulumi"]
