@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM pulumi/pulumi-base:latest
 
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
@@ -17,6 +17,8 @@ RUN apt-get update -y && \
   curl \
   git \
   gnupg \
+  python3 \
+  python-is-python3 \
   software-properties-common \
   wget \
   unzip && \

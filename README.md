@@ -14,6 +14,20 @@ Tags on each image match the installed version of Pulumi.  The `latest` tag matc
 
 The base and SDK-specific images are considerably smaller than the combined `pulumi/pulumi` container (100 to 150 MB, compared to ~1 GB for the combined image, depending on the base OS).
 
+## Building the Images Locally
+
+To build the images locally, run:
+
+```
+docker build \
+  -f docker/pulumi/Dockerfile \
+  --platform linux/amd64 \
+  --build-arg PULUMI_VERSION=3.39.0 \
+  docker/pulumi
+```
+
+You can change `PULUMI_VERSION` to whichever version you prefer. Only platform `linux/amd64` is supported at this time.
+
 ## Build Matrix
 
 Each of the images described above (except the full `pulumi/pulumi` image) are built on a matrix of the following base images and platforms:
