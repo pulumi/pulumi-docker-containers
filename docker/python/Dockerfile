@@ -23,6 +23,7 @@ WORKDIR /pulumi/projects
 # Install needed tools, like git
 RUN apt-get update -y && \
     apt-get install -y \
+    curl \
     git \
     ca-certificates
 

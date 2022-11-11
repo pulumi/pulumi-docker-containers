@@ -24,6 +24,7 @@ RUN apt-get update -y && \
         java-common \
         maven \
         gradle \
+        curl \
         git
 
 # Uses the workdir, copies from pulumi interim container

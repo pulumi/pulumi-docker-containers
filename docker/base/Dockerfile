@@ -23,6 +23,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache \
   apt-get update -y && \
   apt-get upgrade -y && \
   apt-get install -y \
+  curl \
   git \
   ca-certificates
 
