@@ -77,6 +77,7 @@ jobs:
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
             -t ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+            --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
@@ -98,6 +99,58 @@ jobs:
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+
+  provider-build-environment:
+    name: Provider Build Environment image
+    strategy:
+      matrix:
+        go-version: [1.18.x]
+    runs-on: ubuntu-latest
+    steps:
+      # If no version of Pulumi is supplied by the incoming event (e.g. in the
+      # case of a PR or merge to main), we use the latest production version:
+      - name: Set version to latest
+        if: ${{ !env.PULUMI_VERSION }}
+        run: |
+          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+      - uses: actions/checkout@master
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup docker buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          install: true
+      - name: Build
+        # This image is only built for AMD64 for the same reasons as
+        # the "kitchen sink" image, listed above.
+        run: |
+          docker build \
+            -f docker/pulumi/Dockerfile \
+            --platform linux/amd64 \
+            -t ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            --target build-environment \
+            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            --load \
+            docker/pulumi
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.18.3"
+      - name: Compile tests
+        working-directory: tests
+        run: |
+          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+      - name: Run tests
+        run: |
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            --volume /tmp:/src \
+            --entrypoint /bin/bash \
+            ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+
   base:
     name: Base image
     runs-on: ubuntu-latest

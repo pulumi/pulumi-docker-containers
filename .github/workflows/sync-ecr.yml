@@ -23,8 +23,11 @@ env:
 
 jobs:
   sync-to-ecr:
-    name: Kitchen Sink image
+    name: Kitchen Sink images
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: ["pulumi", "pulumi-provider-build-environment"]
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -44,15 +47,15 @@ jobs:
             docker login -u AWS --password-stdin https://public.ecr.aws
       - name: Tag ${{ env.PULUMI_VERSION }} and push to AWS Public ECR
         run: |
-          docker pull docker.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
-          docker tag docker.io/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
-          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }} public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
+          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
       - name: Tag latest and push to AWS Public ECR
         if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         run: |
-          docker pull docker.io/${{ env.DOCKER_USERNAME }}/pulumi:latest
-          docker tag docker.io/${{ env.DOCKER_USERNAME }}/pulumi:latest public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest
-          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/pulumi:latest
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
 
   debian-images:
     name: Debian SDK and base images
