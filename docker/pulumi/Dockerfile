@@ -49,6 +49,7 @@ RUN apt-get update -y && \
   "azure-cli=2.33.1-1~bullseye" \
   docker-ce \
   google-cloud-sdk \
+  google-cloud-sdk-gke-gcloud-auth-plugin \
   kubectl \
   nodejs \
   yarn && \
