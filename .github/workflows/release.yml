@@ -8,6 +8,11 @@ on:
         description: The version of Pulumi to use to build the Docker images.  Full semver, e.g. "3.18.1".
         type: string
         required: true
+      force_release:
+        description: Whether to force a release to occur. By default, only repository dispatch creates releases.
+        type: boolean
+        required: true
+        default: false
       tag_latest:
         description: Whether to also tag this version as "latest".
         type: boolean
@@ -411,7 +416,7 @@ jobs:
     # accept arbitrary parameters, as we would need to persist the tag_latest
     # option from a workflow_dispatch in this workflow to each of the sync
     # workflows.
-    if: ${{ github.event_name == 'repository_dispatch' }}
+    if: ${{ github.event.inputs.force_release || github.event_name == 'repository_dispatch' }}
     steps:
       - name: Install Pulumictl
         uses: jaxxstorm/action-install-gh-release@v1.2.0
