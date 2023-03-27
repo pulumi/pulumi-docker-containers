@@ -30,6 +30,8 @@ env:
   # places:
   DOCKER_USERNAME: pulumi
   PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
+  # Do not depend on C library for the tests.
+  CGO_ENABLED: "0"
 
 jobs:
   comment-notification:
@@ -53,7 +55,7 @@ jobs:
     name: All SDKs image
     strategy:
       matrix:
-        go-version: [1.18.x]
+        go-version: [1.20.x]
     runs-on: ubuntu-latest
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
@@ -84,7 +86,7 @@ jobs:
       - name: Install go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.18.3"
+          go-version: "1.20.2"
       - name: Compile tests
         working-directory: tests
         run: |
@@ -104,7 +106,7 @@ jobs:
     name: Provider Build Environment image
     strategy:
       matrix:
-        go-version: [1.18.x]
+        go-version: [1.20.x]
     runs-on: ubuntu-latest
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
@@ -135,7 +137,7 @@ jobs:
       - name: Install go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.18.3"
+          go-version: "1.20.2"
       - name: Compile tests
         working-directory: tests
         run: |
@@ -216,7 +218,7 @@ jobs:
       - name: Install go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.18.3"
+          go-version: "1.20.2"
       - name: Compile tests
         working-directory: tests
         run: |
@@ -283,7 +285,7 @@ jobs:
       - name: Install go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.18.3"
+          go-version: "1.20.2"
       - name: Compile tests
         working-directory: tests
         run: |
