@@ -32,6 +32,14 @@ Images are pushed to:
 * [Amazon ECR Public Gallery](https://gallery.ecr.aws/pulumi/)
 * [GitHub Container Registry](https://github.com/orgs/pulumi/packages)
 
+## Included Versions
+
+- .NET 6.0
+- Go 1.20
+- JDK 11
+- Node.js 16
+- Python 3.9
+
 ## Scanning
 
 Images are scanned nightly for vulnerabilities.  Results are checked periodically for issues that can be remediated (best effort), however there are some issues over which we have no control, e.g. vulnerabilities in base images for which there is no known remediation.
