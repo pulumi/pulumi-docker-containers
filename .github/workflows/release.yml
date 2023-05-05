@@ -120,6 +120,7 @@ jobs:
       - name: Build
         # This image is only built for AMD64 for the same reasons as
         # the "kitchen sink" image, listed above.
+        # TODO(ramon): Add ARM64 support.
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \

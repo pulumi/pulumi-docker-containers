@@ -5,8 +5,9 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.20.3
-ENV GOLANG_SHA256 979694c2c25c735755bf26f4f45e19e64e4811d661dd07b8c010f7a8e18adfca
+ENV GO_RUNTIME_VERSION 1.20.3
+ENV GO_RUNTIME_AMD64_SHA256 979694c2c25c735755bf26f4f45e19e64e4811d661dd07b8c010f7a8e18adfca
+ENV GO_RUNTIME_ARM64_SHA256 eb186529f13f901e7a2c4438a05c2cd90d74706aaa0a888469b2a4a617b6ee54
 
 # Install deps all in one step
 RUN apt-get update -y && \
@@ -27,21 +28,31 @@ RUN apt-get update -y && \
   curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
   curl -fsSL https://packages.microsoft.com/keys/microsoft.asc     | apt-key add - && \
   # IAM Authenticator for EKS
-  curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-07-26/bin/linux/amd64/aws-iam-authenticator && \
+  case $(uname -m) in \
+  aarch64) \
+  ARCH="arm64" \
+  AWS_ARCH="aarch64" \
+  ;; \
+  x86_64) \
+  ARCH="amd64" \
+  AWS_ARCH="x86_64" \
+  ;; \
+  esac && \
+  curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/${ARCH}/aws-iam-authenticator && \
   chmod +x /usr/bin/aws-iam-authenticator && \
   # AWS v2 cli
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+  curl https://awscli.amazonaws.com/awscli-exe-linux-${AWS_ARCH}.zip -o "awscliv2.zip" && \
   unzip awscliv2.zip && \
   ./aws/install && \
   rm -rf aws && \
   rm awscliv2.zip && \
   # Add additional apt repos all at once
-  echo "deb https://deb.nodesource.com/node_16.x $(lsb_release -cs) main"                         | tee /etc/apt/sources.list.d/node.list             && \
-  echo "deb https://dl.yarnpkg.com/debian/ stable main"                                           | tee /etc/apt/sources.list.d/yarn.list             && \
-  echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list           && \
-  echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main"               | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
-  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main"                                     | tee /etc/apt/sources.list.d/kubernetes.list       && \
-  echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list            && \
+  echo "deb https://deb.nodesource.com/node_16.x $(lsb_release -cs) main"                           | tee /etc/apt/sources.list.d/node.list             && \
+  echo "deb https://dl.yarnpkg.com/debian/ stable main"                                             | tee /etc/apt/sources.list.d/yarn.list             && \
+  echo "deb [arch=${ARCH}] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list           && \
+  echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main"                 | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
+  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main"                                       | tee /etc/apt/sources.list.d/kubernetes.list       && \
+  echo "deb [arch=${ARCH}] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list            && \
   # Install second wave of dependencies
   apt-get update -y && \
   apt-get install -y \
@@ -57,8 +68,18 @@ RUN apt-get update -y && \
   rm -rf /var/lib/apt/lists/*
 
 # Install Go
-RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
-  echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c - && \
+RUN case $(uname -m) in \
+  aarch64) \
+  ARCH="arm64" \
+  GO_RUNTIME_SHA256="${GO_RUNTIME_ARM64_SHA256}" \
+  ;; \
+  x86_64) \
+  ARCH="amd64" \
+  GO_RUNTIME_SHA256="${GO_RUNTIME_AMD64_SHA256}" \
+  ;; \
+  esac && \
+  curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GO_RUNTIME_VERSION}.linux-${ARCH}.tar.gz && \
+  echo "${GO_RUNTIME_SHA256} /tmp/go.tgz" | sha256sum -c -; \
   tar -C /usr/local -xzf /tmp/go.tgz && \
   rm /tmp/go.tgz && \
   export PATH="/usr/local/go/bin:$PATH" && \
@@ -69,8 +90,8 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 # Install Java
 RUN apt-get update -y && \
   apt-get install -y \
-      gradle \
-      maven
+  gradle \
+  maven
 
 # Install dotnet 6.0 using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
@@ -123,44 +144,60 @@ ENV GORELEASER_VERSION 1.11.4
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-RUN curl \
-    --proto "=https" \
-    --tlsv1.2 \
-    --location \
-    --fail \
-    --verbose \
-    --output "pulumictl.tar.gz" \
-    "https://github.com/pulumi/pulumictl/releases/download/v${PULUMICTL_VERSION}/pulumictl-v${PULUMICTL_VERSION}-linux-amd64.tar.gz" && \
-    mkdir pulumictl_extraction && \
-    tar --extract --gunzip --verbose --directory pulumictl_extraction --file pulumictl.tar.gz && \
-    mv pulumictl_extraction/pulumictl /usr/local/bin/pulumictl && \
-    chmod a+x /usr/local/bin/pulumictl && \
-    rm -Rf pulumictl_extraction && \
-    rm pulumictl.tar.gz && \
-    # Install golangci-lint
-    curl --proto "=https" \
-    --tlsv1.2 \
-    --silent \
-    --show-error \
-    --fail \
-    --location \
-    https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-    | sh -s -- -b "$(go env GOPATH)/bin" "v${GOLANGCI_LINT_VERSION}" && \
-    # Install goreleaser
-    curl \
-    --proto "=https" \
-    --tlsv1.2 \
-    --location \
-    --fail \
-    --verbose \
-    --output "goreleaser.tar.gz" \
-    "https://github.com/goreleaser/goreleaser/releases/download/v${GORELEASER_VERSION}/goreleaser_Linux_x86_64.tar.gz" && \
-    mkdir goreleaser_extraction && \
-    tar --extract --gunzip --verbose --directory goreleaser_extraction --file goreleaser.tar.gz && \
-    mv goreleaser_extraction/goreleaser /usr/local/bin/goreleaser && \
-    chmod a+x /usr/local/bin/goreleaser && \
-    rm -Rf goreleaser_extraction && \
-    rm goreleaser.tar.gz
+RUN case $(uname -m) in \
+  aarch64) \
+  ARCH="arm64" \
+  ;; \
+  x86_64) \
+  ARCH="amd64" \
+  ;; \
+  esac && \
+  curl \
+  --proto "=https" \
+  --tlsv1.2 \
+  --location \
+  --fail \
+  --verbose \
+  --output "pulumictl.tar.gz" \
+  "https://github.com/pulumi/pulumictl/releases/download/v${PULUMICTL_VERSION}/pulumictl-v${PULUMICTL_VERSION}-linux-${ARCH}.tar.gz" && \
+  mkdir pulumictl_extraction && \
+  tar --extract --gunzip --verbose --directory pulumictl_extraction --file pulumictl.tar.gz && \
+  mv pulumictl_extraction/pulumictl /usr/local/bin/pulumictl && \
+  chmod a+x /usr/local/bin/pulumictl && \
+  rm -Rf pulumictl_extraction && \
+  rm pulumictl.tar.gz && \
+  # Install golangci-lint
+  curl --proto "=https" \
+  --tlsv1.2 \
+  --silent \
+  --show-error \
+  --fail \
+  --location \
+  https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+  | sh -s -- -b "$(go env GOPATH)/bin" "v${GOLANGCI_LINT_VERSION}" && \
+  # Install goreleaser
+  case $(uname -m) in \
+  aarch64) \
+  ARCH="aarch64" \
+  ;; \
+  x86_64) \
+  ARCH = "x86_64" \
+  ;; \
+  esac && \
+  curl \
+  --proto "=https" \
+  --tlsv1.2 \
+  --location \
+  --fail \
+  --verbose \
+  --output "goreleaser.tar.gz" \
+  "https://github.com/goreleaser/goreleaser/releases/download/v${GORELEASER_VERSION}/goreleaser_Linux_${ARCH}.tar.gz" && \
+  mkdir goreleaser_extraction && \
+  tar --extract --gunzip --verbose --directory goreleaser_extraction --file goreleaser.tar.gz && \
+  mv goreleaser_extraction/goreleaser /usr/local/bin/goreleaser && \
+  chmod a+x /usr/local/bin/goreleaser && \
+  rm -Rf goreleaser_extraction && \
+  rm goreleaser.tar.gz
 
 # The entrypoint of the base image is `pulumi`; we don't
 # want that for this usecase, since we'll be performing different
