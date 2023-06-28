@@ -41,12 +41,9 @@ RUN apt-get update -y && \
   echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list           && \
   echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main"               | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
   echo "deb http://apt.kubernetes.io/ kubernetes-xenial main"                                     | tee /etc/apt/sources.list.d/kubernetes.list       && \
-  echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list            && \
   # Install second wave of dependencies
   apt-get update -y && \
   apt-get install -y \
-  # Pin azure-cli to 2.33.1 as workaround for https://github.com/pulumi/pulumi-docker-containers/issues/106
-  "azure-cli=2.33.1-1~bullseye" \
   docker-ce \
   google-cloud-sdk \
   google-cloud-sdk-gke-gcloud-auth-plugin \
@@ -55,6 +52,12 @@ RUN apt-get update -y && \
   yarn && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
+
+# Install the Azure CLI using pip because https://packages.microsoft.com/repos/azure-cli/
+# doesn't yet support Debian bookworm.
+# Pin azure-cli to 2.33.1 as workaround for https://github.com/pulumi/pulumi-docker-containers/issues/106
+RUN pip install --upgrade pip && \
+  pip install azure-cli==2.33.1
 
 # Install Go
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
