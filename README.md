@@ -40,9 +40,9 @@ Images are pushed to:
 - Node.js 18
 - Python 3.9
 
-### NodeJS LTS
+### Version Policy
 
-Our Docker images aim to use NodeJS LTS version (v18 as of writing). You can pin the image tag to a particular version in order to avoid unintended upgrades.
+Language runtimes are kept up-to-date with current LTS versions. You can pin the image tag to a particular version in order to avoid unintended upgrades.
 
 ## Scanning
 
@@ -62,6 +62,6 @@ The base and SDK images _do not_ include additional tools you might want to use 
 
 ## Release Cadence
 
-The images in this repository are released automatically as part of the release process for the `pulumi` CLI. You can expect **new minor releases** roughly every other week, with patch releases more frequently as necessary.
+The images in this repository are released automatically as part of the release process for the `pulumi` CLI. You can expect **new minor releases** roughly every week, with patch releases more frequently as necessary.
 
 The image tags for each image in this repository mirror the git tags on the `pulumi` CLI. Thus, when [`pulumi v3.35.1`](https://github.com/pulumi/pulumi/releases) is released, you will find a corresponding Docker image [`pulumi/pulumi:3.35.1`](https://hub.docker.com/r/pulumi/pulumi) in DockerHub, ECR, and GHCR.
