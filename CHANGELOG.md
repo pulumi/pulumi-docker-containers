@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.86.0
+
+- Add images for python sdk based on python versions 3.9, 3.10, and 3.11
+
 ## 3.82.0
 
 - Upgrade Node.js in the `pulumi/pulumi` image and `pulumi/nodejs` UBI image to the Active LTS version 18
