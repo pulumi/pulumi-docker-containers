@@ -190,6 +190,14 @@ jobs:
       matrix:
         sdk: ["nodejs", "python", "dotnet", "go", "java"]
         arch: ["amd64", "arm64"]
+        include:
+          - python_version: ""
+          - sdk: python
+            python_version: "3.9"
+          - sdk: python
+            python_verison: "3.10"
+          - sdk: python
+            python_version: "3.11"
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -197,6 +205,10 @@ jobs:
         if: ${{ !env.PULUMI_VERSION }}
         run: |
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+      - name: Set arguments for python versions
+        run: |
+          echo "PYTHON_BUILD_ARG='${{ matrix.python_version != "" && "--build-arg PYTHON_VERSION=${{ matrix.python_version }}" || ""}}' >> $GITHUB_ENV
+          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${matrix.python_version}" || ""}}' >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -211,8 +223,9 @@ jobs:
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.debian \
             --platform linux/${{ matrix.arch }} \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{env.PYTHON_DOCKER_TAG}}-debian-${{ matrix.arch }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            ${{ env.PYTHON_BUILD_ARG }} \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -244,7 +257,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             --platform ${{ matrix.arch }} \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{env.PYTHON_DOCKER_TAG}}-debian-${{ matrix.arch }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
   ubi-sdk:
     name: UBI SDK images
@@ -253,6 +266,15 @@ jobs:
       fail-fast: false
       matrix:
         sdk: ["nodejs", "python", "dotnet", "go", "java"]
+        # If building for the python SDK, we also want to build for several python versions
+        include:
+          - python_version: ""
+          - sdk: python
+            python_version: "3.9"
+          - sdk: python
+            python_verison: "3.10"
+          - sdk: python
+            python_version: "3.11"
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -260,6 +282,10 @@ jobs:
         if: ${{ !env.PULUMI_VERSION }}
         run: |
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+      - name: Set arguments for python versions
+        run: |
+          echo "PYTHON_BUILD_ARG='${{ matrix.python_version != "" && "--build-arg PYTHON_VERSION=${{ matrix.python_version }}" || ""}}' >> $GITHUB_ENV
+          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${matrix.python_version}" || ""}}' >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -278,8 +304,9 @@ jobs:
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{env.PYTHON_DOCKER_TAG}}-ubi \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            ${{ env.PYTHON_BUILD_ARG }} \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -310,5 +337,5 @@ jobs:
             -e PULUMI_ORG=${PULUMI_ORG} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{env.PYTHON_DOCKER_TAG}}-ubi \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"

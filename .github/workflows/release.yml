@@ -236,7 +236,18 @@ jobs:
       matrix:
         sdk: ["nodejs", "python", "dotnet", "go", "java"]
         arch: ["amd64", "arm64"]
+        include:
+          - sdk: python
+            python_version: "3.9"
+          - sdk: python
+            python_verison: "3.10"
+          - sdk: python
+            python_version: "3.11"
     steps:
+      - name: Set arguments for python versions
+        run: |
+          echo "PYTHON_BUILD_ARG='${{ matrix.python_version != "" && "--build-arg PYTHON_VERSION=${{ matrix.python_version }}" || ""}}' >> $GITHUB_ENV
+          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${matrix.python_version}" || ""}}' >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -256,8 +267,9 @@ jobs:
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.debian \
             --platform linux/${{ matrix.arch }} \
-            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian-${{ matrix.arch }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            ${{ env.PYTHON_BUILD_ARG }}
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -289,11 +301,11 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             --platform ${{ matrix.arch }} \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian-${{ matrix.arch }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}
+          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian-${{ matrix.arch }}
   debian-sdk-manifests:
     name: Debian SDK manifests
     needs: ["debian-sdk"]
@@ -302,7 +314,18 @@ jobs:
       fail-fast: false
       matrix:
         sdk: ["nodejs", "python", "dotnet", "go", "java"]
+        include:
+          - python_version: ""
+          - sdk: python
+            python_version: "3.9"
+          - sdk: python
+            python_verison: "3.10"
+          - sdk: python
+            python_version: "3.11"
     steps:
+      - name: Set arguments for python versions
+        run: |
+          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${matrix.python_version}" || ""}}' >> $GITHUB_ENV
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -311,21 +334,21 @@ jobs:
       - name: Debian manifest
         run: |
           docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian
       - name: Suffix-less manifest
         run: |
           docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }} \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }} \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}
       - name: Suffix-less manifest (latest)
         # Manifest lists can't be a source for `docker tag`, so we create an
         # additional copy of the previous manifest to tag latest:
-        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
+        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }} && ${{ env.PYTHON_DOCKER_TAG == "" }}}
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest \
@@ -340,7 +363,19 @@ jobs:
       fail-fast: false
       matrix:
         sdk: ["nodejs", "python", "dotnet", "go", "java"]
+        include:
+          - python_version: ""
+          - sdk: python
+            python_version: "3.9"
+          - sdk: python
+            python_verison: "3.10"
+          - sdk: python
+            python_version: "3.11"
     steps:
+      - name: Set arguments for python versions
+        run: |
+          echo "PYTHON_BUILD_ARG='${{ matrix.python_version != "" && "--build-arg PYTHON_VERSION=${{ matrix.python_version }}" || ""}}' >> $GITHUB_ENV
+          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${matrix.python_version}" || ""}}' >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -363,8 +398,9 @@ jobs:
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-ubi \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            ${{ env.PYTHON_BUILD_ARG }} \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -395,11 +431,11 @@ jobs:
             -e PULUMI_ORG=${PULUMI_ORG} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-ubi \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
+          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}${{ env.PYTHON_DOCKER_TAG }}-ubi
 
   start-syncs:
     name: Start syncs to other container registries
