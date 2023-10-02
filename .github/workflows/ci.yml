@@ -207,8 +207,8 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - name: Set arguments for python versions
         run: |
-          echo "PYTHON_BUILD_ARG='${{ matrix.python_version != "" && "--build-arg PYTHON_VERSION=${{ matrix.python_version }}" || ""}}' >> $GITHUB_ENV
-          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${matrix.python_version}" || ""}}' >> $GITHUB_ENV
+          echo "PYTHON_BUILD_ARG='${{ matrix.python_version != "" && "--build-arg PYTHON_VERSION=${{ matrix.python_version }}" || "" }}' >> $GITHUB_ENV
+          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${{matrix.python_version}}" || "" }}' >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -284,8 +284,8 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - name: Set arguments for python versions
         run: |
-          echo "PYTHON_BUILD_ARG='${{ matrix.python_version != "" && "--build-arg PYTHON_VERSION=${{ matrix.python_version }}" || ""}}' >> $GITHUB_ENV
-          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${matrix.python_version}" || ""}}' >> $GITHUB_ENV
+          echo "PYTHON_BUILD_ARG='${{ matrix.python_version != "" && "--build-arg PYTHON_VERSION=${{ matrix.python_version }}" || "" }}' >> $GITHUB_ENV
+          echo "PYTHON_DOCKER_TAG='${{ matrix.python_version != "" && "-python-${{ matrix.python_version }}" || "" }}' >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
