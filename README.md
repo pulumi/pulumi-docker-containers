@@ -35,7 +35,7 @@ Images are pushed to:
 ## Included Versions
 
 - .NET 6.0
-- Go 1.20
+- Go 1.21
 - JDK 11
 - Node.js 18
 - Python 3.9
