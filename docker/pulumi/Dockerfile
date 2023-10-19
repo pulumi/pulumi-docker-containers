@@ -30,7 +30,7 @@ RUN apt-get update -y && \
   curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
   curl -fsSL https://packages.microsoft.com/keys/microsoft.asc     | apt-key add - && \
   # IAM Authenticator for EKS
-  curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-07-26/bin/linux/amd64/aws-iam-authenticator && \
+  curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.28.2/2023-10-17/bin/linux/amd64/aws-iam-authenticator && \
   chmod +x /usr/bin/aws-iam-authenticator && \
   # AWS v2 cli
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
