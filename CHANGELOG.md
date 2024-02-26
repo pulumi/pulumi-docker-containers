@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.87.1
+
+- Added oracle cloud infrastructure cli (oci-cli)
+
 ## 3.87.0
 
 - Upgrade Go to 1.21.1. ([#159](https://github.com/pulumi/pulumi-docker-containers/pull/159))

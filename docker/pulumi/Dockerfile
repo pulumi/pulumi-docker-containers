@@ -56,6 +56,7 @@ RUN apt-get update -y && \
   kubectl \
   nodejs \
   yarn && \
+  pip3 install oci-cli && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
 
