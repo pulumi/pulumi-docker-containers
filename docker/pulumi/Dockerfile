@@ -39,7 +39,7 @@ RUN apt-get update -y && \
   rm -rf aws && \
   rm awscliv2.zip && \
   # Add additional apt repos all at once
-  echo "deb https://deb.nodesource.com/node_18.x $(lsb_release -cs) main"                         | tee /etc/apt/sources.list.d/node.list             && \
+  echo "deb https://deb.nodesource.com/node_20.x $(lsb_release -cs) main"                         | tee /etc/apt/sources.list.d/node.list             && \
   echo "deb https://dl.yarnpkg.com/debian/ stable main"                                           | tee /etc/apt/sources.list.d/yarn.list             && \
   echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list           && \
   echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main"               | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
