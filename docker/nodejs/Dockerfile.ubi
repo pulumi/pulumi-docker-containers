@@ -25,6 +25,7 @@ RUN microdnf install -y \
     tar \
     nodejs \
     ca-certificates && \
+    npm install -g npm@10.5.1 && \
     npm install -g yarn
 
 # Uses the workdir, copies from pulumi interim container
