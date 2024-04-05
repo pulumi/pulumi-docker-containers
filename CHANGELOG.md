@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 3.112.0
+
+- Install the latest version of `npm` in the `pulumi/nodejs` image
+  ([#190](https://github.com/pulumi/pulumi-docker-containers/pull/190))
+
 ## 3.87.0
 
 - Upgrade Go to 1.21.1. ([#159](https://github.com/pulumi/pulumi-docker-containers/pull/159))
