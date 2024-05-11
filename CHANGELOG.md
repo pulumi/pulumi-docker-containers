@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 3.116.0
+
+- Add Oracle Cloud Infrastructure CLI (oci-cli)
+  ([#182](https://github.com/pulumi/pulumi-docker-containers/pull/182))
+
 ## 3.112.0
 
 - Install the latest version of `npm` in the `pulumi/nodejs` image
