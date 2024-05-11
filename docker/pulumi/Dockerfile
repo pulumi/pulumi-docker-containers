@@ -59,9 +59,11 @@ RUN apt-get update -y && \
   kubectl \
   nodejs \
   yarn && \
-  pip3 install oci-cli && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
+
+# Install Oracle Cloud Infrastructure CLI
+RUN bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --exec-dir /usr/bin --accept-all-defaults
 
 # Install Go
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
