@@ -62,12 +62,8 @@ RUN apt-get update -y && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m venv /tmp/venv1
-
 # Install Oracle Cloud Infrastructure CLI
-#RUN bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --exec-dir /usr/bin --accept-all-defaults
-
-# RUN python3 -m venv /tmp/venv2
+RUN bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --exec-dir /usr/bin --accept-all-defaults
 
 # Install Go
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
@@ -112,6 +108,8 @@ ARG PULUMI_VERSION
 # Install the Pulumi SDK, including the CLI and language runtimes.
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
   mv ~/.pulumi/bin/* /usr/bin
+
+RUN python3 -m venv /tmp/venv
 
 # I think it's safe to say if we're using this mega image, we want pulumi
 ENTRYPOINT ["pulumi"]
