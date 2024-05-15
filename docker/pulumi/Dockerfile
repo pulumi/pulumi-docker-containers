@@ -109,10 +109,10 @@ ARG PULUMI_VERSION
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
   mv ~/.pulumi/bin/* /usr/bin
 
-RUN python3 -m venv /tmp/venv
-
 # I think it's safe to say if we're using this mega image, we want pulumi
 ENTRYPOINT ["pulumi"]
+
+# Temp: force CI to run
 
 # Pulumi Bridged Terraform Provider Build Environment
 #

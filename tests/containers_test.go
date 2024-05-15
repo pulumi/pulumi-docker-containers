@@ -15,6 +15,7 @@ package containers
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -36,7 +37,7 @@ func TestPulumiDockerImage(t *testing.T) {
 		t.Fatal("PULUMI_ACCESS_TOKEN not found, aborting tests.")
 	}
 
-	var stackOwner = os.Getenv("PULUMI_ORG")
+	stackOwner := os.Getenv("PULUMI_ORG")
 	if stackOwner == "" {
 		t.Fatal("PULUMI_ORG must be set.  Aborting tests.")
 	}
@@ -74,4 +75,15 @@ func TestPulumiDockerImage(t *testing.T) {
 			integration.ProgramTest(t, &example)
 		})
 	}
+
+	t.Run("python venv", func(t *testing.T) {
+		t.Parallel()
+
+		e := ptesting.NewEnvironment(t)
+		defer func() {
+			e.DeleteEnvironment()
+		}()
+
+		e.RunCommand("python3", "-m", "venv", filepath.Join(e.RootPath, "venv"))
+	})
 }
