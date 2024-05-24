@@ -62,9 +62,6 @@ RUN apt-get update -y && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
 
-# Install Oracle Cloud Infrastructure CLI
-RUN bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --exec-dir /usr/bin --accept-all-defaults
-
 # Install Go
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
   echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c - && \
