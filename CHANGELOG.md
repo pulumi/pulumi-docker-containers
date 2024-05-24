@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 3.117.0
+
+- Revert adding Oracle Cloud Infrastructure CLI (oci-cli)
+  ([#195](https://github.com/pulumi/pulumi-docker-containers/pull/195))
+
 ## 3.116.0
 
 - Add Oracle Cloud Infrastructure CLI (oci-cli)
