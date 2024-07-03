@@ -1,5 +1,5 @@
 [nodejs] 
 name=nodejs 
-stream=18
+stream=20
 profiles= 
 state=enabled
