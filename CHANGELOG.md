@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- Test Azure CLI and templates in the `pulumi/pulumi` image
+  ([#208](https://github.com/pulumi/pulumi-docker-containers/pull/208))
+
 ## 3.117.0
 
 - Revert adding Oracle Cloud Infrastructure CLI (oci-cli)

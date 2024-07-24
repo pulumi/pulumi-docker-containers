@@ -100,7 +100,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
 
   provider-build-environment:
     name: Provider Build Environment image
@@ -151,7 +151,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
 
   base:
     name: Base image
@@ -234,7 +234,7 @@ jobs:
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
 
-      - name: Run tests
+      - name: Run Pulumi Template Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
@@ -245,7 +245,25 @@ jobs:
             --entrypoint /bin/bash \
             --platform ${{ matrix.arch }} \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+
+      - name: Run CLI Tool Tests
+        run: |
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            --volume /tmp:/src \
+            --entrypoint /bin/bash \
+            --platform ${{ matrix.arch }} \
+            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestCLIToolTests"
+
   ubi-sdk:
     name: UBI SDK images
     runs-on: ubuntu-latest
@@ -311,4 +329,4 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"

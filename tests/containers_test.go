@@ -1,3 +1,5 @@
+// Copyright 2021-2024, Pulumi Corporation.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -13,49 +15,72 @@
 package containers
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/pulumi/pulumi/pkg/v3/testing/integration"
 	ptesting "github.com/pulumi/pulumi/sdk/v3/go/common/testing"
+	"github.com/stretchr/testify/require"
 )
 
-// TestPulumiDockerImage simulates building and running Pulumi programs on the pulumi/pulumi Docker image.
+type testCase struct {
+	template string
+	config   map[string]string
+}
+
+// TestPulumiTemplateTests simulates building and running Pulumi programs on the pulumi/pulumi Docker image.
 //
-// NOTE: This test is intended to be run inside the aforementioned container, unlike the actions test below.
-func TestPulumiDockerImage(t *testing.T) {
-	if os.Getenv("RUN_CONTAINER_TESTS") == "" {
-		t.Skip("Skipping container runtime tests because RUN_CONTAINER_TESTS not set.")
-	}
+// NOTE: This test is intended to be run inside the aforementioned container.
+func TestPulumiTemplateTests(t *testing.T) {
+	t.Parallel()
 
 	// Confirm we have credentials.
-	if os.Getenv("PULUMI_ACCESS_TOKEN") == "" {
-		t.Fatal("PULUMI_ACCESS_TOKEN not found, aborting tests.")
-	}
+	mustEnv(t, "PULUMI_ACCESS_TOKEN")
+	mustEnv(t, "ARM_CLIENT_ID")
+	mustEnv(t, "ARM_CLIENT_SECRET")
+	mustEnv(t, "ARM_TENANT_ID")
 
-	var stackOwner = os.Getenv("PULUMI_ORG")
-	if stackOwner == "" {
-		t.Fatal("PULUMI_ORG must be set.  Aborting tests.")
-	}
+	stackOwner := mustEnv(t, "PULUMI_ORG")
 
 	sdksToTest := []string{"csharp", "python", "typescript", "go", "java"}
 	if os.Getenv("SDKS_TO_TEST") != "" {
 		sdksToTest = strings.Split(os.Getenv("SDKS_TO_TEST"), ",")
 	}
+	clouds := []string{"azure" /*, "aws", "gcp"*/}
+	configs := map[string]map[string]string{
+		"azure": {
+			"azure-native:location": "EastUS",
+		},
+	}
+
+	testCases := []testCase{}
+	for _, sdk := range sdksToTest {
+		// python, typescript, ...
+		testCases = append(testCases, testCase{sdk, map[string]string{}})
+		for _, cloud := range clouds {
+			// azure-python, aws-python, ...
+			testCases = append(testCases, testCase{
+				template: fmt.Sprintf("%s-%s", cloud, sdk),
+				config:   configs[cloud],
+			})
+		}
+	}
 
 	base := integration.ProgramTestOptions{
-		Tracing:              "https://tracing.pulumi-engineering.com/collector/api/v1/spans",
 		ExpectRefreshChanges: true,
 		Quick:                true,
 		SkipRefresh:          true,
 		NoParallel:           true, // we mark tests as Parallel manually when instantiating
 	}
 
-	for _, template := range sdksToTest {
-		t.Run(template, func(t *testing.T) {
+	for _, test := range testCases {
+		test := test
+		t.Run(test.template, func(t *testing.T) {
 			t.Parallel()
 
 			e := ptesting.NewEnvironment(t)
@@ -64,14 +89,51 @@ func TestPulumiDockerImage(t *testing.T) {
 				e.DeleteEnvironment()
 			}()
 
-			stackName := fmt.Sprintf("%s/container-%s-%x", stackOwner, template, time.Now().UnixNano())
-			e.RunCommand("pulumi", "new", template, "-y", "-f", "-s", stackName)
+			stackName := fmt.Sprintf("%s/container-%s-%x", stackOwner, test.template, time.Now().UnixNano())
+			e.RunCommand("pulumi", "new", test.template, "-y", "-f", "-s", stackName)
 
 			example := base.With(integration.ProgramTestOptions{
-				Dir: e.RootPath,
+				Dir:    e.RootPath,
+				Config: test.config,
 			})
 
 			integration.ProgramTest(t, &example)
 		})
 	}
+}
+
+func TestCLIToolTests(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Azure CLI", func(t *testing.T) {
+		t.Parallel()
+
+		clientId := mustEnv(t, "ARM_CLIENT_ID")
+		clientSecret := mustEnv(t, "ARM_CLIENT_SECRET")
+		tenantId := mustEnv(t, "ARM_TENANT_ID")
+		subscriptionId := mustEnv(t, "ARM_SUBSCRIPTION_ID")
+
+		cmd := exec.Command("az", "login", "--service-principal",
+			"--username", clientId,
+			"--password", clientSecret,
+			"--tenant", tenantId)
+		_, err := cmd.Output()
+		require.NoError(t, err)
+
+		cmd = exec.Command("az", "account", "show")
+		out, err := cmd.Output()
+		require.NoError(t, err)
+		result := map[string]interface{}{}
+		json.Unmarshal(out, &result)
+		require.Equal(t, subscriptionId, result["id"])
+	})
+}
+
+func mustEnv(t *testing.T, env string) string {
+	t.Helper()
+	v := os.Getenv(env)
+	if v == "" {
+		t.Fatalf("Required environment variable %q not set", env)
+	}
+	return v
 }
