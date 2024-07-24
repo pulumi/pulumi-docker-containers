@@ -123,8 +123,7 @@ jobs:
             -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
-            --platform ${{ matrix.arch }} \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestCLIToolTests"
 
   provider-build-environment:
