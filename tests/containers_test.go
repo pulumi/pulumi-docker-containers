@@ -17,6 +17,7 @@ package containers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -40,10 +41,14 @@ func TestPulumiTemplateTests(t *testing.T) {
 	t.Parallel()
 
 	// Confirm we have credentials.
+	// Azure
 	mustEnv(t, "PULUMI_ACCESS_TOKEN")
 	mustEnv(t, "ARM_CLIENT_ID")
 	mustEnv(t, "ARM_CLIENT_SECRET")
 	mustEnv(t, "ARM_TENANT_ID")
+	// AWS
+	mustEnv(t, "AWS_ACCESS_KEY_ID")
+	mustEnv(t, "AWS_SECRET_ACCESS_KEY")
 
 	stackOwner := mustEnv(t, "PULUMI_ORG")
 
@@ -51,10 +56,13 @@ func TestPulumiTemplateTests(t *testing.T) {
 	if os.Getenv("SDKS_TO_TEST") != "" {
 		sdksToTest = strings.Split(os.Getenv("SDKS_TO_TEST"), ",")
 	}
-	clouds := []string{"azure" /*, "aws", "gcp"*/}
+	clouds := []string{"azure", "aws" /* , "gcp"*/}
 	configs := map[string]map[string]string{
 		"azure": {
 			"azure-native:location": "EastUS",
+		},
+		"aws": {
+			"aws:region": "us-west-1",
 		},
 	}
 
@@ -132,6 +140,23 @@ func TestCLIToolTests(t *testing.T) {
 		result := map[string]interface{}{}
 		json.Unmarshal(out, &result)
 		require.Equal(t, subscriptionId, result["id"])
+	})
+
+	t.Run("AWS CLI", func(t *testing.T) {
+		t.Parallel()
+
+		accessKey := mustEnv(t, "AWS_ACCESS_KEY_ID")
+		secretAccessKey := mustEnv(t, "AWS_SECRET_ACCESS_KEY")
+
+		cmd := exec.Command("aws", "sts", "get-caller-identity")
+		cmd.Env = append(os.Environ(),
+			fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", accessKey),
+			fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", secretAccessKey),
+		)
+		out, err := cmd.Output()
+		log.Println("out:", string(out))
+		log.Println("err:", err)
+		require.NoError(t, err)
 	})
 }
 
