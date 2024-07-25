@@ -97,6 +97,7 @@ func TestPulumiTemplateTests(t *testing.T) {
 		test := test
 		t.Run(test.template, func(t *testing.T) {
 			// TODO: Not running these in parallel to help with disk space.
+			// https://github.com/pulumi/pulumi-docker-containers/issues/215
 			// t.Parallel()
 			e := ptesting.NewEnvironment(t)
 			defer func() {
