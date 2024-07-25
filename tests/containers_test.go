@@ -63,7 +63,7 @@ func TestPulumiTemplateTests(t *testing.T) {
 			"azure-native:location": "EastUS",
 		},
 		"aws": {
-			"aws:region": "us-west-1",
+			"aws:region": "us-west-2",
 		},
 	}
 
