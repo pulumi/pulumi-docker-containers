@@ -62,11 +62,6 @@ func TestPulumiTemplateTests(t *testing.T) {
 	for _, sdk := range sdksToTest {
 		// python, typescript, ...
 		testCases = append(testCases, testCase{sdk, map[string]string{}})
-		if sdk == "java" {
-			// Don't add cloud-specific tests for Java.
-			// TODO: https://github.com/pulumi/pulumi-docker-containers/issues/210
-			continue
-		}
 		for _, cloud := range clouds {
 			// azure-python, aws-python, ...
 			if sdk == "typescript" && cloud == "azure" {
