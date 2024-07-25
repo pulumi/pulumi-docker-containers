@@ -110,7 +110,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
       - name: Run CLI Tool Tests
         run: |
           docker run \
@@ -125,7 +125,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.timeout=1h -test.v -test.run TestCLIToolTests"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestCLIToolTests"
 
   provider-build-environment:
     name: Provider Build Environment image
@@ -180,7 +180,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
 
   base:
     name: Base image
@@ -278,7 +278,7 @@ jobs:
             --entrypoint /bin/bash \
             --platform ${{ matrix.arch }} \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
-            -c "/src/pulumi-test-containers -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
 
   ubi-sdk:
     name: UBI SDK images
@@ -349,4 +349,4 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -c "/src/pulumi-test-containers -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
