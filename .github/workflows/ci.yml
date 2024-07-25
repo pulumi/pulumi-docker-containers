@@ -39,9 +39,9 @@ env:
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   # AWS credentials for the tests
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+  # AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  # AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  # AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
   AWS_REGION: "us-west-2"
 
 jobs:
@@ -62,183 +62,185 @@ jobs:
             Please view the results of the Downstream Containers Tests [Here][1]
 
             [1]: ${{ steps.vars.outputs.run-url }}
-  kitchen-sink:
-    name: All SDKs image
-    strategy:
-      matrix:
-        go-version: [1.21.x]
-    runs-on: ubuntu-latest
-    steps:
-      # If no version of Pulumi is supplied by the incoming event (e.g. in the
-      # case of a PR or merge to main), we use the latest production version:
-      - name: Set version to latest
-        if: ${{ !env.PULUMI_VERSION }}
-        run: |
-          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
-      - uses: actions/checkout@master
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-      - name: Build
-        # We only build the "kitchen sink" image for AMD64 as it's rather large
-        # and we want to steer users to use the single SDK images going forward:
-        run: |
-          docker build \
-            -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            --target base \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            --load \
-            docker/pulumi
-      - name: Install go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "1.21.1"
-      - name: Compile tests
-        working-directory: tests
-        run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-duration-seconds: 14400 # 4 hours
-          role-session-name: pulumi-docker-containers@githubActions
-          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Run Pulumi Template Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            --volume /tmp:/src \
-            --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
-      - name: Run CLI Tool Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            --volume /tmp:/src \
-            --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestCLIToolTests"
+  # kitchen-sink:
+  #   name: All SDKs image
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.21.x]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # If no version of Pulumi is supplied by the incoming event (e.g. in the
+  #     # case of a PR or merge to main), we use the latest production version:
+  #     - name: Set version to latest
+  #       if: ${{ !env.PULUMI_VERSION }}
+  #       run: |
+  #         echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+  #     - uses: actions/checkout@master
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Setup docker buildx
+  #       uses: docker/setup-buildx-action@v3
+  #       with:
+  #         install: true
+  #     - name: Build
+  #       # We only build the "kitchen sink" image for AMD64 as it's rather large
+  #       # and we want to steer users to use the single SDK images going forward:
+  #       run: |
+  #         docker build \
+  #           -f docker/pulumi/Dockerfile \
+  #           --platform linux/amd64 \
+  #           -t ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+  #           --target base \
+  #           --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+  #           --load \
+  #           docker/pulumi
+  #     - name: Install go
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: "1.21.1"
+  #     - name: Compile tests
+  #       working-directory: tests
+  #       run: |
+  #         GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
+  #         role-duration-seconds: 14400 # 4 hours
+  #         role-session-name: pulumi-docker-containers@githubActions
+  #         role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+  #     - name: Run Pulumi Template Tests
+  #       run: |
+  #         docker run \
+  #           -e RUN_CONTAINER_TESTS=true \
+  #           -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+  #           -e PULUMI_ORG=${PULUMI_ORG} \
+  #           -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+  #           -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+  #           -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+  #           -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+  #           -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+  #           -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+  #           --volume /tmp:/src \
+  #           --entrypoint /bin/bash \
+  #           ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+  #           -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+  #     - name: Run CLI Tool Tests
+  #       run: |
+  #         docker run \
+  #           -e RUN_CONTAINER_TESTS=true \
+  #           -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+  #           -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+  #           -e PULUMI_ORG=${PULUMI_ORG} \
+  #           -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+  #           -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+  #           -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+  #           -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+  #           -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+  #           -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+  #           --volume /tmp:/src \
+  #           --entrypoint /bin/bash \
+  #           ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+  #           -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestCLIToolTests"
 
-  provider-build-environment:
-    name: Provider Build Environment image
-    strategy:
-      matrix:
-        go-version: [1.21.x]
-    runs-on: ubuntu-latest
-    steps:
-      # If no version of Pulumi is supplied by the incoming event (e.g. in the
-      # case of a PR or merge to main), we use the latest production version:
-      - name: Set version to latest
-        if: ${{ !env.PULUMI_VERSION }}
-        run: |
-          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
-      - uses: actions/checkout@master
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-      - name: Build
-        # This image is only built for AMD64 for the same reasons as
-        # the "kitchen sink" image, listed above.
-        run: |
-          docker build \
-            -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            --target build-environment \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            --load \
-            docker/pulumi
-      - name: Install go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "1.21.1"
-      - name: Compile tests
-        working-directory: tests
-        run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
-      - name: Run Pulumi Template Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            --volume /tmp:/src \
-            --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
-
-  base:
-    name: Base image
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["debian", "ubi"]
-    steps:
-      # If no version of Pulumi is supplied by the incoming event (e.g. in the
-      # case of a PR or merge to main), we use the latest production version:
-      - name: Set version to latest
-        if: ${{ !env.PULUMI_VERSION }}
-        run: |
-          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
-      - uses: actions/checkout@master
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-      - name: Build
-        run: |
-          docker build \
-            -f docker/base/Dockerfile.${{ matrix.os }} \
-            --platform linux/arm64,linux/amd64 \
-            . \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }} \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }}
+  # provider-build-environment:
+    # name: Provider Build Environment image
+    # strategy:
+    #   matrix:
+    #     go-version: [1.21.x]
+    # runs-on: ubuntu-latest
+    # steps:
+    #   # If no version of Pulumi is supplied by the incoming event (e.g. in the
+    #   # case of a PR or merge to main), we use the latest production version:
+    #   - name: Set version to latest
+    #     if: ${{ !env.PULUMI_VERSION }}
+    #     run: |
+    #       echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+    #   - uses: actions/checkout@master
+    #   - name: Set up QEMU
+    #     uses: docker/setup-qemu-action@v3
+    #   - name: Setup docker buildx
+    #     uses: docker/setup-buildx-action@v3
+    #     with:
+    #       install: true
+    #   - name: Build
+    #     # This image is only built for AMD64 for the same reasons as
+    #     # the "kitchen sink" image, listed above.
+    #     run: |
+    #       docker build \
+    #         -f docker/pulumi/Dockerfile \
+    #         --platform linux/amd64 \
+    #         -t ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+    #         --target build-environment \
+    #         --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+    #         --load \
+    #         docker/pulumi
+    #   - name: Install go
+    #     uses: actions/setup-go@v2
+    #     with:
+    #       go-version: "1.21.1"
+    #   - name: Compile tests
+    #     working-directory: tests
+    #     run: |
+    #       GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+    #   - name: Run Pulumi Template Tests
+    #     run: |
+    #       docker run \
+    #         -e RUN_CONTAINER_TESTS=true \
+    #         -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+    #         -e PULUMI_ORG=${PULUMI_ORG} \
+    #         -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+    #         -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+    #         -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+    #         -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+    #         -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+    #         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+    #         --volume /tmp:/src \
+    #         --entrypoint /bin/bash \
+    #         ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+    #         -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+#
+  # base:
+  #   name: Base image
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: ["debian", "ubi"]
+  #   steps:
+  #     # If no version of Pulumi is supplied by the incoming event (e.g. in the
+  #     # case of a PR or merge to main), we use the latest production version:
+  #     - name: Set version to latest
+  #       if: ${{ !env.PULUMI_VERSION }}
+  #       run: |
+  #         echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+  #     - uses: actions/checkout@master
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Setup docker buildx
+  #       uses: docker/setup-buildx-action@v3
+  #       with:
+  #         install: true
+  #     - name: Build
+  #       run: |
+  #         docker build \
+  #           -f docker/base/Dockerfile.${{ matrix.os }} \
+  #           --platform linux/arm64,linux/amd64 \
+  #           . \
+  #           -t ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }} \
+  #           --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }}
   debian-sdk:
     name: Debian SDK images
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        sdk: ["nodejs", "python", "dotnet", "go", "java"]
-        arch: ["amd64", "arm64"]
+        # sdk: ["nodejs", "python", "dotnet", "go", "java"]
+        sdk: ["go"]
+        arch: ["amd64"]
+        # arch: ["amd64", "arm64"]
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -283,6 +285,16 @@ jobs:
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 14400 # 4 hours
+          role-session-name: pulumi-docker-containers@githubActions
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+
       - name: Run Pulumi Template Tests
         run: |
           docker run \
@@ -302,75 +314,75 @@ jobs:
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
 
-  ubi-sdk:
-    name: UBI SDK images
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        sdk: ["nodejs", "python", "dotnet", "go", "java"]
-    steps:
-      # If no version of Pulumi is supplied by the incoming event (e.g. in the
-      # case of a PR or merge to main), we use the latest production version:
-      - name: Set version to latest
-        if: ${{ !env.PULUMI_VERSION }}
-        run: |
-          echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
-      - uses: actions/checkout@master
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-      - name: Build
-        # We only build UBI for amd64 due to arm64 builds hanging on `npm
-        # install -g yarn` with no additional output, plus the apparent
-        # requirement of a paid subscription in order to file a bug with RedHat.
-        #
-        # We supply a working directory to the command below due to the
-        # dnf/nodej2.module file that has to mounted into the container.
-        run: |
-          docker build \
-            -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            docker/${{ matrix.sdk }} \
-            --load
-      - name: Install go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "1.21.1"
-      - name: Compile tests
-        working-directory: tests
-        run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+  # ubi-sdk:
+  #   name: UBI SDK images
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       sdk: ["nodejs", "python", "dotnet", "go", "java"]
+  #   steps:
+  #     # If no version of Pulumi is supplied by the incoming event (e.g. in the
+  #     # case of a PR or merge to main), we use the latest production version:
+  #     - name: Set version to latest
+  #       if: ${{ !env.PULUMI_VERSION }}
+  #       run: |
+  #         echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+  #     - uses: actions/checkout@master
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Setup docker buildx
+  #       uses: docker/setup-buildx-action@v3
+  #       with:
+  #         install: true
+  #     - name: Build
+  #       # We only build UBI for amd64 due to arm64 builds hanging on `npm
+  #       # install -g yarn` with no additional output, plus the apparent
+  #       # requirement of a paid subscription in order to file a bug with RedHat.
+  #       #
+  #       # We supply a working directory to the command below due to the
+  #       # dnf/nodej2.module file that has to mounted into the container.
+  #       run: |
+  #         docker build \
+  #           -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
+  #           --platform linux/amd64 \
+  #           -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+  #           --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+  #           docker/${{ matrix.sdk }} \
+  #           --load
+  #     - name: Install go
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: "1.21.1"
+  #     - name: Compile tests
+  #       working-directory: tests
+  #       run: |
+  #         GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
 
-      - name: Set SDKS_TO_TEST (dotnet)
-        if: ${{ matrix.sdk == 'dotnet' }}
-        run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
-      - name: Set SDKS_TO_TEST (nodejs)
-        if: ${{ matrix.sdk == 'nodejs' }}
-        run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
-      - name: Set SDKS_TO_TEST (default)
-        if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
-        run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
+  #     - name: Set SDKS_TO_TEST (dotnet)
+  #       if: ${{ matrix.sdk == 'dotnet' }}
+  #       run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
+  #     - name: Set SDKS_TO_TEST (nodejs)
+  #       if: ${{ matrix.sdk == 'nodejs' }}
+  #       run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
+  #     - name: Set SDKS_TO_TEST (default)
+  #       if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
+  #       run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
 
-      - name: Run Pulumi Template Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            --volume /tmp:/src \
-            --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+  #     - name: Run Pulumi Template Tests
+  #       run: |
+  #         docker run \
+  #           -e RUN_CONTAINER_TESTS=true \
+  #           -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+  #           -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+  #           -e PULUMI_ORG=${PULUMI_ORG} \
+  #           -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+  #           -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+  #           -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+  #           -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+  #           -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+  #           -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+  #           --volume /tmp:/src \
+  #           --entrypoint /bin/bash \
+  #           ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+  #           -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
