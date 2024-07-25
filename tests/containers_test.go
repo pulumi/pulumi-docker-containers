@@ -96,8 +96,8 @@ func TestPulumiTemplateTests(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.template, func(t *testing.T) {
-			t.Parallel()
-
+			// TODO: Not running these in parallel to help with disk space.
+			// t.Parallel()
 			e := ptesting.NewEnvironment(t)
 			defer func() {
 				e.RunCommand("pulumi", "stack", "rm", "--force", "--yes")
