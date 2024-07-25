@@ -297,7 +297,7 @@ jobs:
 
       - name: Run Pulumi Template Tests
         run: |
-          awk 'BEGIN{for(v in ENVIRON) print v}'
+          awk 'BEGIN{for(v in ENVIRON) print v}' | grep AWS
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
@@ -309,6 +309,7 @@ jobs:
             -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
             -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             --platform ${{ matrix.arch }} \

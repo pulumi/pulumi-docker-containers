@@ -49,6 +49,7 @@ func TestPulumiTemplateTests(t *testing.T) {
 	// AWS
 	mustEnv(t, "AWS_ACCESS_KEY_ID")
 	mustEnv(t, "AWS_SECRET_ACCESS_KEY")
+	mustEnv(t, "AWS_SESSION_TOKEN")
 
 	stackOwner := mustEnv(t, "PULUMI_ORG")
 
@@ -147,11 +148,13 @@ func TestCLIToolTests(t *testing.T) {
 
 		accessKey := mustEnv(t, "AWS_ACCESS_KEY_ID")
 		secretAccessKey := mustEnv(t, "AWS_SECRET_ACCESS_KEY")
+		sessionToken := mustEnv(t, "AWS_SESSION_TOKEN")
 
 		cmd := exec.Command("aws", "sts", "get-caller-identity")
 		cmd.Env = append(os.Environ(),
 			fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", accessKey),
 			fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", secretAccessKey),
+			fmt.Sprintf("AWS_SESSION_TOKEN=%s", sessionToken),
 		)
 		out, err := cmd.Output()
 		log.Println("out:", string(out))
