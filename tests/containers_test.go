@@ -40,10 +40,15 @@ func TestPulumiTemplateTests(t *testing.T) {
 	t.Parallel()
 
 	// Confirm we have credentials.
+	// Azure
 	mustEnv(t, "PULUMI_ACCESS_TOKEN")
 	mustEnv(t, "ARM_CLIENT_ID")
 	mustEnv(t, "ARM_CLIENT_SECRET")
 	mustEnv(t, "ARM_TENANT_ID")
+	// AWS
+	mustEnv(t, "AWS_ACCESS_KEY_ID")
+	mustEnv(t, "AWS_SECRET_ACCESS_KEY")
+	mustEnv(t, "AWS_SESSION_TOKEN")
 
 	stackOwner := mustEnv(t, "PULUMI_ORG")
 
@@ -51,11 +56,12 @@ func TestPulumiTemplateTests(t *testing.T) {
 	if os.Getenv("SDKS_TO_TEST") != "" {
 		sdksToTest = strings.Split(os.Getenv("SDKS_TO_TEST"), ",")
 	}
-	clouds := []string{"azure" /*, "aws", "gcp"*/}
+	clouds := []string{"azure", "aws" /* , "gcp"*/}
 	configs := map[string]map[string]string{
 		"azure": {
 			"azure-native:location": "EastUS",
 		},
+		"aws": {},
 	}
 
 	testCases := []testCase{}
@@ -87,8 +93,9 @@ func TestPulumiTemplateTests(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.template, func(t *testing.T) {
-			t.Parallel()
-
+			// TODO: Not running these in parallel to help with disk space.
+			// https://github.com/pulumi/pulumi-docker-containers/issues/215
+			// t.Parallel()
 			e := ptesting.NewEnvironment(t)
 			defer func() {
 				e.RunCommand("pulumi", "stack", "rm", "--force", "--yes")
@@ -130,8 +137,26 @@ func TestCLIToolTests(t *testing.T) {
 		out, err := cmd.Output()
 		require.NoError(t, err)
 		result := map[string]interface{}{}
-		json.Unmarshal(out, &result)
+		require.NoError(t, json.Unmarshal(out, &result))
 		require.Equal(t, subscriptionId, result["id"])
+	})
+
+	t.Run("AWS CLI", func(t *testing.T) {
+		t.Parallel()
+
+		mustEnv(t, "AWS_ACCESS_KEY_ID")
+		mustEnv(t, "AWS_SECRET_ACCESS_KEY")
+		mustEnv(t, "AWS_SESSION_TOKEN")
+		mustEnv(t, "AWS_REGION")
+
+		cmd := exec.Command("aws", "sts", "get-caller-identity")
+		out, err := cmd.Output()
+		require.NoError(t, err)
+		result := map[string]interface{}{}
+		require.NoError(t, json.Unmarshal(out, &result))
+		arn, ok := result["Arn"].(string)
+		require.True(t, ok)
+		require.Contains(t, arn, "pulumi-docker-containers@githubActions")
 	})
 }
 
