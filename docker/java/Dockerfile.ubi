@@ -20,7 +20,7 @@ WORKDIR /pulumi/projects
 RUN microdnf install -y \
     git \
     tar \
-    java-11-openjdk-headless \
+    java-11-openjdk-devel \
     curl \
     unzip \
     zip \
