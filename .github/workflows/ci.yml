@@ -297,6 +297,7 @@ jobs:
 
       - name: Run Pulumi Template Tests
         run: |
+          awk 'BEGIN{for(v in ENVIRON) print v}'
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
