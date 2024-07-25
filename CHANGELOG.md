@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix compilation issue when running `azure-java` in `pulumi-java`
+  ([#212](https://github.com/pulumi/pulumi-docker-containers/pull/212))
+
 - Test Azure CLI and templates in the `pulumi/pulumi` image
   ([#208](https://github.com/pulumi/pulumi-docker-containers/pull/208))
 
