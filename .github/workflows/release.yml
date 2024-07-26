@@ -40,6 +40,14 @@ env:
   PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
   # Do not depend on C library for the tests.
   CGO_ENABLED: "0"
+  # Azure credentials for the tests
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  AWS_REGION: "us-west-2"
+
+  # TODO: pass env through docker in tests below
 
 jobs:
   kitchen-sink:
@@ -82,16 +90,52 @@ jobs:
         working-directory: tests
         run: |
           GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 14400 # 4 hours
+          role-session-name: pulumi-docker-containers@githubActions
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
       - name: Run Pulumi Template Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+      - name: Run CLI Tool Tests
+        run: |
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e AWS_REGION=${AWS_REGION} \
+            --volume /tmp:/src \
+            --entrypoint /bin/bash \
+            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestCLIToolTests"
       - name: Push ${{ env.PULUMI_VERSION }}
         run: docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
       - name: Push latest
@@ -138,12 +182,29 @@ jobs:
         working-directory: tests
         run: |
           GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
-      - name: Run tests
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 14400 # 4 hours
+          role-session-name: pulumi-docker-containers@githubActions
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Run Pulumi Template Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
@@ -278,14 +339,30 @@ jobs:
       - name: Set SDKS_TO_TEST (default)
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
-
-      - name: Run tests
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 14400 # 4 hours
+          role-session-name: pulumi-docker-containers@githubActions
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Run Pulumi Template Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             --platform ${{ matrix.arch }} \
@@ -393,6 +470,14 @@ jobs:
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
