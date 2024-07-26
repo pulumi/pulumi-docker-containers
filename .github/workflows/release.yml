@@ -47,8 +47,6 @@ env:
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   AWS_REGION: "us-west-2"
 
-  # TODO: pass env through docker in tests below
-
 jobs:
   kitchen-sink:
     name: All SDKs image
