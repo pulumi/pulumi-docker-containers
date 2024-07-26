@@ -11,6 +11,7 @@ on:
   pull_request:
     paths:
       - "docker/**"
+      - "tests/**"
       - "!README.md"
       - "!LICENSE"
   # "Push" is a somewhat unintuitive name - the event will fire after a PR is
@@ -32,6 +33,11 @@ env:
   PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
   # Do not depend on C library for the tests.
   CGO_ENABLED: "0"
+  # Azure credentials for the tests
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
 jobs:
   comment-notification:
@@ -66,9 +72,9 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
       - name: Build
@@ -91,16 +97,35 @@ jobs:
         working-directory: tests
         run: |
           GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
-      - name: Run tests
+      - name: Run Pulumi Template Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+      - name: Run CLI Tool Tests
+        run: |
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            --volume /tmp:/src \
+            --entrypoint /bin/bash \
+            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestCLIToolTests"
 
   provider-build-environment:
     name: Provider Build Environment image
@@ -117,9 +142,9 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
       - name: Build
@@ -142,16 +167,20 @@ jobs:
         working-directory: tests
         run: |
           GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
-      - name: Run tests
+      - name: Run Pulumi Template Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
 
   base:
     name: Base image
@@ -169,9 +198,9 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
       - name: Build
@@ -199,9 +228,9 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
       - name: Build
@@ -234,18 +263,23 @@ jobs:
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
 
-      - name: Run tests
+      - name: Run Pulumi Template Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             --platform ${{ matrix.arch }} \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+
   ubi-sdk:
     name: UBI SDK images
     runs-on: ubuntu-latest
@@ -262,9 +296,9 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
       - name: Build
@@ -301,14 +335,18 @@ jobs:
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
 
-      - name: Run tests
+      - name: Run Pulumi Template Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiDockerImage"
+            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
