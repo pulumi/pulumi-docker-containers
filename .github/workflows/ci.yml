@@ -38,7 +38,7 @@ env:
   # ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
   # ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
   # ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-  AWS_REGION: "us-west-2"
+  # AWS_REGION: "us-west-2"
 
 jobs:
   comment-notification:
@@ -76,7 +76,7 @@ jobs:
     with:
       pulumi-version: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
       image: pulumi/pulumi:${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
-      aws-region: ${{ env.AWS_REGION }}
+      aws-region: us-west-2
       # sdk: "all"
 
   # provider-build-environment:
