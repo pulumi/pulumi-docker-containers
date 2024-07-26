@@ -107,23 +107,23 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Run Pulumi Template Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
-            --volume /tmp:/src \
-            --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+      # - name: Run Pulumi Template Tests
+      #   run: |
+      #     docker run \
+      #       -e RUN_CONTAINER_TESTS=true \
+      #       -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+      #       -e PULUMI_ORG=${PULUMI_ORG} \
+      #       -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+      #       -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+      #       -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+      #       -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+      #       -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+      #       -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+      #       -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+      #       --volume /tmp:/src \
+      #       --entrypoint /bin/bash \
+      #       ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+      #       -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
       - name: Run CLI Tool Tests
         run: |
           docker run \

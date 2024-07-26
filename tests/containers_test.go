@@ -156,6 +156,7 @@ func TestCLIToolTests(t *testing.T) {
 			fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", accessKey),
 			fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", secretAccessKey),
 			fmt.Sprintf("AWS_SESSION_TOKEN=%s", sessionToken),
+			"AWS_REGION=us-west-2",
 		)
 		out, err := cmd.Output()
 		log.Println("out:", string(out))
