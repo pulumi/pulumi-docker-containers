@@ -113,7 +113,7 @@ jobs:
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
-            -e IMAGE_VARIANT=pulumi
+            -e IMAGE_VARIANT=pulumi \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
@@ -182,7 +182,7 @@ jobs:
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
-            -e IMAGE_VARIANT=pulumi
+            -e IMAGE_VARIANT=pulumi \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
@@ -290,7 +290,7 @@ jobs:
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
-            -e IMAGE_VARIANT=pulumi-debian-${{ matrix.sdk }}
+            -e IMAGE_VARIANT=pulumi-debian-${{ matrix.sdk }} \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
@@ -374,7 +374,7 @@ jobs:
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
-            -e IMAGE_VARIANT=pulumi-ubi-${{ matrix.sdk }}
+            -e IMAGE_VARIANT=pulumi-ubi-${{ matrix.sdk }} \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
