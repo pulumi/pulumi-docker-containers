@@ -86,7 +86,7 @@ jobs:
       - name: Compile tests
         working-directory: tests
         run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
