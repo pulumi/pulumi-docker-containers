@@ -81,7 +81,7 @@ jobs:
         run: echo "PULUMI_VERSION=${{ env.PULUMI_VERSION }}"
       - name: DEBUG AWS ROLE
         run:
-          echo "AWS_CI_ROLE_ARN=${{ secrets.AWS_CI_ROLE_ARN }}"
+          node -e "console.log(process.env.AWS_CI_ROLE_ARN.slice(-8))"
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
