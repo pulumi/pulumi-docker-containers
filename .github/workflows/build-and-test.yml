@@ -75,7 +75,7 @@ jobs:
           docker build \
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
-            -t ${{ imputs.docker-username }}/pulumi:${{ env.PULUMI_VERSION }} \
+            -t ${{ inputs.docker-username }}/pulumi:${{ env.PULUMI_VERSION }} \
             --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
@@ -113,7 +113,7 @@ jobs:
             -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
-            ${{ imputs.docker-username }}/pulumi:${{ env.PULUMI_VERSION }} \
+            ${{ inputs.docker-username }}/pulumi:${{ env.PULUMI_VERSION }} \
             -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
       - name: Run CLI Tool Tests
         run: |
