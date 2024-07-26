@@ -19,6 +19,14 @@ on:
         type: string
         description: "The username to use when pushing the image"
         default: 'pulumi'
+      pulumi-org:
+        type: string
+        description: "The Pulumi organization to use for tests"
+        default: 'pulumi-test'
+      aws-region:
+        type: string
+        description: "The AWS region to use for tests"
+        default: 'us-west-2'
       # sdk:
       #   type: string
       #   default: ''
@@ -92,7 +100,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ inputs.aws-region }}
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
@@ -101,7 +109,7 @@ jobs:
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
+            -e PULUMI_ORG=${{ inputs.pulumi-org }} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
             -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
             -e ARM_TENANT_ID=${ARM_TENANT_ID} \
@@ -109,7 +117,7 @@ jobs:
             -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
-            -e AWS_REGION=${AWS_REGION} \
+            -e AWS_REGION=${{ inputs.aws-region }} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ inputs.docker-username }}/pulumi:${{ env.PULUMI_VERSION }} \
@@ -120,7 +128,7 @@ jobs:
             -e RUN_CONTAINER_TESTS=true \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
+            -e PULUMI_ORG=${{ inputs.pulumi-org }} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
             -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
             -e ARM_TENANT_ID=${ARM_TENANT_ID} \
@@ -128,7 +136,7 @@ jobs:
             -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
-            -e AWS_REGION=${AWS_REGION} \
+            -e AWS_REGION=${{ inputs.aws-region }} \
             --volume /tmp:/src \
             --entrypoint /bin/bash \
             ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \

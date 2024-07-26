@@ -22,22 +22,22 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
-  PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} # Used by test-containers.sh\
+  # PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} # Used by test-containers.sh\
   # The organization in the Pulumi SaaS service against which the integration
   # tests will run:
-  PULUMI_ORG: "pulumi-test"
+  # PULUMI_ORG: "pulumi-test"
   # We parameterize the Docker Hub username to allow forks to easily test
   # changes on a separate repo without having to change the username in multiple
   # places:
-  DOCKER_USERNAME: pulumi
-  PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
+  # DOCKER_USERNAME: pulumi
+  # PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
   # Do not depend on C library for the tests.
-  CGO_ENABLED: "0"
+  # CGO_ENABLED: "0"
   # Azure credentials for the tests
-  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  # ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  # ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  # ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  # ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   AWS_REGION: "us-west-2"
 
 jobs:
@@ -76,6 +76,7 @@ jobs:
     with:
       pulumi-version: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
       image: pulumi/pulumi:${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
+      aws-region: ${{ env.AWS_REGION }}
       # sdk: "all"
 
   # provider-build-environment:
