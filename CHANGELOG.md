@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+
+- Test AWS CLI and templates in the `pulumi/pulumi` image
+  ([#213](https://github.com/pulumi/pulumi-docker-containers/pull/213))
+
 - Fix compilation issue when running `azure-java` in `pulumi-java`
   ([#212](https://github.com/pulumi/pulumi-docker-containers/pull/212))
 
