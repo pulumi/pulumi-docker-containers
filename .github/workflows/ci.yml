@@ -65,9 +65,9 @@ jobs:
         go-version: [1.21.x]
     uses: ./.github/workflows/build-and-test.yml
     with:
-      pulumi-version: ${{ env.PULUMI_VERSION }}
-      image: ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }}
-      sdk: "all"
+      pulumi-version: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
+      image: pulumi/pulumi:${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
+      # sdk: "all"
 
   # provider-build-environment:
   #   name: Provider Build Environment image
