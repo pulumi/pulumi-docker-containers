@@ -166,7 +166,7 @@ func TestDeploymentsEnvironment(t *testing.T) {
 
 	imageVariant := os.Getenv("IMAGE_VARIANT")
 	expectedPaths := map[string]string{
-		"pulumi":               "/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin",
+		"pulumi":               "/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		// TODO: does not include $GOPATH/bin https://github.com/pulumi/pulumi-docker-containers/issues/220
 		"pulumi-debian-go":     "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
