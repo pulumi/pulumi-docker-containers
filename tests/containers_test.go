@@ -17,7 +17,6 @@ package containers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -62,9 +61,7 @@ func TestPulumiTemplateTests(t *testing.T) {
 		"azure": {
 			"azure-native:location": "EastUS",
 		},
-		"aws": {
-			"aws:region": "us-west-2",
-		},
+		"aws": {},
 	}
 
 	testCases := []testCase{}
@@ -140,28 +137,26 @@ func TestCLIToolTests(t *testing.T) {
 		out, err := cmd.Output()
 		require.NoError(t, err)
 		result := map[string]interface{}{}
-		json.Unmarshal(out, &result)
+		require.NoError(t, json.Unmarshal(out, &result))
 		require.Equal(t, subscriptionId, result["id"])
 	})
 
 	t.Run("AWS CLI", func(t *testing.T) {
 		t.Parallel()
 
-		accessKey := mustEnv(t, "AWS_ACCESS_KEY_ID")
-		secretAccessKey := mustEnv(t, "AWS_SECRET_ACCESS_KEY")
-		sessionToken := mustEnv(t, "AWS_SESSION_TOKEN")
+		mustEnv(t, "AWS_ACCESS_KEY_ID")
+		mustEnv(t, "AWS_SECRET_ACCESS_KEY")
+		mustEnv(t, "AWS_SESSION_TOKEN")
+		mustEnv(t, "AWS_REGION")
 
 		cmd := exec.Command("aws", "sts", "get-caller-identity")
-		cmd.Env = append(os.Environ(),
-			fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", accessKey),
-			fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", secretAccessKey),
-			fmt.Sprintf("AWS_SESSION_TOKEN=%s", sessionToken),
-			"AWS_REGION=us-west-2",
-		)
 		out, err := cmd.Output()
-		log.Println("out:", string(out))
-		log.Println("err:", err)
 		require.NoError(t, err)
+		result := map[string]interface{}{}
+		require.NoError(t, json.Unmarshal(out, &result))
+		arn, ok := result["Arn"].(string)
+		require.True(t, ok)
+		require.Contains(t, arn, "pulumi-docker-containers@githubActions")
 	})
 }
 
