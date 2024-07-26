@@ -12,7 +12,7 @@ on:
     paths:
       - "docker/**"
       - "tests/**"
-      - ".github/workflows/**"
+      - ".github/**"
       - "!README.md"
       - "!LICENSE"
   # "Push" is a somewhat unintuitive name - the event will fire after a PR is
