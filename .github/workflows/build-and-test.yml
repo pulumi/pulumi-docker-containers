@@ -79,6 +79,9 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - name: DEBUG
         run: echo "PULUMI_VERSION=${{ env.PULUMI_VERSION }}"
+      - name: DEBUG AWS ROLE
+        run:
+          echo "AWS_CI_ROLE_ARN=${{ secrets.AWS_CI_ROLE_ARN }}"
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
