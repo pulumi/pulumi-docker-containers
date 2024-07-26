@@ -87,9 +87,9 @@ jobs:
         # and we want to steer users to use the single SDK images going forward:
         run: |
           docker build \
-            -f docker/pulumi/Dockerfile \
+            -f ${{ inputs.dockerfile }} \
             --platform linux/amd64 \
-            -t ${{ inputs.docker-username }}/pulumi:${{ env.PULUMI_VERSION }} \
+            -t ${{ inputs.docker-username }}/pulumi:${{ env.PULUMI_VERSION }}${{ inputs.image-suffix }} \
             --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
