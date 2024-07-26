@@ -26,6 +26,10 @@ on:
         type: string
         description: "The username to use when pushing the image"
         default: 'pulumi'
+      arch:
+        type: string
+        description: "The architecture to use for the image"
+        default: 'amd64'
       pulumi-org:
         type: string
         description: "The Pulumi organization to use for tests"
@@ -88,7 +92,7 @@ jobs:
         run: |
           docker build \
             -f ${{ inputs.dockerfile }} \
-            --platform linux/amd64 \
+            --platform linux/${{ inputs.arch }} \
             -t ${{ inputs.docker-username }}/pulumi:${{ env.PULUMI_VERSION }}${{ inputs.image-suffix }} \
             --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \

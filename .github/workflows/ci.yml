@@ -102,6 +102,7 @@ jobs:
       image-suffix: "-debian-${{ matrix.arch }}"
       aws-region: us-west-2
       sdk: ${{ matrix.sdk }}
+      arch: ${{ matrix.arch }}
 
   # provider-build-environment:
   #   name: Provider Build Environment image
