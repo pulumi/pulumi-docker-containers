@@ -52,7 +52,7 @@ func TestPulumiTemplateTests(t *testing.T) {
 
 	stackOwner := mustEnv(t, "PULUMI_ORG")
 
-	sdksToTest := []string{"csharp", "python", "typescript", "go", "java"}
+	sdksToTest := []string{"dotnet", "python", "nodejs", "go", "java"}
 	if os.Getenv("SDKS_TO_TEST") != "" {
 		sdksToTest = strings.Split(os.Getenv("SDKS_TO_TEST"), ",")
 	}
@@ -67,17 +67,17 @@ func TestPulumiTemplateTests(t *testing.T) {
 	testCases := []testCase{}
 	for _, sdk := range sdksToTest {
 		// python, typescript, ...
-		testCases = append(testCases, testCase{sdk, map[string]string{}})
+		testCases = append(testCases, testCase{sdkToTemplate(t, sdk), map[string]string{}})
 		for _, cloud := range clouds {
 			// azure-python, aws-python, ...
-			if sdk == "typescript" && cloud == "azure" {
+			if sdk == "nodejs" && cloud == "azure" {
 				// We use docker & qemu to run arm64 images, and azure seems to be too large
 				// to successfully run in that environment.
 				// TODO: https://github.com/pulumi/pulumi-docker-containers/issues/211
 				continue
 			}
 			testCases = append(testCases, testCase{
-				template: fmt.Sprintf("%s-%s", cloud, sdk),
+				template: fmt.Sprintf("%s-%s", cloud, sdkToTemplate(t, sdk)),
 				config:   configs[cloud],
 			})
 		}
@@ -167,4 +167,23 @@ func mustEnv(t *testing.T, env string) string {
 		t.Fatalf("Required environment variable %q not set", env)
 	}
 	return v
+}
+
+func sdkToTemplate(t *testing.T, sdk string) string {
+	t.Helper()
+	switch sdk {
+	case "dotnet":
+		return "csharp"
+	case "python":
+		return "python"
+	case "nodejs":
+		return "typescript"
+	case "go":
+		return "go"
+	case "java":
+		return "java"
+	default:
+		t.Fatalf("Unknown SDK %q", sdk)
+		return ""
+	}
 }
