@@ -9,12 +9,11 @@ on:
     types:
       - ci-build
   pull_request:
-    paths:
-      - "docker/**"
-      - "tests/**"
-      - ".github/**"
-      - "!README.md"
-      - "!LICENSE"
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "CONTRIBUTING.md"
+      - "LICENSE"
+      - "README.md"
   # "Push" is a somewhat unintuitive name - the event will fire after a PR is
   # merged to the main branch.
   push:
