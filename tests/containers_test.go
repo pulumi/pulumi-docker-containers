@@ -160,44 +160,74 @@ func TestCLIToolTests(t *testing.T) {
 	})
 }
 
-// These tests ensure compatibility with Pulumi deployments.
-func TestDeploymentsEnvironment(t *testing.T) {
+func TestEnvironment(t *testing.T) {
 	t.Parallel()
-
-	imageVariant := os.Getenv("IMAGE_VARIANT")
-	expectedPaths := map[string]string{
-		"pulumi":               "/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		// TODO: does not include $GOPATH/bin https://github.com/pulumi/pulumi-docker-containers/issues/220
-		"pulumi-debian-go":     "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		"pulumi-debian-java":   "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		"pulumi-debian-nodejs": "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		"pulumi-debian-python": "/pulumi/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		"pulumi-ubi-dotnet":    "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		// TODO: does not include $GOPATH/bin https://github.com/pulumi/pulumi-docker-containers/issues/220
-		"pulumi-ubi-go":     "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		"pulumi-ubi-java":   "/pulumi/bin:/root/.sdkman/candidates/maven/current/bin:/root/.sdkman/candidates/gradle/current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		"pulumi-ubi-nodejs": "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-		"pulumi-ubi-python": "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-	}
-	expectedPath := expectedPaths[imageVariant]
-
 	// Deployment steps are run via bash, and explicitly set BASH_ENV to source ~/.bashrc.
 	// https://github.com/pulumi/pulumi-service/blob/8cbd9397ec0cdc7b5c168715ca4c9aa087c83823/cmd/workflow-runner/run.go#L78
-	// Regression test for https://github.com/pulumi/pulumi-docker-containers/issues/193
-	t.Run("PATH when running in bash", func(t *testing.T) {
-		t.Parallel()
-		// When running in bash, we pick up the PATH entry from the pulumi installation script.
-		if imageVariant == "pulumi" {
-			expectedPath += ":/root/.pulumi/bin"
+	// We run commands that check basic assertions about the environment within the container once
+	// directly without shell and once with bash to ensure that the environment is set up correctly
+	// for both cases.
+	// This is a regression test for https://github.com/pulumi/pulumi-docker-containers/issues/193
+
+	imageVariant := os.Getenv("IMAGE_VARIANT")
+	t.Logf("Testing image variant: %s", imageVariant)
+
+	t.Run("Python", func(t *testing.T) {
+		if !strings.HasSuffix(imageVariant, "python") {
+			t.Skip("Skipping test for non python images")
 		}
-		require.Equal(t, expectedPath, p)
-		requireOutput(t, expectedPath, "bash", "-c", "printenv", "PATH")
+		t.Parallel()
+
+		p, err := exec.LookPath("python")
+		require.NoError(t, err)
+		require.Equal(t, "/usr/local/bin/python", p)
+		requireOutputWithBash(t, "/usr/local/bin/python", "command", "-v", "python")
 	})
 
-	t.Run("PATH without any shell", func(t *testing.T) {
+	t.Run("Node", func(t *testing.T) {
+		if !strings.HasSuffix(imageVariant, "node") {
+			t.Skip("Skipping test for non node images")
+		}
 		t.Parallel()
-		requireOutput(t, expectedPath, "printenv", "PATH")
+		p, err := exec.LookPath("python")
+		require.NoError(t, err)
+		require.Equal(t, "/usr/local/bin/python", p)
+		requireOutputWithBash(t, "/usr/local/bin/node", "command", "-v", "node")
+	})
+
+	t.Run("PATH", func(t *testing.T) {
+		// Install scripts for various tools can sometimes modify PATH, usually by adding entries
+		// to ~/.bashrc. This test ensures that we notice such modifications.
+		expectedPaths := map[string]string{
+			"pulumi":               "/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			// TODO: does not include $GOPATH/bin https://github.com/pulumi/pulumi-docker-containers/issues/220
+			"pulumi-debian-go":     "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-debian-java":   "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-debian-nodejs": "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-debian-python": "/pulumi/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-ubi-dotnet":    "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			// TODO: does not include $GOPATH/bin https://github.com/pulumi/pulumi-docker-containers/issues/220
+			"pulumi-ubi-go":     "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-ubi-java":   "/pulumi/bin:/root/.sdkman/candidates/maven/current/bin:/root/.sdkman/candidates/gradle/current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-ubi-nodejs": "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-ubi-python": "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		}
+		expectedPath := expectedPaths[imageVariant]
+
+		t.Run("PATH when running in bash", func(t *testing.T) {
+			t.Parallel()
+			// When running in bash, we pick up the PATH entry from the pulumi installation script.
+			if imageVariant == "pulumi" {
+				expectedPath += ":/root/.pulumi/bin"
+			}
+			requireOutputWithBash(t, expectedPath, "printenv", "PATH")
+		})
+
+		t.Run("PATH without any shell", func(t *testing.T) {
+			t.Parallel()
+			requireOutput(t, expectedPath, "printenv", "PATH")
+		})
 	})
 
 	// All images must include curl. Deployments uses this to download the executor binary.
@@ -208,20 +238,40 @@ func TestDeploymentsEnvironment(t *testing.T) {
 		_, err := cmd.Output()
 		require.NoError(t, err)
 	})
-}
 
-func TestWorkdir(t *testing.T) {
-	t.Parallel()
-	requireOutput(t, "/pulumi/project", "pwd")
-}
+	t.Run("Workdir", func(t *testing.T) {
+		t.Parallel()
+		requireOutput(t, "/pulumi/projects", "pwd")
+		requireOutputWithBash(t, "/pulumi/projects", "pwd")
+	})
 
-func TestUser(t *testing.T) {
-	t.Parallel()
-	requireOutput(t, "root", "whoami")
+	t.Run("User", func(t *testing.T) {
+		t.Parallel()
+		requireOutput(t, "root", "whoami")
+		requireOutputWithBash(t, "root", "whoami")
+	})
+
+	t.Run("Home", func(t *testing.T) {
+		t.Parallel()
+		requireOutput(t, "/root", "printenv", "HOME")
+		requireOutputWithBash(t, "/root", "printenv", "HOME")
+	})
 }
 
 func requireOutput(t *testing.T, expected, cmd string, args ...string) {
 	c := exec.Command(cmd, args...)
+	t.Logf("Running %q", c.String())
+	out, err := c.Output()
+	require.NoError(t, err)
+	o := strings.TrimSpace(string(out))
+	require.Equal(t, expected, o)
+}
+
+func requireOutputWithBash(t *testing.T, expected, cmd string, args ...string) {
+	bashArgs := strings.Join(append([]string{cmd}, args...), " ")
+	c := exec.Command("/bin/bash", "-c", bashArgs)
+	c.Env = append(os.Environ(), "BASH_ENV=/root/.bashrc")
+	t.Logf("Running %q", c.String())
 	out, err := c.Output()
 	require.NoError(t, err)
 	o := strings.TrimSpace(string(out))

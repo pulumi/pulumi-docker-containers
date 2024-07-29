@@ -306,7 +306,7 @@ jobs:
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestDeploymentsEnvironment"
+            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
 
   ubi-sdk:
     name: UBI SDK images
@@ -389,4 +389,4 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestDeploymentsEnvironment"
+            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
