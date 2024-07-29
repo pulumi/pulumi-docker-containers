@@ -48,228 +48,240 @@ env:
   AWS_REGION: "us-west-2"
 
 jobs:
-  kitchen-sink:
-    name: All SDKs image
-    strategy:
-      matrix:
-        go-version: [1.21.x]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-      - name: Build
-        # We only build the "kitchen sink" image for AMD64 as it's rather large
-        # and we want to steer users to use the single SDK images going forward:
-        run: |
-          docker build \
-            -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -t ${{ env.DOCKER_ORG }}/pulumi:latest \
-            --target base \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            --load \
-            docker/pulumi
-      - name: Install go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "1.21.1"
-      - name: Compile tests
-        working-directory: tests
-        run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-duration-seconds: 14400 # 4 hours
-          role-session-name: pulumi-docker-containers@githubActions
-          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e IMAGE_VARIANT=pulumi \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
-            -e AWS_REGION=${AWS_REGION} \
-            --volume /tmp:/src \
-            --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -test.parallel=1 -test.timeout=1h -test.v
-      - name: Push ${{ env.PULUMI_VERSION }}
-        run: docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
-      - name: Push latest
-        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
-        run: docker push ${{ env.DOCKER_ORG }}/pulumi:latest
+  # kitchen-sink:
+  #   name: All SDKs image
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.21.x]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@master
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ env.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Setup docker buildx
+  #       uses: docker/setup-buildx-action@v3
+  #       with:
+  #         install: true
+  #     - name: Build
+  #       # We only build the "kitchen sink" image for AMD64 as it's rather large
+  #       # and we want to steer users to use the single SDK images going forward:
+  #       run: |
+  #         docker build \
+  #           -f docker/pulumi/Dockerfile \
+  #           --platform linux/amd64 \
+  #           -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+  #           -t ${{ env.DOCKER_ORG }}/pulumi:latest \
+  #           --target base \
+  #           --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+  #           --load \
+  #           docker/pulumi
+  #     - name: Install go
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: "1.21.1"
+  #     - name: Compile tests
+  #       working-directory: tests
+  #       run: |
+  #         GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
+  #         role-duration-seconds: 14400 # 4 hours
+  #         role-session-name: pulumi-docker-containers@githubActions
+  #         role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+  #     - name: Tests
+  #       run: |
+  #         docker run \
+  #           -e RUN_CONTAINER_TESTS=true \
+  #           -e IMAGE_VARIANT=pulumi \
+  #           -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+  #           -e PULUMI_ORG=${PULUMI_ORG} \
+  #           -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+  #           -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+  #           -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+  #           -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+  #           -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+  #           -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+  #           -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+  #           -e AWS_REGION=${AWS_REGION} \
+  #           --volume /tmp:/src \
+  #           --entrypoint /src/pulumi-test-containers \
+  #           ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+  #           -test.parallel=1 -test.timeout=1h -test.v
+  #     - name: Push ${{ env.PULUMI_VERSION }}
+  #       run: docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
+  #     - name: Push latest
+  #       if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
+  #       run: docker push ${{ env.DOCKER_ORG }}/pulumi:latest
 
-  provider-build-environment:
-    name: Provider Build Environment image
-    strategy:
-      matrix:
-        go-version: [1.21.1]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-      - name: Build
-        # This image is only built for AMD64 for the same reasons as
-        # the "kitchen sink" image, listed above.
-        run: |
-          docker build \
-            -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest \
-            --target build-environment \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            --load \
-            docker/pulumi
-      - name: Install go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "1.21.1"
-      - name: Compile tests
-        working-directory: tests
-        run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-duration-seconds: 14400 # 4 hours
-          role-session-name: pulumi-docker-containers@githubActions
-          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e IMAGE_VARIANT=pulumi \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
-            -e AWS_REGION=${AWS_REGION} \
-            --volume /tmp:/src \
-            --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -test.parallel=1 -test.timeout=1h -test.v
-      - name: Push ${{ env.PULUMI_VERSION }}
-        run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
-      - name: Push latest
-        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
-        run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest
+  # provider-build-environment:
+  #   name: Provider Build Environment image
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.21.1]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@master
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ env.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Setup docker buildx
+  #       uses: docker/setup-buildx-action@v3
+  #       with:
+  #         install: true
+  #     - name: Build
+  #       # This image is only built for AMD64 for the same reasons as
+  #       # the "kitchen sink" image, listed above.
+  #       run: |
+  #         docker build \
+  #           -f docker/pulumi/Dockerfile \
+  #           --platform linux/amd64 \
+  #           -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+  #           -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest \
+  #           --target build-environment \
+  #           --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+  #           --load \
+  #           docker/pulumi
+  #     - name: Install go
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: "1.21.1"
+  #     - name: Compile tests
+  #       working-directory: tests
+  #       run: |
+  #         GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
+  #         role-duration-seconds: 14400 # 4 hours
+  #         role-session-name: pulumi-docker-containers@githubActions
+  #         role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+  #     - name: Tests
+  #       run: |
+  #         docker run \
+  #           -e RUN_CONTAINER_TESTS=true \
+  #           -e IMAGE_VARIANT=pulumi \
+  #           -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+  #           -e PULUMI_ORG=${PULUMI_ORG} \
+  #           -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+  #           -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+  #           -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+  #           -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+  #           -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+  #           -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+  #           -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+  #           -e AWS_REGION=${AWS_REGION} \
+  #           --volume /tmp:/src \
+  #           --entrypoint /src/pulumi-test-containers \
+  #           ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+  #           -test.parallel=1 -test.timeout=1h -test.v
+  #     - name: Push ${{ env.PULUMI_VERSION }}
+  #       run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
+  #     - name: Push latest
+  #       if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
+  #       run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest
 
-  base:
-    name: Base image
+  # base:
+  #   name: Base image
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: ["debian", "ubi"]
+  #       arch: ["arm64", "amd64"]
+  #   steps:
+  #     - uses: actions/checkout@master
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ env.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Setup docker buildx
+  #       uses: docker/setup-buildx-action@v3
+  #       with:
+  #         install: true
+  #     - name: Build
+  #       run: |
+  #         docker build \
+  #           -f docker/base/Dockerfile.${{ matrix.os }} \
+  #           --platform linux/${{ matrix.arch }} \
+  #           . \
+  #           -t ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }} \
+  #           --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+  #           --load
+  #     - name: Push image
+  #       run: |
+  #         docker push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os}}-${{ matrix.arch }}
+  # base-manifests:
+  #   name: Base image manifests
+  #   needs: ["base"]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ env.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #     - name: Debian manifest
+  #       run: |
+  #         docker manifest create \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
+  #         docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian
+  #     - name: UBI manifest
+  #       run: |
+  #         docker manifest create \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi-arm64 \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi-amd64
+  #         docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi
+  #     - name: Suffix-less manifest (version)
+  #       run: |
+  #         docker manifest create \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }} \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
+  #         docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}
+  #     - name: Suffix-less manifest (latest)
+  #       if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
+  #       # Manifest lists can't be a source for `docker tag`, so we create an
+  #       # additional copy of the previous manifest to tag latest:
+  #       run: |
+  #         docker manifest create \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:latest \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
+  #           ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
+  #         docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:latest
+
+  define-matrix:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["debian", "ubi"]
-        arch: ["arm64", "amd64"]
+    outputs:
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@master
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-      - name: Build
+      - name: Define Matrix
+        id: define-matrix
         run: |
-          docker build \
-            -f docker/base/Dockerfile.${{ matrix.os }} \
-            --platform linux/${{ matrix.arch }} \
-            . \
-            -t ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }} \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            --load
-      - name: Push image
-        run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os}}-${{ matrix.arch }}
-  base-manifests:
-    name: Base image manifests
-    needs: ["base"]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Debian manifest
-        run: |
-          docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian
-      - name: UBI manifest
-        run: |
-          docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-ubi
-      - name: Suffix-less manifest (version)
-        run: |
-          docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }} \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}
-      - name: Suffix-less manifest (latest)
-        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
-        # Manifest lists can't be a source for `docker tag`, so we create an
-        # additional copy of the previous manifest to tag latest:
-        run: |
-          docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-base:latest \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:latest
+          python ./.github/scripts/gen-matrix.py >> "$GITHUB_OUTPUT"
+
   debian-sdk:
     name: Debian SDK images
     runs-on: ubuntu-latest
@@ -280,6 +292,9 @@ jobs:
         arch: ["amd64", "arm64"]
     steps:
       - uses: actions/checkout@master
+      - name: Set image name
+        run: |
+          echo "IMAGE_NAME=${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -292,13 +307,11 @@ jobs:
         with:
           install: true
       - name: Build
-        # We supply a working directory to the command below due to the
-        # dnf/nodej2.module file that has to mounted into the container.
         run: |
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.debian \
             --platform linux/${{ matrix.arch }} \
-            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             docker/${{ matrix.sdk }} \
             --load
@@ -310,7 +323,6 @@ jobs:
         working-directory: tests
         run: |
           GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
-
       - name: Set SDKS_TO_TEST (dotnet)
         if: ${{ matrix.sdk == 'dotnet' }}
         run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
@@ -348,11 +360,17 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
+            ${{ env.IMAGE_NAME }} \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
             -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}
+          docker push ${{ env.IMAGE_NAME }}
+      # - name: Push default
+      #   # If the matrix.default is set to true, add a suffixless tag
+      #   if: ${{ matrix.default && matrix.suffix != "" }}
+      #   run: |
+      #     docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}
   debian-sdk-manifests:
     name: Debian SDK manifests
     needs: ["debian-sdk"]
@@ -370,129 +388,139 @@ jobs:
       - name: Debian manifest
         run: |
           docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian
-      - name: Suffix-less manifest
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian
+      - name: Debian manifest without language version suffix
+        if: ${{ matrix.default && matrix.suffix != "" }}
         run: |
           docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }} \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}
-      - name: Suffix-less manifest (latest)
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian
+      - name: Manifest without debian suffix
+        run: |
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}
+      # TODO: Manifest without debian suffix, without language version suffix
+      - name: Latest manifest
         # Manifest lists can't be a source for `docker tag`, so we create an
         # additional copy of the previous manifest to tag latest:
         if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         run: |
           docker manifest create \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
-          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:latest \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:latest
+      # TODO: Latest manifest, without language version suffix
 
-  ubi-sdk:
-    name: UBI SDK images
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        sdk: ["nodejs", "python", "dotnet", "go", "java"]
-    steps:
-      - uses: actions/checkout@master
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-      - name: Build
-        # We only build UBI for amd64 due to arm64 builds hanging on `npm
-        # install -g yarn` with no additional output.
-        #
-        # We supply a working directory to the command below due to the
-        # dnf/nodej2.module file that has to mounted into the container.
-        run: |
-          docker build \
-            -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-            docker/${{ matrix.sdk }} \
-            --load
-      - name: Install go
-        uses: actions/setup-go@v2
-        with:
-          go-version: "1.21.1"
-      - name: Compile tests
-        working-directory: tests
-        run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+  # ubi-sdk:
+  #   name: UBI SDK images
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       sdk: ["nodejs", "python", "dotnet", "go", "java"]
+  #   steps:
+  #     - uses: actions/checkout@master
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ env.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Setup docker buildx
+  #       uses: docker/setup-buildx-action@v3
+  #       with:
+  #         install: true
+  #     - name: Build
+  #       # We only build UBI for amd64 due to arm64 builds hanging on `npm
+  #       # install -g yarn` with no additional output.
+  #       #
+  #       # We supply a working directory to the command below due to the
+  #       # dnf/nodej2.module file that has to mounted into the container.
+  #       run: |
+  #         docker build \
+  #           -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
+  #           --platform linux/amd64 \
+  #           -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+  #           --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+  #           docker/${{ matrix.sdk }} \
+  #           --load
+  #     - name: Install go
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: "1.21.1"
+  #     - name: Compile tests
+  #       working-directory: tests
+  #       run: |
+  #         GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
 
-      - name: Set SDKS_TO_TEST (dotnet)
-        if: ${{ matrix.sdk == 'dotnet' }}
-        run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
-      - name: Set SDKS_TO_TEST (nodejs)
-        if: ${{ matrix.sdk == 'nodejs' }}
-        run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
-      - name: Set SDKS_TO_TEST (default)
-        if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
-        run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
+  #     - name: Set SDKS_TO_TEST (dotnet)
+  #       if: ${{ matrix.sdk == 'dotnet' }}
+  #       run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
+  #     - name: Set SDKS_TO_TEST (nodejs)
+  #       if: ${{ matrix.sdk == 'nodejs' }}
+  #       run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
+  #     - name: Set SDKS_TO_TEST (default)
+  #       if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
+  #       run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
 
-      - name: Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e IMAGE_VARIANT=pulumi-ubi-${{ matrix.sdk }} \
-            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
-            -e AWS_REGION=${AWS_REGION} \
-            --volume /tmp:/src \
-            --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
-      - name: Push image
-        run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
+  #     - name: Tests
+  #       run: |
+  #         docker run \
+  #           -e RUN_CONTAINER_TESTS=true \
+  #           -e IMAGE_VARIANT=pulumi-ubi-${{ matrix.sdk }} \
+  #           -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+  #           -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+  #           -e PULUMI_ORG=${PULUMI_ORG} \
+  #           -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+  #           -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+  #           -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+  #           -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+  #           -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+  #           -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+  #           -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+  #           -e AWS_REGION=${AWS_REGION} \
+  #           --volume /tmp:/src \
+  #           --entrypoint /src/pulumi-test-containers \
+  #           ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+  #           -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+  #     - name: Push image
+  #       run: |
+  #         docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
 
-  start-syncs:
-    name: Start syncs to other container registries
-    needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
-    runs-on: ubuntu-latest
-    # This workflow can be triggered by 2 events: workflow_dispatch, i.e., a
-    # manual run, or repository_dispatch, which is triggered by a Pulumi
-    # release.  In the case of a new Pulumi release (i.e. repository_dispatch),
-    # we will always want to sync to the other repos.  However, in the event of
-    # a workflow_dispatch we are probably debugging an issue and we do not
-    # necessarily want to automatically sync to the other repos.  Both repo sync
-    # workflows allow for their own manual trigger (i.e. repository_dispatch),
-    # so it's not too much work to run the sync workflows manually.
-    #
-    # This design choice also allows us avoid having to alter pulumictl to
-    # accept arbitrary parameters, as we would need to persist the tag_latest
-    # option from a workflow_dispatch in this workflow to each of the sync
-    # workflows.
-    if: ${{ github.event.inputs.force_release || github.event_name == 'repository_dispatch' }}
-    steps:
-      - name: Install Pulumictl
-        uses: jaxxstorm/action-install-gh-release@v1.2.0
-        with:
-          repo: pulumi/pulumictl
-      - name: Kick off ECR sync
-        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ecr ${{ env.PULUMI_VERSION }}
-      - name: Kick off GHCR sync
-        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ghcr ${{ env.PULUMI_VERSION }}
+  # start-syncs:
+  #   name: Start syncs to other container registries
+  #   needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
+  #   runs-on: ubuntu-latest
+  #   # This workflow can be triggered by 2 events: workflow_dispatch, i.e., a
+  #   # manual run, or repository_dispatch, which is triggered by a Pulumi
+  #   # release.  In the case of a new Pulumi release (i.e. repository_dispatch),
+  #   # we will always want to sync to the other repos.  However, in the event of
+  #   # a workflow_dispatch we are probably debugging an issue and we do not
+  #   # necessarily want to automatically sync to the other repos.  Both repo sync
+  #   # workflows allow for their own manual trigger (i.e. repository_dispatch),
+  #   # so it's not too much work to run the sync workflows manually.
+  #   #
+  #   # This design choice also allows us avoid having to alter pulumictl to
+  #   # accept arbitrary parameters, as we would need to persist the tag_latest
+  #   # option from a workflow_dispatch in this workflow to each of the sync
+  #   # workflows.
+  #   if: ${{ github.event.inputs.force_release || github.event_name == 'repository_dispatch' }}
+  #   steps:
+  #     - name: Install Pulumictl
+  #       uses: jaxxstorm/action-install-gh-release@v1.2.0
+  #       with:
+  #         repo: pulumi/pulumictl
+  #     - name: Kick off ECR sync
+  #       run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ecr ${{ env.PULUMI_VERSION }}
+  #     - name: Kick off GHCR sync
+  #       run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ghcr ${{ env.PULUMI_VERSION }}
