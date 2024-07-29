@@ -241,8 +241,13 @@ func TestEnvironment(t *testing.T) {
 
 	t.Run("Workdir", func(t *testing.T) {
 		t.Parallel()
-		requireOutput(t, "/pulumi/projects", "pwd")
-		requireOutputWithBash(t, "/pulumi/projects", "pwd")
+		if imageVariant == "pulumi" {
+			requireOutput(t, "/", "pwd")
+			requireOutputWithBash(t, "/", "pwd")
+		} else {
+			requireOutput(t, "/pulumi/projects", "pwd")
+			requireOutputWithBash(t, "/pulumi/projects", "pwd")
+		}
 	})
 
 	t.Run("User", func(t *testing.T) {
