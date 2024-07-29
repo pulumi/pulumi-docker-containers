@@ -255,7 +255,6 @@ jobs:
       - name: Set image name
         run: |
           echo "IMAGE_NAME=${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
-          echo $IMAGE_NAME
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
