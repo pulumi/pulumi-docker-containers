@@ -21,7 +21,7 @@
 import json
 
 matrix = {"include": []}
-archs = ["amd64", "arm64"]
+archs = ["amd64"] #, "arm64"]
 sdks = {
     "python": "3.9",
     "nodejs": "18",
