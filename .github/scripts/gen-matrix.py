@@ -33,14 +33,14 @@ python_versions = ["3.9", "3.10"]  # , "3.11", "3.12"]
 node_versions = ["18", "20", "22"]
 
 # Unversioned SDKs, this includes an unversioned variant for Python and Nodejs
-for sdk, language_version in sdks:
+for (sdk, language_version) in sdks.items():
     for arch in archs:
         matrix["include"].append(
             {
                 "sdk": sdk,
                 "arch": arch,
                 "language_version": language_version,
-                "default": True
+                "default": True,
             }
         )
 
