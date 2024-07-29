@@ -177,11 +177,16 @@ func TestEnvironment(t *testing.T) {
 			t.Skip("Skipping test for non python images")
 		}
 		t.Parallel()
+		expected := "/usr/local/bin/python"
+		if imageVariant == "pulumi-ubi-python" {
+			expected = "/usr/bin/python"
+		}
 
 		p, err := exec.LookPath("python")
 		require.NoError(t, err)
-		require.Equal(t, "/usr/local/bin/python", p)
-		requireOutputWithBash(t, "/usr/local/bin/python", "command", "-v", "python")
+		require.Equal(t, expected, p)
+		// Use bash `command` buultin to lookup the path to python
+		requireOutputWithBash(t, expected, "command", "-v", "python")
 	})
 
 	t.Run("Node", func(t *testing.T) {
@@ -192,6 +197,7 @@ func TestEnvironment(t *testing.T) {
 		p, err := exec.LookPath("python")
 		require.NoError(t, err)
 		require.Equal(t, "/usr/local/bin/python", p)
+		// Use bash `command` buultin to lookup the path to node
 		requireOutputWithBash(t, "/usr/local/bin/node", "command", "-v", "node")
 	})
 
@@ -241,6 +247,7 @@ func TestEnvironment(t *testing.T) {
 
 	t.Run("Workdir", func(t *testing.T) {
 		t.Parallel()
+		// Kitchen sink does not set `WORKDIR`.
 		if imageVariant == "pulumi" {
 			requireOutput(t, "/", "pwd")
 			requireOutputWithBash(t, "/", "pwd")
