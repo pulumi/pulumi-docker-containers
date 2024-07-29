@@ -264,14 +264,13 @@ jobs:
         with:
           install: true
       - name: Build
-        # We supply a working directory to the command below due to the
-        # dnf/nodej2.module file that has to mounted into the container.
         run: |
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.debian \
             --platform linux/${{ matrix.arch }} \
             -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            --build-arg LANGUAGE_VERSION=${{ matrix.version }} \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
