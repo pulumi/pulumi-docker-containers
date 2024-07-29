@@ -252,74 +252,75 @@ jobs:
         if: ${{ !env.PULUMI_VERSION }}
         run: |
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
-      - name: DEBUG
+      - name: Set image name
         run: |
-          echo ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}
-      # - uses: actions/checkout@master
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v3
-      # - name: Setup docker buildx
-      #   uses: docker/setup-buildx-action@v3
-      #   with:
-      #     install: true
-      # - name: Build
-      #   # We supply a working directory to the command below due to the
-      #   # dnf/nodej2.module file that has to mounted into the container.
-      #   run: |
-      #     docker build \
-      #       -f docker/${{ matrix.sdk }}/Dockerfile.debian \
-      #       --platform linux/${{ matrix.arch }} \
-      #       -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
-      #       --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
-      #       docker/${{ matrix.sdk }} \
-      #       --load
-      # - name: Install go
-      #   uses: actions/setup-go@v2
-      #   with:
-      #     go-version: "1.21.1"
-      # - name: Compile tests
-      #   working-directory: tests
-      #   run: |
-      #     GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
-      # - name: Set SDKS_TO_TEST (dotnet)
-      #   if: ${{ matrix.sdk == 'dotnet' }}
-      #   run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
-      # - name: Set SDKS_TO_TEST (nodejs)
-      #   if: ${{ matrix.sdk == 'nodejs' }}
-      #   run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
-      # - name: Set SDKS_TO_TEST (default)
-      #   if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
-      #   run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ env.AWS_REGION }}
-      #     role-duration-seconds: 14400 # 4 hours
-      #     role-session-name: pulumi-docker-containers@githubActions
-      #     role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      # - name: Tests
-      #   run: |
-      #     docker run \
-      #       -e RUN_CONTAINER_TESTS=true \
-      #       -e IMAGE_VARIANT=pulumi-debian-${{ matrix.sdk }} \
-      #       -e SDKS_TO_TEST=${SDKS_TO_TEST} \
-      #       -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-      #       -e PULUMI_ORG=${PULUMI_ORG} \
-      #       -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-      #       -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-      #       -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-      #       -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-      #       -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-      #       -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-      #       -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
-      #       -e AWS_REGION=${AWS_REGION} \
-      #       --volume /tmp:/src \
-      #       --entrypoint /src/pulumi-test-containers \
-      #       --platform ${{ matrix.arch }} \
-      #       ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
-      #       -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+          echo "IMAGE_NAME=${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
+          echo $IMAGE_NAME
+      - uses: actions/checkout@master
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup docker buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+      - name: Build
+        # We supply a working directory to the command below due to the
+        # dnf/nodej2.module file that has to mounted into the container.
+        run: |
+          docker build \
+            -f docker/${{ matrix.sdk }}/Dockerfile.debian \
+            --platform linux/${{ matrix.arch }} \
+            -t ${{ env.IMAGE_NAME }} \
+            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            docker/${{ matrix.sdk }} \
+            --load
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.21.1"
+      - name: Compile tests
+        working-directory: tests
+        run: |
+          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
+      - name: Set SDKS_TO_TEST (dotnet)
+        if: ${{ matrix.sdk == 'dotnet' }}
+        run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
+      - name: Set SDKS_TO_TEST (nodejs)
+        if: ${{ matrix.sdk == 'nodejs' }}
+        run: echo "SDKS_TO_TEST=typescript" >> $GITHUB_ENV
+      - name: Set SDKS_TO_TEST (default)
+        if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
+        run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 14400 # 4 hours
+          role-session-name: pulumi-docker-containers@githubActions
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Tests
+        run: |
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e IMAGE_VARIANT=pulumi-debian-${{ matrix.sdk }} \
+            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e AWS_REGION=${AWS_REGION} \
+            --volume /tmp:/src \
+            --entrypoint /src/pulumi-test-containers \
+            --platform ${{ matrix.arch }} \
+            ${{ env.IMAGE_NAME }} \
+            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
 
   # ubi-sdk:
   #   name: UBI SDK images

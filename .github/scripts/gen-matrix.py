@@ -27,7 +27,7 @@ matrix = {
 
 sdks = ["nodejs", "python", "dotnet", "go", "java"]
 archs = ["amd64", "arm64"]
-python_versions = ["3.9", "3.10", "3.11", "3.12"]
+python_versions = ["3.9", "3.10"] #, "3.11", "3.12"]
 node_versions = ["18", "20", "22"]
 
 # Unversioned SDKs, this includes an unversioned variant for Python and Nodejs
@@ -49,13 +49,13 @@ for version in python_versions:
         })
 
 # Add versioned variants for Nodejs
-for version in node_versions:
-    for arch in archs:
-        matrix["include"].append({
-            "sdk": "nodejs",
-            "arch": arch,
-            "version": version,
-            "suffix": f"-{version}",
-        })
+# for version in node_versions:
+#     for arch in archs:
+#         matrix["include"].append({
+#             "sdk": "nodejs",
+#             "arch": arch,
+#             "version": version,
+#             "suffix": f"-{version}",
+#         })
 
 print(f"matrix={json.dumps(matrix)}")
