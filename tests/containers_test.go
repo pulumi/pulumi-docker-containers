@@ -186,20 +186,18 @@ func TestDeploymentsEnvironment(t *testing.T) {
 	// https://github.com/pulumi/pulumi-service/blob/8cbd9397ec0cdc7b5c168715ca4c9aa087c83823/cmd/workflow-runner/run.go#L78
 	// Regression test for https://github.com/pulumi/pulumi-docker-containers/issues/193
 	t.Run("PATH when running in bash", func(t *testing.T) {
-		cmd := exec.Command("bash", "-c", "echo ${PATH}")
-		cmd.Env = append(os.Environ(), "BASH_ENV=~/.bashrc")
-		out, err := cmd.Output()
-		require.NoError(t, err)
-		p := strings.TrimSpace(string(out))
+		t.Parallel()
+		// When running in bash, we pick up the PATH entry from the pulumi installation script.
+		if imageVariant == "pulumi" {
+			expectedPath += ":/root/.pulumi/bin"
+		}
 		require.Equal(t, expectedPath, p)
+		requireOutput(t, expectedPath, "bash", "-c", "printenv", "PATH")
 	})
 
 	t.Run("PATH without any shell", func(t *testing.T) {
-		cmd := exec.Command("printenv", "PATH")
-		out, err := cmd.Output()
-		require.NoError(t, err)
-		p := strings.TrimSpace(string(out))
-		require.Equal(t, expectedPath, p)
+		t.Parallel()
+		requireOutput(t, expectedPath, "printenv", "PATH")
 	})
 
 	// All images must include curl. Deployments uses this to download the executor binary.
@@ -210,6 +208,24 @@ func TestDeploymentsEnvironment(t *testing.T) {
 		_, err := cmd.Output()
 		require.NoError(t, err)
 	})
+}
+
+func TestWorkdir(t *testing.T) {
+	t.Parallel()
+	requireOutput(t, "/pulumi/project", "pwd")
+}
+
+func TestUser(t *testing.T) {
+	t.Parallel()
+	requireOutput(t, "root", "whoami")
+}
+
+func requireOutput(t *testing.T, expected, cmd string, args ...string) {
+	c := exec.Command(cmd, args...)
+	out, err := c.Output()
+	require.NoError(t, err)
+	o := strings.TrimSpace(string(out))
+	require.Equal(t, expected, o)
 }
 
 func mustEnv(t *testing.T, env string) string {
