@@ -51,8 +51,7 @@ RUN apt-get update -y && \
   # Install second wave of dependencies
   apt-get update -y && \
   apt-get install -y \
-  # Pin azure-cli to 2.33.1 as workaround for https://github.com/pulumi/pulumi-docker-containers/issues/106
-  "azure-cli=2.33.1-1~bullseye" \
+  azure-cli \
   docker-ce \
   google-cloud-sdk \
   google-cloud-sdk-gke-gcloud-auth-plugin \

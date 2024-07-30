@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Unpin Azure CLI tools ([#214])(https://github.com/pulumi/pulumi-docker-containers/pull/214)
+
 - Ensure that the containers are compatible with deployments
   ([#219])(https://github.com/pulumi/pulumi-docker-containers/pull/219)
 
