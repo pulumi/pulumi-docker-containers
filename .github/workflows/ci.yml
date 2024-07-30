@@ -9,11 +9,10 @@ on:
     types:
       - ci-build
   pull_request:
-    paths:
-      - "docker/**"
-      - "tests/**"
-      - "!README.md"
-      - "!LICENSE"
+    paths-ignore:
+      - "CONTRIBUTING.md"
+      - "LICENSE"
+      - "README.md"
   # "Push" is a somewhat unintuitive name - the event will fire after a PR is
   # merged to the main branch.
   push:
@@ -91,9 +90,10 @@ jobs:
             --load \
             docker/pulumi
       - name: Install go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21.1"
+          go-version: "1.22"
+          cache-dependency-path: tests/go.sum
       - name: Compile tests
         working-directory: tests
         run: |
@@ -162,9 +162,10 @@ jobs:
             --load \
             docker/pulumi
       - name: Install go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21.1"
+          go-version: "1.22"
+          cache-dependency-path: tests/go.sum
       - name: Compile tests
         working-directory: tests
         run: |
@@ -261,9 +262,10 @@ jobs:
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21.1"
+          go-version: "1.22"
+          cache-dependency-path: tests/go.sum
       - name: Compile tests
         working-directory: tests
         run: |
@@ -345,9 +347,10 @@ jobs:
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21.1"
+          go-version: "1.22"
+          cache-dependency-path: tests/go.sum
       - name: Compile tests
         working-directory: tests
         run: |
