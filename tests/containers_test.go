@@ -193,7 +193,7 @@ func TestEnvironment(t *testing.T) {
 			t.Skip("Skipping test for images without nodejs")
 		}
 		expected := "/usr/local/bin/node"
-		if isUBI(t) {
+		if isUBI(t) || isKitchenSink(t) {
 			expected = "/usr/bin/node"
 		}
 		t.Parallel()
