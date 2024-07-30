@@ -173,8 +173,8 @@ func TestEnvironment(t *testing.T) {
 	t.Logf("Testing image variant: %s", imageVariant)
 
 	t.Run("Python", func(t *testing.T) {
-		if !strings.HasSuffix(imageVariant, "python") {
-			t.Skip("Skipping test for non python images")
+		if !hasPython(t) {
+			t.Skip("Skipping test for images without python")
 		}
 		t.Parallel()
 		expected := "/usr/local/bin/python"
@@ -185,19 +185,19 @@ func TestEnvironment(t *testing.T) {
 		p, err := exec.LookPath("python")
 		require.NoError(t, err)
 		require.Equal(t, expected, p)
-		// Use bash `command` buultin to lookup the path to python
+		// Use bash `command` builtin to lookup the path to python
 		requireOutputWithBash(t, expected, "command", "-v", "python")
 	})
 
 	t.Run("Node", func(t *testing.T) {
-		if !strings.HasSuffix(imageVariant, "node") {
-			t.Skip("Skipping test for non node images")
+		if !hasNodejs(t) {
+			t.Skip("Skipping test for images without nodejs")
 		}
 		t.Parallel()
-		p, err := exec.LookPath("python")
+		p, err := exec.LookPath("node")
 		require.NoError(t, err)
-		require.Equal(t, "/usr/local/bin/python", p)
-		// Use bash `command` buultin to lookup the path to node
+		require.Equal(t, "/usr/local/bin/node", p)
+		// Use bash `command` builtin to lookup the path to node
 		requireOutputWithBash(t, "/usr/local/bin/node", "command", "-v", "node")
 	})
 
@@ -298,4 +298,19 @@ func mustEnv(t *testing.T, env string) string {
 		t.Fatalf("Required environment variable %q not set", env)
 	}
 	return v
+}
+
+func isKitchenSink(t *testing.T) bool {
+	imageVariant := mustEnv(t, "IMAGE_VARIANT")
+	return imageVariant == "pulumi"
+}
+
+func hasPython(t *testing.T) bool {
+	imageVariant := mustEnv(t, "IMAGE_VARIANT")
+	return strings.HasSuffix(imageVariant, "python") || isKitchenSink(t)
+}
+
+func hasNodejs(t *testing.T) bool {
+	imageVariant := mustEnv(t, "IMAGE_VARIANT")
+	return strings.HasSuffix(imageVariant, "nodejs") || isKitchenSink(t)
 }
