@@ -434,7 +434,6 @@ jobs:
         with:
           go-version: "1.22"
           cache-dependency-path: tests/go.sum
-
       - name: Compile tests
         working-directory: tests
         run: |
