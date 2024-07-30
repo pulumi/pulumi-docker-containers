@@ -81,9 +81,10 @@ jobs:
             --load \
             docker/pulumi
       - name: Install go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21.1"
+          go-version: "1.22"
+          cache-dependency-path: tests/go.sum
       - name: Compile tests
         working-directory: tests
         run: |
@@ -155,9 +156,10 @@ jobs:
             --load \
             docker/pulumi
       - name: Install go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21.1"
+          go-version: "1.22"
+          cache-dependency-path: tests/go.sum
       - name: Compile tests
         working-directory: tests
         run: |
@@ -303,9 +305,10 @@ jobs:
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21.1"
+          go-version: "1.22"
+          cache-dependency-path: tests/go.sum
       - name: Compile tests
         working-directory: tests
         run: |
@@ -427,9 +430,11 @@ jobs:
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21.1"
+          go-version: "1.22"
+          cache-dependency-path: tests/go.sum
+
       - name: Compile tests
         working-directory: tests
         run: |
