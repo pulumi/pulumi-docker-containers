@@ -178,10 +178,9 @@ func TestEnvironment(t *testing.T) {
 		}
 		t.Parallel()
 		expected := "/usr/local/bin/python"
-		if imageVariant == "pulumi-ubi-python" {
+		if isUBI(t) {
 			expected = "/usr/bin/python"
 		}
-
 		p, err := exec.LookPath("python")
 		require.NoError(t, err)
 		require.Equal(t, expected, p)
@@ -193,12 +192,16 @@ func TestEnvironment(t *testing.T) {
 		if !hasNodejs(t) {
 			t.Skip("Skipping test for images without nodejs")
 		}
+		expected := "/usr/local/bin/node"
+		if isUBI(t) {
+			expected = "/usr/bin/node"
+		}
 		t.Parallel()
 		p, err := exec.LookPath("node")
 		require.NoError(t, err)
-		require.Equal(t, "/usr/local/bin/node", p)
+		require.Equal(t, expected, p)
 		// Use bash `command` builtin to lookup the path to node
-		requireOutputWithBash(t, "/usr/local/bin/node", "command", "-v", "node")
+		requireOutputWithBash(t, expected, "command", "-v", "node")
 	})
 
 	t.Run("PATH", func(t *testing.T) {
@@ -313,4 +316,14 @@ func hasPython(t *testing.T) bool {
 func hasNodejs(t *testing.T) bool {
 	imageVariant := mustEnv(t, "IMAGE_VARIANT")
 	return strings.HasSuffix(imageVariant, "nodejs") || isKitchenSink(t)
+}
+
+func isDebian(t *testing.T) bool {
+	imageVariant := mustEnv(t, "IMAGE_VARIANT")
+	return strings.HasPrefix(imageVariant, "pulumi-debian")
+}
+
+func isUBI(t *testing.T) bool {
+	imageVariant := mustEnv(t, "IMAGE_VARIANT")
+	return strings.HasPrefix(imageVariant, "pulumi-ubi")
 }
