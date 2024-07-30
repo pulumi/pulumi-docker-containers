@@ -107,10 +107,13 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Run Pulumi Template Tests
+      - name: Tests
+      # Note we use /src/pulumi-test-containers as entrypoint and not bash to avoid bash
+      # changing the environment in some way.
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
+            -e IMAGE_VARIANT=pulumi \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
@@ -122,28 +125,9 @@ jobs:
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
-            --entrypoint /bin/bash \
+            --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
-      - name: Run CLI Tool Tests
-        run: |
-          docker run \
-            -e RUN_CONTAINER_TESTS=true \
-            -e SDKS_TO_TEST=${SDKS_TO_TEST} \
-            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
-            -e PULUMI_ORG=${PULUMI_ORG} \
-            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
-            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
-            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
-            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
-            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
-            -e AWS_REGION=${AWS_REGION} \
-            --volume /tmp:/src \
-            --entrypoint /bin/bash \
-            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestCLIToolTests"
+            -test.parallel=1 -test.timeout=1h -test.v
 
   provider-build-environment:
     name: Provider Build Environment image
@@ -194,10 +178,11 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Run Pulumi Template Tests
+      - name: Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
+            -e IMAGE_VARIANT=pulumi \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
@@ -209,9 +194,9 @@ jobs:
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
-            --entrypoint /bin/bash \
+            --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+            -test.parallel=1 -test.timeout=1h -test.v
 
   base:
     name: Base image
@@ -301,10 +286,11 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Run Pulumi Template Tests
+      - name: Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
+            -e IMAGE_VARIANT=pulumi-debian-${{ matrix.sdk }} \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
@@ -317,10 +303,10 @@ jobs:
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
-            --entrypoint /bin/bash \
+            --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
 
   ubi-sdk:
     name: UBI SDK images
@@ -384,10 +370,11 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Run Pulumi Template Tests
+      - name: Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
+            -e IMAGE_VARIANT=pulumi-ubi-${{ matrix.sdk }} \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
@@ -400,6 +387,6 @@ jobs:
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
-            --entrypoint /bin/bash \
+            --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -c "/src/pulumi-test-containers -test.parallel=1 -test.timeout=1h -test.v -test.run TestPulumiTemplateTests"
+            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"

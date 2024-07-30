@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Ensure that the containers are compatible with deployments
+  ([#219])(https://github.com/pulumi/pulumi-docker-containers/pull/219)
 
 - Test AWS CLI and templates in the `pulumi/pulumi` image
   ([#213](https://github.com/pulumi/pulumi-docker-containers/pull/213))
