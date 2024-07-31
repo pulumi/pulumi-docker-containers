@@ -47,20 +47,23 @@ jobs:
           docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
           docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
 
+  define-debian-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-debian-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix
+        id: define-debian-matrix
+        run: |
+          echo matrix=$(python ./.github/scripts/matrix/gen-sync-matrix.py) >> "$GITHUB_OUTPUT"
+
   debian-images:
     name: Debian SDK and base images
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        image:
-          [
-            "pulumi-base",
-            "pulumi-go",
-            "pulumi-nodejs",
-            "pulumi-python",
-            "pulumi-dotnet",
-          ]
+      matrix: ${{ fromJSON(needs.define-debian-matrix.outputs.matrix) }}
     steps:
       # NOTE: The process we use for the Kichen Sink image, which is
       # single-platform, will not work here.  Pulling a multi-arch manifest from
