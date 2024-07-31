@@ -120,7 +120,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -test.parallel=1 -test.timeout=1h -test.v
+            -test.timeout=1h -test.v
       - name: Push ${{ env.PULUMI_VERSION }}
         run: docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
       - name: Push latest
