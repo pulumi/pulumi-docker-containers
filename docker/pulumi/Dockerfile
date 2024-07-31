@@ -1,7 +1,4 @@
-# TODO[pulumi/pulumi-docker-containers#147]: Move back to using `python:3.9-slim`
-# as the base image when upstream issues with Debian "bookworm" are resolved.
-# For now, we continue using Debian "bullseye" as the base image.
-FROM python:3.9-slim-bullseye AS base
+FROM debian:12 AS base
 
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
@@ -13,16 +10,27 @@ ENV GOLANG_SHA256 b3075ae1ce5dab85f89bc7905d1632de23ca196bd8336afd93fa97434cfa55
 
 # Install deps all in one step
 RUN apt-get update -y && \
-  apt-get install -y \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
   apt-transport-https \
   build-essential \
   ca-certificates \
   curl \
   git \
   gnupg \
+  libbz2-dev \
+  libffi-dev \
+  liblzma-dev \
+  libncurses5-dev \
+  libreadline-dev \
+  libsqlite3-dev \
+  libssl-dev \
+  libxml2-dev \
+  libxmlsec1-dev \
   software-properties-common \
+  unzip  \
   wget \
-  unzip && \
+  xz-utils \
+  zlib1g-dev && \
   # Get all of the signatures we need all at once.
   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key  | apt-key add - && \
   curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg              | apt-key add - && \
@@ -95,6 +103,25 @@ ENV XDG_CACHE_HOME=/root/.cache
 RUN curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash && \
   helm repo add stable https://charts.helm.sh/stable && \
   helm repo update
+
+# Python
+# Install Pyenv and preinstall supported Python versions
+RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /pyenv
+ENV PYENV_ROOT /pyenv
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+RUN pyenv install 3.12
+RUN pyenv install 3.11
+RUN pyenv install 3.10
+RUN pyenv install 3.9
+RUN pyenv global 3.9 # Default version
+# Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="/root/.local/bin:${PATH}"
+# Set poetry to prefer the active python version so it interacts nicely with pyenv, otherwise 
+# poetry will create virtual environments using the python version used by poetry itself.
+RUN poetry config virtualenvs.prefer-active-python true
+# Enable support for .python-version files
+ENV PULUMI_LANGUAGE_VERSION_FILES=true
 
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
 # of the SDK. Otherwise, we use whatever get.pulumi.com thinks is

@@ -124,7 +124,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -test.parallel=1 -test.timeout=1h -test.v
+            -test.timeout=1h -test.v
 
   provider-build-environment:
     name: Provider Build Environment image

@@ -1,0 +1,6 @@
+name: "python-version-default"
+runtime:
+  name: python
+  options:
+    toolchain: poetry
+description: A Python program that checks the Python version

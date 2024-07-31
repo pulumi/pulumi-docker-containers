@@ -15,18 +15,26 @@
 package containers
 
 import (
+	"crypto/rand"
+	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/pulumi/pulumi/pkg/v3/engine"
 	"github.com/pulumi/pulumi/pkg/v3/testing/integration"
 	ptesting "github.com/pulumi/pulumi/sdk/v3/go/common/testing"
 	"github.com/stretchr/testify/require"
 )
+
+//go:embed all:testdata
+var testdata embed.FS
 
 type testCase struct {
 	template string
@@ -113,6 +121,55 @@ func TestPulumiTemplateTests(t *testing.T) {
 			integration.ProgramTest(t, &example)
 		})
 	}
+}
+
+func TestKitchenSinkPythonVersions(t *testing.T) {
+	if !isKitchenSink(t) {
+		t.Skip("Only running python version tests on kitchen sink")
+	}
+	t.Parallel()
+
+	t.Run("defaults to 3.9", func(t *testing.T) {
+		copyTestData(t, "testdata/python-default")
+		integration.ProgramTest(t, &integration.ProgramTestOptions{
+			Dir:         "testdata/python-default",
+			Quick:       true,
+			SkipRefresh: true,
+			PrepareProject: func(info *engine.Projinfo) error {
+				cmd := exec.Command("pulumi", "install")
+				cmd.Dir = info.Root
+				return cmd.Run()
+			},
+		})
+	})
+
+	t.Run("select 3.9", func(t *testing.T) {
+		copyTestData(t, "testdata/python-3.9")
+		integration.ProgramTest(t, &integration.ProgramTestOptions{
+			Dir:         "testdata/python-3.9",
+			Quick:       true,
+			SkipRefresh: true,
+			PrepareProject: func(info *engine.Projinfo) error {
+				cmd := exec.Command("pulumi", "install")
+				cmd.Dir = info.Root
+				return cmd.Run()
+			},
+		})
+	})
+
+	t.Run("select 3.12", func(t *testing.T) {
+		copyTestData(t, "testdata/python-3.12")
+		integration.ProgramTest(t, &integration.ProgramTestOptions{
+			Dir:         "testdata/python-3.12",
+			Quick:       true,
+			SkipRefresh: true,
+			PrepareProject: func(info *engine.Projinfo) error {
+				cmd := exec.Command("pulumi", "install")
+				cmd.Dir = info.Root
+				return cmd.Run()
+			},
+		})
+	})
 }
 
 func TestCLIToolTests(t *testing.T) {
@@ -326,4 +383,24 @@ func isDebian(t *testing.T) bool {
 func isUBI(t *testing.T) bool {
 	imageVariant := mustEnv(t, "IMAGE_VARIANT")
 	return strings.HasPrefix(imageVariant, "pulumi-ubi")
+}
+
+func RandomStackName(t *testing.T) string {
+	t.Helper()
+	b := make([]byte, 4)
+	_, err := rand.Read(b)
+	require.NoError(t, err)
+	return "test" + hex.EncodeToString(b)
+}
+
+func copyTestData(t *testing.T, path string) {
+	require.NoError(t, os.MkdirAll(path, os.ModePerm))
+	files, err := testdata.ReadDir(path)
+	require.NoError(t, err, "readdir")
+	for _, file := range files {
+		p := filepath.Join(path, file.Name())
+		fileContent, err := testdata.ReadFile(p)
+		require.NoError(t, err, "readfile")
+		require.NoError(t, os.WriteFile(p, fileContent, os.ModePerm), "writefile")
+	}
 }
