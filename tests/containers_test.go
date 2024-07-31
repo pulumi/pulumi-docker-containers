@@ -235,6 +235,9 @@ func TestEnvironment(t *testing.T) {
 		}
 		t.Parallel()
 		expected := "/usr/local/bin/python"
+		if isKitchenSink(t) {
+			expected = "/pyenv/shims/python"
+		}
 		if isUBI(t) {
 			expected = "/usr/bin/python"
 		}
@@ -265,7 +268,7 @@ func TestEnvironment(t *testing.T) {
 		// Install scripts for various tools can sometimes modify PATH, usually by adding entries
 		// to ~/.bashrc. This test ensures that we notice such modifications.
 		expectedPaths := map[string]string{
-			"pulumi":               "/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi":               "/root/.local/bin:/pyenv/shims:/pyenv/bin:/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			// TODO: does not include $GOPATH/bin https://github.com/pulumi/pulumi-docker-containers/issues/220
 			"pulumi-debian-go":     "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
