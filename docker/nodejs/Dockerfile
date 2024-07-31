@@ -1,6 +1,8 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
 # Must be defined first
+ARG LANGUAGE_VERSION
+
 FROM debian:bullseye-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
@@ -15,7 +17,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 
 # The runtime container
-FROM node:18-bullseye-slim
+FROM node:${LANGUAGE_VERSION}-bullseye-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for nodejs"
 WORKDIR /pulumi/projects
 

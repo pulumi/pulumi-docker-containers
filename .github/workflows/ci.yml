@@ -25,10 +25,7 @@ env:
   # The organization in the Pulumi SaaS service against which the integration
   # tests will run:
   PULUMI_ORG: "pulumi-test"
-  # We parameterize the Docker Hub username to allow forks to easily test
-  # changes on a separate repo without having to change the username in multiple
-  # places:
-  DOCKER_USERNAME: pulumi
+  DOCKER_ORG: pulumi
   PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
   # Do not depend on C library for the tests.
   CGO_ENABLED: "0"
@@ -84,7 +81,7 @@ jobs:
           docker build \
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
             --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
@@ -126,7 +123,7 @@ jobs:
             -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_USERNAME }}/pulumi:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
             -test.parallel=1 -test.timeout=1h -test.v
 
   provider-build-environment:
@@ -156,7 +153,7 @@ jobs:
           docker build \
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
@@ -196,7 +193,7 @@ jobs:
             -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_USERNAME }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
             -test.parallel=1 -test.timeout=1h -test.v
 
   base:
@@ -226,16 +223,26 @@ jobs:
             -f docker/base/Dockerfile.${{ matrix.os }} \
             --platform linux/arm64,linux/amd64 \
             . \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }}
+  define-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix
+        id: define-matrix
+        run: |
+          echo matrix=$(python ./.github/scripts/gen-matrix.py) >> "$GITHUB_OUTPUT"
+
   debian-sdk:
     name: Debian SDK images
     runs-on: ubuntu-latest
+    needs: define-matrix
     strategy:
       fail-fast: false
-      matrix:
-        sdk: ["nodejs", "python", "dotnet", "go", "java"]
-        arch: ["amd64", "arm64"]
+      matrix: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -243,6 +250,9 @@ jobs:
         if: ${{ !env.PULUMI_VERSION }}
         run: |
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+      - name: Set image name
+        run: |
+          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -251,14 +261,13 @@ jobs:
         with:
           install: true
       - name: Build
-        # We supply a working directory to the command below due to the
-        # dnf/nodej2.module file that has to mounted into the container.
         run: |
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.debian \
             --platform linux/${{ matrix.arch }} \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -307,7 +316,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            ${{ env.IMAGE_NAME }} \
             -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
 
   ubi-sdk:
@@ -342,7 +351,7 @@ jobs:
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             docker/${{ matrix.sdk }} \
             --load
@@ -391,5 +400,5 @@ jobs:
             -e AWS_REGION=${AWS_REGION} \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
             -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"

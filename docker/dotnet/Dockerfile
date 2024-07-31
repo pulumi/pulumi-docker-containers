@@ -18,7 +18,7 @@ FROM debian:11-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for dotnet"
 WORKDIR /pulumi/projects
 
-ARG DOTNET_VERSION="6.0"
+ARG LANGUAGE_VERSION
 
 RUN apt-get update -y && \
     apt-get install -y \
@@ -27,7 +27,7 @@ RUN apt-get update -y && \
 
 # Install dotnet 6.0 using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel ${DOTNET_VERSION}
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel ${LANGUAGE_VERSION}
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi

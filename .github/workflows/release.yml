@@ -272,16 +272,35 @@ jobs:
             ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:latest
+
+  define-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix
+        id: define-matrix
+        run: |
+          echo matrix=$(python ./.github/scripts/gen-matrix.py) >> "$GITHUB_OUTPUT"
+
   debian-sdk:
     name: Debian SDK images
+    needs: define-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        sdk: ["nodejs", "python", "dotnet", "go", "java"]
-        arch: ["amd64", "arm64"]
+      matrix: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@master
+      - name: Set image name
+        run: |
+          echo "IMAGE_NAME=${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
+      - name: Set default language version image name
+        # For the default language version, we also set a default image name that doesn't include the version suffix
+        if: ${{ (matrix.default == true) && (matrix.suffix != '') }}
+        run: |
+          echo "DEFAULT_IMAGE_NAME=${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -294,14 +313,13 @@ jobs:
         with:
           install: true
       - name: Build
-        # We supply a working directory to the command below due to the
-        # dnf/nodej2.module file that has to mounted into the container.
         run: |
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.debian \
             --platform linux/${{ matrix.arch }} \
-            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -313,7 +331,6 @@ jobs:
         working-directory: tests
         run: |
           GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
-
       - name: Set SDKS_TO_TEST (dotnet)
         if: ${{ matrix.sdk == 'dotnet' }}
         run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
@@ -351,19 +368,35 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }} \
+            ${{ env.IMAGE_NAME }} \
             -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}
+          docker push ${{ env.IMAGE_NAME }}
+      - name: Push default language version image
+        if: ${{ (matrix.default == true) && (matrix.suffix != '') }}
+        run: |
+          docker tag ${{ env.IMAGE_NAME }} ${{ env.DEFAULT_IMAGE_NAME }}
+          docker push ${{ env.DEFAULT_IMAGE_NAME }}
+
+  define-matrix-sdk-manifests:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix-sdk-manifests.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix for SDK Manifests
+        id: define-matrix-sdk-manifests
+        run: |
+          echo matrix=$(python ./.github/scripts/gen-matrix.py) >> "$GITHUB_OUTPUT"
+
   debian-sdk-manifests:
     name: Debian SDK manifests
-    needs: ["debian-sdk"]
+    needs: ["debian-sdk", "define-matrix-sdk-manifests"]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        sdk: ["nodejs", "python", "dotnet", "go", "java"]
+      matrix: ${{ fromJSON(needs.define-matrix-sdk-manifests.outputs.matrix) }}
     steps:
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -373,27 +406,54 @@ jobs:
       - name: Debian manifest
         run: |
           docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian
+      - name: Debian manifest without language version suffix
+        if: ${{ (matrix.default == true) && (matrix.suffix != '') }}
+        run: |
+          docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian
-      - name: Suffix-less manifest
+      - name: Manifest without debian suffix
+        run: |
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}
+      - name: Manifest without debian suffix, without language version suffix
+        if: ${{ (matrix.default == true) && (matrix.suffix != '') }}
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }} \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}
-      - name: Suffix-less manifest (latest)
+      - name: Latest manifest
         # Manifest lists can't be a source for `docker tag`, so we create an
         # additional copy of the previous manifest to tag latest:
-        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
+        if: ${{ (github.event.inputs.tag_latest || github.event_name == 'repository_dispatch') }}
+        run: |
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:latest \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:latest
+      - name: Latest manifest, without language version suffix
+        # Manifest lists can't be a source for `docker tag`, so we create an
+        # additional copy of the previous manifest to tag latest:
+        if: ${{ (github.event.inputs.tag_latest || github.event_name == 'repository_dispatch') && (matrix.default == true) && (matrix.suffix != '') }}
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-amd64
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest
+
 
   ubi-sdk:
     name: UBI SDK images

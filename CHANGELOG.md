@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add per-language versions of the `pulumi/pulumi-python` image
+  ([#226](https://github.com/pulumi/pulumi-docker-containers/pull/226))
+
 - Unpin Azure CLI tools ([#214])(https://github.com/pulumi/pulumi-docker-containers/pull/214)
 
 - Ensure that the containers are compatible with deployments
