@@ -194,7 +194,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -test.parallel=1 -test.timeout=1h -test.v
+            -test.timeout=1h -test.v
 
   base:
     name: Base image
@@ -317,7 +317,7 @@ jobs:
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
             ${{ env.IMAGE_NAME }} \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+            -test.timeout=1h -test.v
 
   ubi-sdk:
     name: UBI SDK images
@@ -401,4 +401,4 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+            -test.timeout=1h -test.v

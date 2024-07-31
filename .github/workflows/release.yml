@@ -191,7 +191,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -test.parallel=1 -test.timeout=1h -test.v
+            -test.timeout=1h -test.v
       - name: Push ${{ env.PULUMI_VERSION }}
         run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
       - name: Push latest
@@ -369,7 +369,7 @@ jobs:
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
             ${{ env.IMAGE_NAME }} \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+            -test.timeout=1h -test.v
       - name: Push image
         run: |
           docker push ${{ env.IMAGE_NAME }}
@@ -528,7 +528,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+            -test.timeout=1h -test.v
       - name: Push image
         run: |
           docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
