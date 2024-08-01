@@ -29,22 +29,12 @@
 import json
 import sys
 
+import versions
+
 INCLUDE_ARCH = False if len(sys.argv) > 1 and sys.argv[1] == "--no-arch" else True
 
 archs = ["amd64", "arm64"] if INCLUDE_ARCH else [None]
 matrix = {"include": []}
-
-# SDKs without version suffixes
-sdks = {
-    "nodejs": "18",
-    "go": "1.21.1",
-    "dotnet": "6.0",
-    "java": "not-used-yet",
-}
-# Python versions
-python_default_version = "3.9"
-python_additional_versions = ["3.10", "3.11", "3.12"]
-
 
 def make_entry(*, sdk, arch, default, language_version, suffix=None):
     entry = {
@@ -61,7 +51,7 @@ def make_entry(*, sdk, arch, default, language_version, suffix=None):
 
 for arch in archs:
 
-    for sdk, version in sdks.items():
+    for sdk, version in versions.sdks.items():
         matrix["include"].append(
             make_entry(sdk=sdk, arch=arch, default=True, language_version=version)
         )
@@ -71,13 +61,13 @@ for arch in archs:
         make_entry(
             sdk="python",
             arch=arch,
-            language_version=python_default_version,
+            language_version=versions.python_default_version,
             default=True,
-            suffix=f"-{python_default_version}",
+            suffix=f"-{versions.python_default_version}",
         )
     )
     # Additional Python versions
-    for version in python_additional_versions:
+    for version in versions.python_additional_versions:
         matrix["include"].append(
             make_entry(
                 sdk="python",

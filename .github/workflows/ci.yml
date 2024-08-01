@@ -234,7 +234,7 @@ jobs:
       - name: Define Matrix
         id: define-matrix
         run: |
-          echo matrix=$(python ./.github/scripts/gen-matrix.py) >> "$GITHUB_OUTPUT"
+          echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py) >> "$GITHUB_OUTPUT"
 
   debian-sdk:
     name: Debian SDK images
