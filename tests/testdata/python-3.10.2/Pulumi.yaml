@@ -1,0 +1,6 @@
+name: "python-version-3.10.2"
+runtime:
+  name: python
+  options:
+    toolchain: poetry
+description: A Python program that checks the Python version. Install a precise version of Python that is not pre-installed.
