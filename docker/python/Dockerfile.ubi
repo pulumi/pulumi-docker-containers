@@ -27,6 +27,10 @@ RUN microdnf install -y \
     ca-certificates && \
     pip3 install --user pipenv
 
+# Install poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH "/root/.local/bin:${PATH}"
+
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 COPY --from=builder /root/.pulumi/bin/*-python* /pulumi/bin/
