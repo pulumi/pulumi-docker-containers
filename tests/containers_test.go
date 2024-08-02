@@ -148,62 +148,6 @@ func TestKitchenSinkPythonVersions(t *testing.T) {
 			})
 		})
 	}
-
-	// t.Run("defaults to 3.9", func(t *testing.T) {
-	// 	copyTestData(t, "testdata/python-default")
-	// 	integration.ProgramTest(t, &integration.ProgramTestOptions{
-	// 		Dir:         "testdata/python-default",
-	// 		Quick:       true,
-	// 		SkipRefresh: true,
-	// 		PrepareProject: func(info *engine.Projinfo) error {
-	// 			cmd := exec.Command("pulumi", "install")
-	// 			cmd.Dir = info.Root
-	// 			return cmd.Run()
-	// 		},
-	// 	})
-	// })
-
-	// t.Run("select 3.9", func(t *testing.T) {
-	// 	copyTestData(t, "testdata/python-3.9")
-	// 	integration.ProgramTest(t, &integration.ProgramTestOptions{
-	// 		Dir:         "testdata/python-3.9",
-	// 		Quick:       true,
-	// 		SkipRefresh: true,
-	// 		PrepareProject: func(info *engine.Projinfo) error {
-	// 			cmd := exec.Command("pulumi", "install")
-	// 			cmd.Dir = info.Root
-	// 			return cmd.Run()
-	// 		},
-	// 	})
-	// })
-
-	// t.Run("select 3.12", func(t *testing.T) {
-	// 	copyTestData(t, "testdata/python-3.12")
-	// 	integration.ProgramTest(t, &integration.ProgramTestOptions{
-	// 		Dir:         "testdata/python-3.12",
-	// 		Quick:       true,
-	// 		SkipRefresh: true,
-	// 		PrepareProject: func(info *engine.Projinfo) error {
-	// 			cmd := exec.Command("pulumi", "install")
-	// 			cmd.Dir = info.Root
-	// 			return cmd.Run()
-	// 		},
-	// 	})
-	// })
-
-	// t.Run("select 3.10.2 - installs on demand", func(t *testing.T) {
-	// 	copyTestData(t, "testdata/python-3.10.2")
-	// 	integration.ProgramTest(t, &integration.ProgramTestOptions{
-	// 		Dir:         "testdata/python-3.10.2",
-	// 		Quick:       true,
-	// 		SkipRefresh: true,
-	// 		PrepareProject: func(info *engine.Projinfo) error {
-	// 			cmd := exec.Command("pulumi", "install")
-	// 			cmd.Dir = info.Root
-	// 			return cmd.Run()
-	// 		},
-	// 	})
-	// })
 }
 
 func TestCLIToolTests(t *testing.T) {
