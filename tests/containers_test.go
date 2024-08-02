@@ -191,7 +191,7 @@ func TestEnvironment(t *testing.T) {
 		// is merged. https://github.com/pulumi/pulumi-docker-containers/issues/239
 		if !isKitchenSink(t) {
 			// Poetry should be available
-			expectedPoetryPath := "/root/.local/bin/poetry"
+			expectedPoetryPath := "/usr/local/bin/poetry"
 			poetryPath, err := exec.LookPath("poetry")
 			require.NoError(t, err)
 			require.Equal(t, expectedPoetryPath, poetryPath)
@@ -226,7 +226,7 @@ func TestEnvironment(t *testing.T) {
 			"pulumi-debian-go":     "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-java":   "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-nodejs": "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-			"pulumi-debian-python": "/pulumi/bin:/root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-debian-python": "/pulumi/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-ubi-dotnet":    "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			// TODO: does not include $GOPATH/bin https://github.com/pulumi/pulumi-docker-containers/issues/220
 			"pulumi-ubi-go":     "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",

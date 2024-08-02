@@ -28,8 +28,7 @@ RUN apt-get update -y && \
     ca-certificates
 
 # Install poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH "/root/.local/bin:${PATH}"
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local python3 -
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
