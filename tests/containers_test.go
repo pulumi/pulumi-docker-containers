@@ -150,7 +150,10 @@ func TestKitchenSinkPythonVersions(t *testing.T) {
 	}
 }
 
-func TestCLIToolTests(t *testing.T) {
+func TestCloudCLIToolTests(t *testing.T) {
+	if !isKitchenSink(t) {
+		t.Skip("Only running Cloud CLI tool tests on kitchen sink")
+	}
 	t.Parallel()
 
 	t.Run("Azure CLI", func(t *testing.T) {
@@ -208,10 +211,10 @@ func TestEnvironment(t *testing.T) {
 	t.Logf("Testing image variant: %s", imageVariant)
 
 	t.Run("Python", func(t *testing.T) {
+		t.Parallel()
 		if !hasPython(t) {
 			t.Skip("Skipping test for images without python")
 		}
-		t.Parallel()
 		expected := "/usr/local/bin/python"
 		if isKitchenSink(t) {
 			expected = "/pyenv/shims/python"
@@ -227,6 +230,7 @@ func TestEnvironment(t *testing.T) {
 	})
 
 	t.Run("Node", func(t *testing.T) {
+		t.Parallel()
 		if !hasNodejs(t) {
 			t.Skip("Skipping test for images without nodejs")
 		}
@@ -234,7 +238,6 @@ func TestEnvironment(t *testing.T) {
 		if isUBI(t) || isKitchenSink(t) {
 			expected = "/usr/bin/node"
 		}
-		t.Parallel()
 		p, err := exec.LookPath("node")
 		require.NoError(t, err)
 		require.Equal(t, expected, p)
@@ -243,6 +246,7 @@ func TestEnvironment(t *testing.T) {
 	})
 
 	t.Run("PATH", func(t *testing.T) {
+		t.Parallel()
 		// Install scripts for various tools can sometimes modify PATH, usually by adding entries
 		// to ~/.bashrc. This test ensures that we notice such modifications.
 		expectedPaths := map[string]string{
