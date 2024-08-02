@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Update to debian 12 (bookworm) slim as base image
+  ([#236](https://github.com/pulumi/pulumi-docker-containers/pull/236))
+
 - Add per-language versions of the `pulumi/pulumi-python` image
   ([#226](https://github.com/pulumi/pulumi-docker-containers/pull/226))
 

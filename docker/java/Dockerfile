@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
 # Must be defined first
-FROM debian:bullseye-slim AS builder
+FROM debian:bookworm-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -15,7 +15,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 
 # The runtime container
-FROM debian:11-slim
+FROM debian:bookworm-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for java"
 WORKDIR /pulumi/projects
 

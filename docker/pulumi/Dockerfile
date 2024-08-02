@@ -1,7 +1,4 @@
-# TODO[pulumi/pulumi-docker-containers#147]: Move back to using `python:3.9-slim`
-# as the base image when upstream issues with Debian "bookworm" are resolved.
-# For now, we continue using Debian "bullseye" as the base image.
-FROM python:3.9-slim-bullseye AS base
+FROM python:3.9-slim-bookworm AS base
 
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
@@ -57,6 +54,7 @@ RUN apt-get update -y && \
   google-cloud-sdk-gke-gcloud-auth-plugin \
   kubectl \
   nodejs \
+  npm \
   yarn && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*

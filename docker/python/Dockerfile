@@ -3,7 +3,7 @@
 # Must be defined first
 ARG LANGUAGE_VERSION
 
-FROM debian:buster-slim AS builder
+FROM debian:bookworm-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -16,7 +16,7 @@ RUN apt-get update -y && \
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # The runtime container
-FROM python:${LANGUAGE_VERSION}-slim
+FROM python:${LANGUAGE_VERSION}-slim-bookworm
 LABEL org.opencontainers.image.description="Pulumi CLI container for python"
 WORKDIR /pulumi/projects
 
