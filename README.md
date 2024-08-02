@@ -18,7 +18,7 @@ The base and SDK-specific images are considerably smaller than the combined `pul
 
 Each of the images described above (except the full `pulumi/pulumi` image) are built on a matrix of the following base images and platforms:
 
-- [debian/debian:11-slim](https://github.com/debuerreotype/docker-debian-artifacts/blob/d99a48edaa18ad2bbb260c388b274c8c093f2d32/bullseye/slim/Dockerfile), (AKA "bullseye") tagged with the following suffixes:
+- [debian/debian:12-slim](https://github.com/debuerreotype/docker-debian-artifacts/blob/d99a48edaa18ad2bbb260c388b274c8c093f2d32/bullseye/slim/Dockerfile), (AKA "bookworm") tagged with the following suffixes:
   - `-debian-amd64`: Image manifest for the `linux/amd64` platform.
   - `-debian-arm64`: Image manifest for the `linux/arm64` platform.
   - `-debian`:  Manifest list of `-debian-amd64` and `-debian-arm64`.  Executing `docker pull` against this tag will grab the appropriate image for the supported platform you are currently running, and thus should be the default choice.
