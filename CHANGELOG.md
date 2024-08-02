@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add Poetry to Python images ([#240](https://github.com/pulumi/pulumi-docker-containers/pull/240))
+
 - Update to debian 12 (bookworm) slim as base image
   ([#236](https://github.com/pulumi/pulumi-docker-containers/pull/236))
 
