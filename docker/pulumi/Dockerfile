@@ -54,6 +54,7 @@ RUN apt-get update -y && \
   google-cloud-sdk-gke-gcloud-auth-plugin \
   kubectl \
   nodejs \
+  npm \
   yarn && \
   # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
