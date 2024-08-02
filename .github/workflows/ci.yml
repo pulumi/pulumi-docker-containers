@@ -144,6 +144,10 @@ jobs:
         run: |
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
