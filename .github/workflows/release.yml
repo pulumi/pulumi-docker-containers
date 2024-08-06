@@ -56,6 +56,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -131,6 +135,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -295,12 +303,12 @@ jobs:
       - uses: actions/checkout@master
       - name: Set image name
         run: |
-          echo "IMAGE_NAME=${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
       - name: Set default language version image name
         # For the default language version, we also set a default image name that doesn't include the version suffix
         if: ${{ (matrix.default == true) && (matrix.suffix != '') }}
         run: |
-          echo "DEFAULT_IMAGE_NAME=${{ env.DOCKER_USERNAME }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
+          echo "DEFAULT_IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -508,7 +516,15 @@ jobs:
       - name: Set SDKS_TO_TEST (default)
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
-
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 14400 # 4 hours
+          role-session-name: pulumi-docker-containers@githubActions
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
       - name: Tests
         run: |
           docker run \
