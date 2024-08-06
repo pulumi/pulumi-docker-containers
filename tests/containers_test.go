@@ -141,7 +141,7 @@ func TestKitchenSinkPythonVersions(t *testing.T) {
 				Quick:       true,
 				SkipRefresh: true,
 				PrepareProject: func(info *engine.Projinfo) error {
-					cmd := exec.Command("pulumi", "install")
+					cmd := exec.Command("pulumi", "install", "--use-language-version-tools")
 					cmd.Dir = info.Root
 					return cmd.Run()
 				},
