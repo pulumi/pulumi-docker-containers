@@ -508,7 +508,15 @@ jobs:
       - name: Set SDKS_TO_TEST (default)
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
-
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 14400 # 4 hours
+          role-session-name: pulumi-docker-containers@githubActions
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
       - name: Tests
         run: |
           docker run \
