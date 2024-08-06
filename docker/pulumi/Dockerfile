@@ -130,8 +130,6 @@ ENV PATH="/root/.local/bin:${PATH}"
 # Set poetry to prefer the active python version so it interacts nicely with pyenv, otherwise 
 # poetry will create virtual environments using the python version used by poetry itself.
 RUN poetry config virtualenvs.prefer-active-python true
-# Enable support for .python-version files
-ENV PULUMI_LANGUAGE_VERSION_FILES=true
 
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
 # of the SDK. Otherwise, we use whatever get.pulumi.com thinks is
