@@ -204,16 +204,57 @@ func TestEnvironment(t *testing.T) {
 		if !hasNodejs(t) {
 			t.Skip("Skipping test for images without nodejs")
 		}
-		expected := "/usr/local/bin/node"
-		if isUBI(t) || isKitchenSink(t) {
-			expected = "/usr/bin/node"
-		}
 		t.Parallel()
-		p, err := exec.LookPath("node")
-		require.NoError(t, err)
-		require.Equal(t, expected, p)
-		// Use bash `command` builtin to lookup the path to node
-		requireOutputWithBash(t, expected, "command", "-v", "node")
+
+		for _, testCase := range []struct {
+			name            string
+			expectedDebian  string
+			expectedUbi     string
+			expectedKitchen string
+		}{
+			{
+				name:            "node",
+				expectedDebian:  "/usr/local/bin/node",
+				expectedUbi:     "/usr/bin/node",
+				expectedKitchen: "/usr/bin/node",
+			},
+			{
+				name:            "npm",
+				expectedDebian:  "/usr/local/bin/npm",
+				expectedUbi:     "/usr/local/bin/npm",
+				expectedKitchen: "/usr/bin/npm",
+			},
+
+			{
+				name:            "yarn",
+				expectedDebian:  "/usr/local/bin/yarn",
+				expectedUbi:     "/usr/local/bin/yarn",
+				expectedKitchen: "/usr/bin/yarn",
+			},
+			{
+				name:            "corepack",
+				expectedDebian:  "/usr/local/bin/corepack",
+				expectedUbi:     "/usr/bin/corepack",
+				expectedKitchen: "/usr/bin/corepack",
+			},
+		} {
+			testCase := testCase
+			t.Run(testCase.name, func(t *testing.T) {
+				t.Parallel()
+				expected := testCase.expectedDebian
+				if isUBI(t) {
+					expected = testCase.expectedUbi
+				}
+				if isKitchenSink(t) {
+					expected = testCase.expectedKitchen
+				}
+				p, err := exec.LookPath(testCase.name)
+				require.NoError(t, err)
+				require.Equal(t, expected, p)
+				// Use bash `command` builtin to lookup the path when running in bash
+				requireOutputWithBash(t, expected, "command", "-v", testCase.name)
+			})
+		}
 	})
 
 	t.Run(imageVariant, func(t *testing.T) {
