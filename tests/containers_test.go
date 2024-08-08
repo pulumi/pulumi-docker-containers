@@ -186,6 +186,18 @@ func TestEnvironment(t *testing.T) {
 		require.Equal(t, expected, p)
 		// Use bash `command` builtin to lookup the path to python
 		requireOutputWithBash(t, expected, "command", "-v", "python")
+
+		// TODO: enable test for kitchen sink after https://github.com/pulumi/pulumi-docker-containers/pull/232
+		// is merged. https://github.com/pulumi/pulumi-docker-containers/issues/239
+		if !isKitchenSink(t) {
+			// Poetry should be available
+			expectedPoetryPath := "/usr/local/bin/poetry"
+			poetryPath, err := exec.LookPath("poetry")
+			require.NoError(t, err)
+			require.Equal(t, expectedPoetryPath, poetryPath)
+			// Use bash `command` builtin to lookup the path to python
+			requireOutputWithBash(t, expectedPoetryPath, "command", "-v", "poetry")
+		}
 	})
 
 	t.Run("Node", func(t *testing.T) {
@@ -204,7 +216,7 @@ func TestEnvironment(t *testing.T) {
 		requireOutputWithBash(t, expected, "command", "-v", "node")
 	})
 
-	t.Run("PATH", func(t *testing.T) {
+	t.Run(imageVariant, func(t *testing.T) {
 		// Install scripts for various tools can sometimes modify PATH, usually by adding entries
 		// to ~/.bashrc. This test ensures that we notice such modifications.
 		expectedPaths := map[string]string{
