@@ -8,9 +8,9 @@ LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker containe
 ENV GOLANG_VERSION 1.21.1
 ENV GOLANG_SHA256 b3075ae1ce5dab85f89bc7905d1632de23ca196bd8336afd93fa97434cfa55ae
 
-# Install deps all in one step
+# Install base dependencies
 RUN apt-get update -y && \
-  apt-get install -y \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
   apt-transport-https \
   build-essential \
   ca-certificates \
@@ -20,12 +20,10 @@ RUN apt-get update -y && \
   software-properties-common \
   wget \
   unzip && \
-  # Get all of the signatures we need all at once.
-  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key  | apt-key add - && \
-  curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg              | apt-key add - && \
-  curl -fsSL https://download.docker.com/linux/debian/gpg          | apt-key add - && \
-  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-  curl -fsSL https://packages.microsoft.com/keys/microsoft.asc     | apt-key add - && \
+  rm -rf /var/lib/apt/lists/*
+
+# Install cloud tools
+RUN \
   # IAM Authenticator for EKS
   curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.28.2/2023-10-17/bin/linux/amd64/aws-iam-authenticator && \
   chmod +x /usr/bin/aws-iam-authenticator && \
@@ -35,28 +33,38 @@ RUN apt-get update -y && \
   ./aws/install && \
   rm -rf aws && \
   rm awscliv2.zip && \
-  # Add additional apt repos all at once
-  echo "deb https://deb.nodesource.com/node_18.x $(lsb_release -cs) main"                         | tee /etc/apt/sources.list.d/node.list             && \
-  echo "deb https://dl.yarnpkg.com/debian/ stable main"                                           | tee /etc/apt/sources.list.d/yarn.list             && \
-  echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list           && \
+  # Add additional apt repos
+  curl -fsSL https://download.docker.com/linux/debian/gpg          | apt-key add - && \
+  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+  curl -fsSL https://packages.microsoft.com/keys/microsoft.asc     | apt-key add - && \
+  echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list && \
   echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main"               | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
   KUBE_LATEST=$(curl -L -s https://dl.k8s.io/release/stable.txt | awk 'BEGIN { FS="." } { printf "%s.%s", $1, $2 }') && \
   mkdir -p /etc/apt/keyrings && \
   curl -fsSL https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
   echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list && \
-  echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list            && \
-  # Install second wave of dependencies
+  echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list && \
+  # Install azure-cli, docker, gcloud, kubectl
   apt-get update -y && \
   apt-get install -y \
   azure-cli \
   docker-ce \
   google-cloud-sdk \
   google-cloud-sdk-gke-gcloud-auth-plugin \
-  kubectl \
+  kubectl && \
+  rm -rf /var/lib/apt/lists/*
+  
+# Install nodejs and associated tools
+RUN \
+  # Add yarn repo
+  curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+  echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+  # Add nodejs repo
+  curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+  # Install packages
+  apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
   nodejs \
-  npm \
   yarn && \
-  # Clean up the lists work
   rm -rf /var/lib/apt/lists/*
 
 # Install Go
@@ -71,9 +79,10 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Install Java
 RUN apt-get update -y && \
-  apt-get install -y \
-      gradle \
-      maven
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  gradle \
+  maven && \
+  rm -rf /var/lib/apt/lists/*
 
 # Install dotnet 6.0 using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script

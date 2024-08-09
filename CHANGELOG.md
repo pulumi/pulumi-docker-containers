@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Ensure corepack is installed in the `pulumi/pulumi` image
+  ([#247](https://github.com/pulumi/pulumi-docker-containers/pull/247))
+
 - Add Poetry to Python images ([#240](https://github.com/pulumi/pulumi-docker-containers/pull/240))
 
 - Update to debian 12 (bookworm) slim as base image
