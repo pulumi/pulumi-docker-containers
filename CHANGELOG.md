@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add $GOPATH/bin to $PATH for Go containers
+  ([249](https://github.com/pulumi/pulumi-docker-containers/pull/249))
+
 - Ensure corepack is installed in the `pulumi/pulumi` image
   ([#247](https://github.com/pulumi/pulumi-docker-containers/pull/247))
 
