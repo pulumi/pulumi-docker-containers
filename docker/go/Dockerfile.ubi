@@ -54,6 +54,6 @@ COPY --from=builder /root/.pulumi/bin/pulumi-language-go /pulumi/bin/pulumi-lang
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/pulumi-analyzer-policy
 ENV GOPATH=/go
 ENV CGO_ENABLED=0
-ENV PATH "/pulumi/bin:${PATH}"
+ENV PATH "/pulumi/bin:${GOPATH}/bin:${PATH}"
 
 CMD ["pulumi"]
