@@ -64,7 +64,7 @@ RUN \
   google-cloud-sdk-gke-gcloud-auth-plugin \
   kubectl && \
   rm -rf /var/lib/apt/lists/*
-  
+
 # Install nodejs and associated tools
 RUN \
   # Add yarn repo
@@ -116,8 +116,8 @@ RUN curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-
 
 # Python
 # Install Pyenv and preinstall supported Python versions
-RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /pyenv
-ENV PYENV_ROOT /pyenv
+RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /usr/local/share/pyenv
+ENV PYENV_ROOT /usr/local/share/pyenv
 ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
 RUN pyenv install 3.12
 RUN pyenv install 3.11
@@ -125,9 +125,9 @@ RUN pyenv install 3.10
 RUN pyenv install 3.9
 RUN pyenv global 3.9 # Default version
 # Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:${PATH}"
-# Set poetry to prefer the active python version so it interacts nicely with pyenv, otherwise 
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
+RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
+# Set poetry to prefer the active python version so it interacts nicely with pyenv, otherwise
 # poetry will create virtual environments using the python version used by poetry itself.
 RUN poetry config virtualenvs.prefer-active-python true
 
