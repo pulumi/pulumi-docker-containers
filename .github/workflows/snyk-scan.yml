@@ -54,26 +54,38 @@ jobs:
         with:
           image: ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }}
           args: --severity-threshold=high --file=docker/base/Dockerfile.${{ matrix.os }}
+  define-debian-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix
+        id: define-matrix
+        run: |
+          echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py) >> "$GITHUB_OUTPUT"
   debian-sdk:
     name: Debian SDK images
     runs-on: ubuntu-latest
+    needs: define-debian-matrix
     strategy:
       fail-fast: false
-      matrix:
-        sdk: ["nodejs", "python", "dotnet", "go"]
-        arch: ["amd64", "arm64"]
+      matrix: ${{ fromJSON(needs.define-debian-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@master
       - name: Set version
         run: |
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
+      - name: Set image name
+        run: |
+          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
       - name: Snyk scan
         continue-on-error: true
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}
+          image: ${{ env.IMAGE_NAME }}
           args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian
   ubi-sdk:
     name: UBI SDK images
