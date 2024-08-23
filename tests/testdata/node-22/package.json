@@ -1,0 +1,12 @@
+{
+    "name": "node-default",
+    "main": "index.ts",
+    "devDependencies": {
+        "@types/node": "^18",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "@pulumi/pulumi": "^3.113.0",
+        "semver": "^7.6.3"
+    }
+}

@@ -129,9 +129,9 @@ func TestPulumiTemplateTests(t *testing.T) {
 	}
 }
 
-func TestKitchenSinkPythonVersions(t *testing.T) {
+func TestKitchenSinkLanguageVersions(t *testing.T) {
 	if !isKitchenSink(t) {
-		t.Skip("Only running python version tests on kitchen sink")
+		t.Skip("Only language version tests on kitchen sink")
 	}
 	t.Parallel()
 
@@ -140,6 +140,11 @@ func TestKitchenSinkPythonVersions(t *testing.T) {
 	for _, dir := range dirs {
 		dir := dir
 		t.Run(dir.Name(), func(t *testing.T) {
+			if !strings.HasPrefix(dir.Name(), "node-") {
+				// We can't run the node tests in parallel because setting the node version is a
+				// global for the container
+				t.Parallel()
+			}
 			p := filepath.Join("testdata", dir.Name())
 			copyTestData(t, p)
 			integration.ProgramTest(t, &integration.ProgramTestOptions{
@@ -149,7 +154,11 @@ func TestKitchenSinkPythonVersions(t *testing.T) {
 				PrepareProject: func(info *engine.Projinfo) error {
 					cmd := exec.Command("pulumi", "install", "--use-language-version-tools")
 					cmd.Dir = info.Root
-					return cmd.Run()
+					out, err := cmd.CombinedOutput()
+					if err != nil {
+						t.Logf("install failed: %s: %s", err, out)
+					}
+					return err
 				},
 			})
 		})
@@ -283,26 +292,26 @@ func TestEnvironment(t *testing.T) {
 				name:            "node",
 				expectedDebian:  "/usr/local/bin/node",
 				expectedUbi:     "/usr/bin/node",
-				expectedKitchen: "/usr/bin/node",
+				expectedKitchen: "/opt/fnm/aliases/default/bin/node",
 			},
 			{
 				name:            "npm",
 				expectedDebian:  "/usr/local/bin/npm",
 				expectedUbi:     "/usr/local/bin/npm",
-				expectedKitchen: "/usr/bin/npm",
+				expectedKitchen: "/opt/fnm/aliases/default/bin/npm",
 			},
 
 			{
 				name:            "yarn",
 				expectedDebian:  "/usr/local/bin/yarn",
 				expectedUbi:     "/usr/local/bin/yarn",
-				expectedKitchen: "/usr/bin/yarn",
+				expectedKitchen: "/opt/fnm/aliases/default/bin/yarn",
 			},
 			{
 				name:            "corepack",
 				expectedDebian:  "/usr/local/bin/corepack",
 				expectedUbi:     "/usr/bin/corepack",
-				expectedKitchen: "/usr/bin/corepack",
+				expectedKitchen: "/opt/fnm/aliases/default/bin/corepack",
 			},
 		} {
 			testCase := testCase
@@ -328,7 +337,7 @@ func TestEnvironment(t *testing.T) {
 		// Install scripts for various tools can sometimes modify PATH, usually by adding entries
 		// to ~/.bashrc. This test ensures that we notice such modifications.
 		expectedPaths := map[string]string{
-			"pulumi":               "/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi":               "/opt/fnm/aliases/default/bin:/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-go":     "/pulumi/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-java":   "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -344,10 +353,6 @@ func TestEnvironment(t *testing.T) {
 		t.Run("PATH when running in bash", func(t *testing.T) {
 			t.Parallel()
 			expectedPath := expectedPaths[imageVariant]
-			// When running in bash, we pick up the PATH entry from the pulumi installation script.
-			if imageVariant == "pulumi" {
-				expectedPath += ":/root/.pulumi/bin"
-			}
 			requireOutputWithBash(t, expectedPath, "printenv", "PATH")
 		})
 

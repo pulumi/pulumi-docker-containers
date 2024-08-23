@@ -66,19 +66,6 @@ RUN \
   kubectl && \
   rm -rf /var/lib/apt/lists/*
 
-# Install nodejs and associated tools
-RUN \
-  # Add yarn repo
-  curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-  echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-  # Add nodejs repo
-  curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-  # Install packages
-  apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  nodejs \
-  yarn && \
-  rm -rf /var/lib/apt/lists/*
-
 # Install Go
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
   echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c - && \
@@ -132,13 +119,28 @@ RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
 # poetry will create virtual environments using the python version used by poetry itself.
 RUN poetry config virtualenvs.prefer-active-python true
 
+# Install default nodejs versions and associated tools
+RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/opt/fnm" --skip-shell && \
+  ln -s /opt/fnm/fnm /usr/local/bin/fnm
+ENV FNM_COREPACK_ENABLED="true"
+ENV FNM_VERSION_FILE_STRATEGY="recursive"
+ENV FNM_DIR=/opt/fnm
+RUN fnm install 18 && \
+  fnm install 20 && \
+  fnm install 22 && \
+  fnm alias 18 default
+ENV PATH=/opt/fnm/aliases/default/bin:$PATH
+RUN corepack install --global pnpm yarn
+
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
 # of the SDK. Otherwise, we use whatever get.pulumi.com thinks is
 # the latest
 ARG PULUMI_VERSION
 
 # Install the Pulumi SDK, including the CLI and language runtimes.
-RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
+# TODO: Should use $PULUMI_VERSION, not dev
+# RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
+RUN curl -fsSL https://get.pulumi.com | bash -s -- --version dev && \
   mv ~/.pulumi/bin/* /usr/bin
 
 # I think it's safe to say if we're using this mega image, we want pulumi
