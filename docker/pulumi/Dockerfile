@@ -1,4 +1,4 @@
-FROM python:3.9-slim-bookworm AS base
+FROM debian:12 AS base
 
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
@@ -17,9 +17,20 @@ RUN apt-get update -y && \
   curl \
   git \
   gnupg \
+  libbz2-dev \
+  libffi-dev \
+  liblzma-dev \
+  libncurses5-dev \
+  libreadline-dev \
+  libsqlite3-dev \
+  libssl-dev \
+  libxml2-dev \
+  libxmlsec1-dev \
   software-properties-common \
+  unzip  \
   wget \
-  unzip && \
+  xz-utils \
+  zlib1g-dev && \
   rm -rf /var/lib/apt/lists/*
 
 # Install cloud tools
@@ -53,7 +64,7 @@ RUN \
   google-cloud-sdk-gke-gcloud-auth-plugin \
   kubectl && \
   rm -rf /var/lib/apt/lists/*
-  
+
 # Install nodejs and associated tools
 RUN \
   # Add yarn repo
@@ -102,6 +113,23 @@ ENV XDG_CACHE_HOME=/root/.cache
 RUN curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash && \
   helm repo add stable https://charts.helm.sh/stable && \
   helm repo update
+
+# Python
+# Install Pyenv and preinstall supported Python versions
+RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /usr/local/share/pyenv
+ENV PYENV_ROOT /usr/local/share/pyenv
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+RUN pyenv install 3.12
+RUN pyenv install 3.11
+RUN pyenv install 3.10
+RUN pyenv install 3.9
+RUN pyenv global 3.9 # Default version
+# Poetry
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
+RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
+# Set poetry to prefer the active python version so it interacts nicely with pyenv, otherwise
+# poetry will create virtual environments using the python version used by poetry itself.
+RUN poetry config virtualenvs.prefer-active-python true
 
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
 # of the SDK. Otherwise, we use whatever get.pulumi.com thinks is

@@ -15,18 +15,26 @@
 package containers
 
 import (
+	"crypto/rand"
+	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/pulumi/pulumi/pkg/v3/engine"
 	"github.com/pulumi/pulumi/pkg/v3/testing/integration"
 	ptesting "github.com/pulumi/pulumi/sdk/v3/go/common/testing"
 	"github.com/stretchr/testify/require"
 )
+
+//go:embed all:testdata
+var testdata embed.FS
 
 type testCase struct {
 	template string
@@ -115,6 +123,33 @@ func TestPulumiTemplateTests(t *testing.T) {
 	}
 }
 
+func TestKitchenSinkPythonVersions(t *testing.T) {
+	if !isKitchenSink(t) {
+		t.Skip("Only running python version tests on kitchen sink")
+	}
+	t.Parallel()
+
+	dirs, err := testdata.ReadDir("testdata")
+	require.NoError(t, err)
+	for _, dir := range dirs {
+		dir := dir
+		t.Run(dir.Name(), func(t *testing.T) {
+			p := filepath.Join("testdata", dir.Name())
+			copyTestData(t, p)
+			integration.ProgramTest(t, &integration.ProgramTestOptions{
+				Dir:         p,
+				Quick:       true,
+				SkipRefresh: true,
+				PrepareProject: func(info *engine.Projinfo) error {
+					cmd := exec.Command("pulumi", "install", "--use-language-version-tools")
+					cmd.Dir = info.Root
+					return cmd.Run()
+				},
+			})
+		})
+	}
+}
+
 func TestCLIToolTests(t *testing.T) {
 	t.Parallel()
 
@@ -178,6 +213,9 @@ func TestEnvironment(t *testing.T) {
 		}
 		t.Parallel()
 		expected := "/usr/local/bin/python"
+		if isKitchenSink(t) {
+			expected = "/usr/local/share/pyenv/shims/python"
+		}
 		if isUBI(t) {
 			expected = "/usr/bin/python"
 		}
@@ -187,17 +225,13 @@ func TestEnvironment(t *testing.T) {
 		// Use bash `command` builtin to lookup the path to python
 		requireOutputWithBash(t, expected, "command", "-v", "python")
 
-		// TODO: enable test for kitchen sink after https://github.com/pulumi/pulumi-docker-containers/pull/232
-		// is merged. https://github.com/pulumi/pulumi-docker-containers/issues/239
-		if !isKitchenSink(t) {
-			// Poetry should be available
-			expectedPoetryPath := "/usr/local/bin/poetry"
-			poetryPath, err := exec.LookPath("poetry")
-			require.NoError(t, err)
-			require.Equal(t, expectedPoetryPath, poetryPath)
-			// Use bash `command` builtin to lookup the path to python
-			requireOutputWithBash(t, expectedPoetryPath, "command", "-v", "poetry")
-		}
+		// Poetry should be available
+		expectedPoetryPath := "/usr/local/bin/poetry"
+		poetryPath, err := exec.LookPath("poetry")
+		require.NoError(t, err)
+		require.Equal(t, expectedPoetryPath, poetryPath)
+		// Use bash `command` builtin to lookup the path to python
+		requireOutputWithBash(t, expectedPoetryPath, "command", "-v", "poetry")
 	})
 
 	t.Run("Node", func(t *testing.T) {
@@ -261,7 +295,7 @@ func TestEnvironment(t *testing.T) {
 		// Install scripts for various tools can sometimes modify PATH, usually by adding entries
 		// to ~/.bashrc. This test ensures that we notice such modifications.
 		expectedPaths := map[string]string{
-			"pulumi":               "/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi":               "/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-go":     "/pulumi/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-java":   "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -377,4 +411,24 @@ func isDebian(t *testing.T) bool {
 func isUBI(t *testing.T) bool {
 	imageVariant := mustEnv(t, "IMAGE_VARIANT")
 	return strings.HasPrefix(imageVariant, "pulumi-ubi")
+}
+
+func RandomStackName(t *testing.T) string {
+	t.Helper()
+	b := make([]byte, 4)
+	_, err := rand.Read(b)
+	require.NoError(t, err)
+	return "test" + hex.EncodeToString(b)
+}
+
+func copyTestData(t *testing.T, path string) {
+	require.NoError(t, os.MkdirAll(path, os.ModePerm))
+	files, err := testdata.ReadDir(path)
+	require.NoError(t, err, "readdir")
+	for _, file := range files {
+		p := filepath.Join(path, file.Name())
+		fileContent, err := testdata.ReadFile(p)
+		require.NoError(t, err, "readfile")
+		require.NoError(t, os.WriteFile(p, fileContent, os.ModePerm), "writefile")
+	}
 }
