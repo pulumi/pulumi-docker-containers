@@ -290,26 +290,26 @@ func TestEnvironment(t *testing.T) {
 				name:            "node",
 				expectedDebian:  "/usr/local/bin/node",
 				expectedUbi:     "/usr/bin/node",
-				expectedKitchen: "/opt/fnm/aliases/default/bin/node",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/node",
 			},
 			{
 				name:            "npm",
 				expectedDebian:  "/usr/local/bin/npm",
 				expectedUbi:     "/usr/local/bin/npm",
-				expectedKitchen: "/opt/fnm/aliases/default/bin/npm",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/npm",
 			},
 
 			{
 				name:            "yarn",
 				expectedDebian:  "/usr/local/bin/yarn",
 				expectedUbi:     "/usr/local/bin/yarn",
-				expectedKitchen: "/opt/fnm/aliases/default/bin/yarn",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/yarn",
 			},
 			{
 				name:            "corepack",
 				expectedDebian:  "/usr/local/bin/corepack",
 				expectedUbi:     "/usr/bin/corepack",
-				expectedKitchen: "/opt/fnm/aliases/default/bin/corepack",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/corepack",
 			},
 		} {
 			testCase := testCase
@@ -335,7 +335,7 @@ func TestEnvironment(t *testing.T) {
 		// Install scripts for various tools can sometimes modify PATH, usually by adding entries
 		// to ~/.bashrc. This test ensures that we notice such modifications.
 		expectedPaths := map[string]string{
-			"pulumi":               "/opt/fnm/aliases/default/bin:/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi":               "/usr/local/share/fnm/aliases/default/bin:/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-go":     "/pulumi/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-java":   "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",

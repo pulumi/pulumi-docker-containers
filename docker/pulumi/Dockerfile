@@ -120,16 +120,16 @@ RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
 RUN poetry config virtualenvs.prefer-active-python true
 
 # Install default nodejs versions and associated tools
-RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/opt/fnm" --skip-shell && \
-  ln -s /opt/fnm/fnm /usr/local/bin/fnm
+RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/usr/local/share/fnm" --skip-shell && \
+  ln -s /usr/local/share/fnm/fnm /usr/local/bin/fnm
 ENV FNM_COREPACK_ENABLED="true"
 ENV FNM_VERSION_FILE_STRATEGY="recursive"
-ENV FNM_DIR=/opt/fnm
+ENV FNM_DIR=/usr/local/share/fnm
 RUN fnm install 18 && \
   fnm install 20 && \
   fnm install 22 && \
   fnm alias 18 default
-ENV PATH=/opt/fnm/aliases/default/bin:$PATH
+ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
 RUN corepack install --global pnpm yarn
 
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
@@ -140,7 +140,7 @@ ARG PULUMI_VERSION
 # Install the Pulumi SDK, including the CLI and language runtimes.
 # TODO: Should use $PULUMI_VERSION, not dev
 # RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
-RUN curl -fsSL https://get.pulumi.com | bash -s -- --version dev && \
+RUN curl -fsSL https://get.pulumi.com | sh -s -- --version dev && \
   mv ~/.pulumi/bin/* /usr/bin
 
 # I think it's safe to say if we're using this mega image, we want pulumi
