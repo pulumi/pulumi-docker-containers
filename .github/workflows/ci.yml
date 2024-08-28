@@ -35,6 +35,14 @@ env:
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   AWS_REGION: "us-west-2"
+  # GCP
+  GCP_SERVICE_ACCOUNT_EMAIL: "pulumi-ci@pulumi-ci-gcp-provider.iam.gserviceaccount.com"
+  GCP_PROJECT_NAME: "pulumi-ci-gcp-provider"
+  GCP_PROJECT_NUMBER: "895284651812"
+  GCP_WORKLOAD_IDENTITY_POOL: "pulumi-ci"
+  GCP_WORKLOAD_IDENTITY_PROVIDER: "pulumi-ci"
+  GCP_REGION: "us-central1"
+  GCP_ZONE: "us-central1-a"
 
 jobs:
   comment-notification:
@@ -60,6 +68,8 @@ jobs:
       matrix:
         go-version: [1.21.x]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -108,6 +118,15 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
+            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
+            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
       # Note we use /src/pulumi-test-containers as entrypoint and not bash to avoid bash
       # changing the environment in some way.
@@ -125,6 +144,10 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
@@ -136,6 +159,8 @@ jobs:
       matrix:
         go-version: [1.21.x]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -184,6 +209,15 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
+            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
+            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
         run: |
           docker run \
@@ -199,6 +233,10 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
@@ -247,6 +285,8 @@ jobs:
   debian-sdk:
     name: Debian SDK images
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     needs: define-matrix
     strategy:
       fail-fast: false
@@ -305,6 +345,15 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
+            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
+            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
         run: |
           docker run \
@@ -321,6 +370,10 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
@@ -330,6 +383,8 @@ jobs:
   ubi-sdk:
     name: UBI SDK images
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -390,6 +445,15 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
+            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
+            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
         run: |
           docker run \
@@ -406,6 +470,10 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \

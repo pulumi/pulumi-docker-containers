@@ -57,6 +57,9 @@ func TestPulumiTemplateTests(t *testing.T) {
 	mustEnv(t, "AWS_ACCESS_KEY_ID")
 	mustEnv(t, "AWS_SECRET_ACCESS_KEY")
 	mustEnv(t, "AWS_SESSION_TOKEN")
+	// GCP
+	project := mustEnv(t, "GCP_PROJECT_NAME")
+	mustEnv(t, "GOOGLE_APPLICATION_CREDENTIALS")
 
 	stackOwner := mustEnv(t, "PULUMI_ORG")
 
@@ -64,12 +67,15 @@ func TestPulumiTemplateTests(t *testing.T) {
 	if os.Getenv("SDKS_TO_TEST") != "" {
 		sdksToTest = strings.Split(os.Getenv("SDKS_TO_TEST"), ",")
 	}
-	clouds := []string{"azure", "aws" /* , "gcp"*/}
+	clouds := []string{"gcp", "azure", "aws"}
 	configs := map[string]map[string]string{
 		"azure": {
 			"azure-native:location": "EastUS",
 		},
 		"aws": {},
+		"gcp": {
+			"gcp:project": project,
+		},
 	}
 
 	testCases := []testCase{}
@@ -192,6 +198,33 @@ func TestCLIToolTests(t *testing.T) {
 		arn, ok := result["Arn"].(string)
 		require.True(t, ok)
 		require.Contains(t, arn, "pulumi-docker-containers@githubActions")
+	})
+
+	t.Run("GCP CLI", func(t *testing.T) {
+		t.Parallel()
+
+		project := mustEnv(t, "GCP_PROJECT_NAME")
+		projectNumber := mustEnv(t, "GCP_PROJECT_NUMBER")
+		credsFile := mustEnv(t, "GOOGLE_APPLICATION_CREDENTIALS")
+
+		cmd := exec.Command("gcloud", "--quiet", "auth", "login", "--force", "--cred-file", credsFile)
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err)
+
+		cmd = exec.Command("gcloud", "--quiet", "config", "set", "project", project)
+		out, err = cmd.CombinedOutput()
+		require.NoError(t, err)
+
+		cmd = exec.Command("gcloud", "--quiet", "projects", "describe", project, "--format", "json")
+		out, err = cmd.CombinedOutput()
+		require.NoError(t, err)
+		var projectInfo map[string]interface{}
+		require.NoError(t, json.Unmarshal(out, &projectInfo))
+		projectNumber, ok := projectInfo["projectId"].(string)
+		if !ok {
+			require.Failf(t, "projectId not found in %s", string(out))
+		}
+		require.Equal(t, project, projectNumber)
 	})
 }
 
