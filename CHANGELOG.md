@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Include fnm and Nodejs 18, 20 and 22 in the kitchen sink image
+  ([#253](https://github.com/pulumi/pulumi-docker-containers/pull/253)
+
 ## 3.131.0
 
 - Add per-language versions of the `pulumi/pulumi-dotnet` image
