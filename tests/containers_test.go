@@ -140,14 +140,12 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 	for _, dir := range dirs {
 		dir := dir
 		t.Run(dir.Name(), func(t *testing.T) {
-			if !strings.HasPrefix(dir.Name(), "node-") {
-				// We can't run the node tests in parallel because setting the node version is a
-				// global for the container
-				t.Parallel()
-			}
 			p := filepath.Join("testdata", dir.Name())
 			copyTestData(t, p)
 			integration.ProgramTest(t, &integration.ProgramTestOptions{
+				// We can't run the node tests in parallel because setting the node version is a
+				// global for the container.
+				NoParallel:  strings.HasPrefix(dir.Name(), "node-"),
 				Dir:         p,
 				Quick:       true,
 				SkipRefresh: true,
