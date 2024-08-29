@@ -6,17 +6,18 @@
 #
 # matrix = {
 #     "include": [
-#         {"sdk": "go",     "arch": "amd64", "language_version": "1.21.1", "default": True},
-#         {"sdk": "go",     "arch": "arm64", "language_version": "1.21.1", "default": True},
-#         {"sdk": "python", "arch": "amd64", "language_version": "3.9",    "default": True,  "suffix": "-3.9"},
-#         {"sdk": "python", "arch": "arm64", "language_version": "3.9",    "default": True,  "suffix": "-3.9"},
-#         {"sdk": "python", "arch": "amd64", "language_version": "3.10",   "default": False, "suffix": "-3.10"},
-#         {"sdk": "python", "arch": "arm64", "language_version": "3.10",   "default": False, "suffix": "-3.10"},
+#         {"sdk": "go",     "arch": "amd64", "default": True},
+#         {"sdk": "go",     "arch": "arm64", "default": True},
+#         {"sdk": "python", "arch": "amd64", "default": True,  "language_version": "3.9",  "suffix": "-3.9"},
+#         {"sdk": "python", "arch": "arm64", "default": True,  "language_version": "3.9",  "suffix": "-3.9"},
+#         {"sdk": "python", "arch": "amd64", "default": False, "language_version": "3.10", "suffix": "-3.10"},
+#         {"sdk": "python", "arch": "arm64", "default": False, "language_version": "3.10", "suffix": "-3.10"},
 #         ...
 #     ]
 # }
 #
 #  * `language_version` is the version of the language runtime to use, for example `3.9` for Python.
+#     For Java and Go, this field is omitted as we only have one version of the runtime.
 #  * `suffix` is an optional suffix to append to the image name, for example `-3.9` to generate `pulumi-python-3.9`.
 #  * `default` indicates that this is the default language_version. We will push two tags for the image, once
 #     with and once without the suffix in the name, for example `pulumi-python-3.9` and `pulumi-python`.
@@ -36,12 +37,13 @@ INCLUDE_ARCH = False if len(sys.argv) > 1 and sys.argv[1] == "--no-arch" else Tr
 archs = ["amd64", "arm64"] if INCLUDE_ARCH else [None]
 matrix = {"include": []}
 
-def make_entry(*, sdk, arch, default, language_version, suffix=None):
+def make_entry(*, sdk, arch, default, language_version=None, suffix=None):
     entry = {
         "sdk": sdk,
         "default": default,
-        "language_version": language_version,
     }
+    if language_version is not None:
+        entry["language_version"] = language_version
     if arch is not None:
         entry["arch"] = arch
     if suffix is not None:
@@ -51,53 +53,33 @@ def make_entry(*, sdk, arch, default, language_version, suffix=None):
 
 for arch in archs:
 
-    for sdk, version in versions.sdks.items():
+    for sdk in versions.unversioned:
+        # Default (and only) version for unversioned SDKs
         matrix["include"].append(
-            make_entry(sdk=sdk, arch=arch, default=True, language_version=version)
+            make_entry(sdk=sdk, arch=arch, default=True)
         )
 
-    # Default Python version
-    matrix["include"].append(
-        make_entry(
-            sdk="python",
-            arch=arch,
-            language_version=versions.python_default_version,
-            default=True,
-            suffix=f"-{versions.python_default_version}",
-        )
-    )
-    # Additional Python versions
-    for version in versions.python_additional_versions:
+    for sdk, info in versions.versioned.items():
+        # Default version
         matrix["include"].append(
             make_entry(
-                sdk="python",
+                sdk=sdk,
                 arch=arch,
-                language_version=version,
-                default=False,
-                suffix=f"-{version}",
+                language_version=info["default"],
+                default=True,
+                suffix=f"-{info['default']}",
             )
         )
-
-    # Default Nodejs version
-    matrix["include"].append(
-        make_entry(
-            sdk="nodejs",
-            arch=arch,
-            language_version=versions.nodejs_default_version,
-            default=True,
-            suffix=f"-{versions.nodejs_default_version}",
-        )
-    )
-    # Additional Nodejs versions
-    for version in versions.nodejs_additional_versions:
-        matrix["include"].append(
-            make_entry(
-                sdk="nodejs",
-                arch=arch,
-                language_version=version,
-                default=False,
-                suffix=f"-{version}",
+        # Additional versions
+        for version in info["additional"]:
+            matrix["include"].append(
+                make_entry(
+                    sdk=sdk,
+                    arch=arch,
+                    language_version=version,
+                    default=False,
+                    suffix=f"-{version}",
+                )
             )
-        )
 
 print(json.dumps(matrix))
