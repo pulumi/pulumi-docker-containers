@@ -137,9 +137,36 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 
 	dirs, err := testdata.ReadDir("testdata")
 	require.NoError(t, err)
+
+	t.Run("node-default", func(t *testing.T) {
+		// We need to run the `node-default` test first, before the other tests which modify
+		// the container's default node version.
+		p := filepath.Join("testdata", "node-default")
+		copyTestData(t, p)
+		integration.ProgramTest(t, &integration.ProgramTestOptions{
+			NoParallel:  true,
+			Dir:         p,
+			Quick:       true,
+			SkipRefresh: true,
+			PrepareProject: func(info *engine.Projinfo) error {
+				cmd := exec.Command("pulumi", "install", "--use-language-version-tools")
+				cmd.Dir = info.Root
+				out, err := cmd.CombinedOutput()
+				if err != nil {
+					t.Logf("install failed: %s: %s", err, out)
+				}
+				return err
+			},
+		})
+	})
+
 	for _, dir := range dirs {
 		dir := dir
 		t.Run(dir.Name(), func(t *testing.T) {
+			if dir.Name() == "node-default" {
+				// The `node-default` test is run first, so we skip it here.
+				t.Skip()
+			}
 			p := filepath.Join("testdata", dir.Name())
 			copyTestData(t, p)
 			integration.ProgramTest(t, &integration.ProgramTestOptions{
