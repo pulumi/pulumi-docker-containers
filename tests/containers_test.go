@@ -122,6 +122,11 @@ func TestPulumiTemplateTests(t *testing.T) {
 			example := base.With(integration.ProgramTestOptions{
 				Dir:    e.RootPath,
 				Config: test.config,
+				// `pulumi new` already runs `pulumi install for us, don't attempt to `yarn link`
+				// the SDK into the test.
+				PrepareProject: func(info *engine.Projinfo) error {
+					return nil
+				},
 			})
 
 			integration.ProgramTest(t, &example)
