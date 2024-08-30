@@ -16,6 +16,7 @@ RUN apt-get update -y && \
   ca-certificates \
   curl \
   git \
+  jq \
   gnupg \
   libbz2-dev \
   libffi-dev \
