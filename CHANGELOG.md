@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Include jq in the kitchen sink image
+  ([#258](https://github.com/pulumi/pulumi-docker-containers/pull/258))
+
 - Include pyenv and Python 3.9 to 3.12 in the kitchen sink image
   ([#232](https://github.com/pulumi/pulumi-docker-containers/pull/232))
 
