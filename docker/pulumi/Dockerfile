@@ -83,8 +83,9 @@ RUN apt-get update -y && \
   maven && \
   rm -rf /var/lib/apt/lists/*
 
-# Install dotnet 8.0 using instructions from:
+# Install dotnet 6.0 and 8.0 using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel 6.0 -InstallDir /usr/share/dotnet
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel 8.0 -InstallDir /usr/share/dotnet
 ENV PATH "/usr/share/dotnet:/pulumi/bin:${PATH}"
 ENV DOTNET_ROOT /usr/share/dotnet
