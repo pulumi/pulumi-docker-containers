@@ -37,6 +37,7 @@ INCLUDE_ARCH = False if len(sys.argv) > 1 and sys.argv[1] == "--no-arch" else Tr
 archs = ["amd64", "arm64"] if INCLUDE_ARCH else [None]
 matrix = {"include": []}
 
+
 def make_entry(*, sdk, arch, default, language_version=None, suffix=None):
     entry = {
         "sdk": sdk,
@@ -55,11 +56,14 @@ for arch in archs:
 
     for sdk in versions.unversioned:
         # Default (and only) version for unversioned SDKs
-        matrix["include"].append(
-            make_entry(sdk=sdk, arch=arch, default=True)
-        )
+        matrix["include"].append(make_entry(sdk=sdk, arch=arch, default=True))
 
     for sdk, info in versions.versioned.items():
+        # We use QEMU to run ARM64 images on AMD64, but .NET Core isn't supported by QEMU, skip it.
+        # https://gitlab.com/qemu-project/qemu/-/issues/249
+        if sdk == "dotnet" and arch == "arm64":
+            continue
+
         # Default version
         matrix["include"].append(
             make_entry(
