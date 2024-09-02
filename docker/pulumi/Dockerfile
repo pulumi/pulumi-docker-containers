@@ -85,10 +85,10 @@ RUN apt-get update -y && \
 
 # Install dotnet 6.0 and 8.0 using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel 6.0 -InstallDir /usr/share/dotnet
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel 8.0 -InstallDir /usr/share/dotnet
-ENV PATH "/usr/share/dotnet:/pulumi/bin:${PATH}"
-ENV DOTNET_ROOT /usr/share/dotnet
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 6.0 --install-dir /usr/local/share/dotnet
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0 --install-dir /usr/local/share/dotnet
+ENV PATH "/usr/local/share/dotnet:${PATH}"
+ENV DOTNET_ROOT /usr/local/share/dotnet
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT 1
 # Allow newer dotnet version (e.g. 6) to build projects targeting older frameworks (v3.1)
 ENV DOTNET_ROLL_FORWARD Major
@@ -141,6 +141,7 @@ ARG PULUMI_VERSION
 # Install the Pulumi SDK, including the CLI and language runtimes.
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
   mv ~/.pulumi/bin/* /usr/bin
+ENV PATH="/pulumi/bin:${PATH}"
 
 # I think it's safe to say if we're using this mega image, we want pulumi
 ENTRYPOINT ["pulumi"]
