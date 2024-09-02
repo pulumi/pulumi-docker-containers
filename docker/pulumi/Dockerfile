@@ -90,7 +90,7 @@ RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel 8.0 -I
 ENV PATH "/usr/share/dotnet:/pulumi/bin:${PATH}"
 ENV DOTNET_ROOT /usr/share/dotnet
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT 1
-# Allow newer dotnet version (e.g. 8) to build projects targeting older frameworks (v3.1)
+# Allow newer dotnet version (e.g. 6) to build projects targeting older frameworks (v3.1)
 ENV DOTNET_ROLL_FORWARD Major
 
 # Install Helm

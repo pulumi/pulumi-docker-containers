@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add dotnet to 8.0
+- Add dotnet 8.0 to the kitchen sink image
   ([#259](https://github.com/pulumi/pulumi-docker-containers/pull/259)
 
 - Include fnm and Nodejs 18, 20 and 22 in the kitchen sink image
