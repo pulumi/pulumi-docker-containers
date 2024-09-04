@@ -138,9 +138,7 @@ RUN corepack install --global pnpm yarn
 ARG PULUMI_VERSION
 
 # Install the Pulumi SDK, including the CLI and language runtimes.
-# TODO: Should use $PULUMI_VERSION, not dev
-# RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
-RUN curl -fsSL https://get.pulumi.com | sh -s -- --version dev && \
+RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
   mv ~/.pulumi/bin/* /usr/bin
 
 # I think it's safe to say if we're using this mega image, we want pulumi
