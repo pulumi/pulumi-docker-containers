@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add per-language versions of the `pulumi/pulumi-nodejs` image
+  ([#255](https://github.com/pulumi/pulumi-docker-containers/pull/255))
+
 - Include jq in the kitchen sink image
   ([#258](https://github.com/pulumi/pulumi-docker-containers/pull/258))
 

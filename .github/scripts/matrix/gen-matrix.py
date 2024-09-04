@@ -78,4 +78,26 @@ for arch in archs:
             )
         )
 
+    # Default Nodejs version
+    matrix["include"].append(
+        make_entry(
+            sdk="nodejs",
+            arch=arch,
+            language_version=versions.nodejs_default_version,
+            default=True,
+            suffix=f"-{versions.nodejs_default_version}",
+        )
+    )
+    # Additional Nodejs versions
+    for version in versions.nodejs_additional_versions:
+        matrix["include"].append(
+            make_entry(
+                sdk="nodejs",
+                arch=arch,
+                language_version=version,
+                default=False,
+                suffix=f"-{version}",
+            )
+        )
+
 print(json.dumps(matrix))
