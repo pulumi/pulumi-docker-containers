@@ -110,6 +110,15 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
+            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
+            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
         run: |
           docker run \
@@ -125,6 +134,10 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
@@ -189,6 +202,15 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
+            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
+            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
         run: |
           docker run \
@@ -204,6 +226,10 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
@@ -365,7 +391,20 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
-      - name: Tests
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
+            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
+            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+      - if: ${{ !(matrix.arch == 'arm64' && matrix.sdk == 'dotnet') }}
+        # We use QEMU to run ARM64 images on AMD64, but .NET Core isn't supported by QEMU, skip
+        # running the tests for this combination.
+        # https://gitlab.com/qemu-project/qemu/-/issues/249
+        name: Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
@@ -381,6 +420,10 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
@@ -533,6 +576,15 @@ jobs:
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
+            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
+            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
         run: |
           docker run \
@@ -549,6 +601,10 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
             -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
