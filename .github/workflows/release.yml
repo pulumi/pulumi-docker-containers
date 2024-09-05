@@ -46,6 +46,14 @@ env:
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   AWS_REGION: "us-west-2"
+  # GCP
+  GCP_SERVICE_ACCOUNT_EMAIL: "pulumi-ci@pulumi-ci-gcp-provider.iam.gserviceaccount.com"
+  GCP_PROJECT_NAME: "pulumi-ci-gcp-provider"
+  GCP_PROJECT_NUMBER: "895284651812"
+  GCP_WORKLOAD_IDENTITY_POOL: "pulumi-ci"
+  GCP_WORKLOAD_IDENTITY_PROVIDER: "pulumi-ci"
+  GCP_REGION: "us-central1"
+  GCP_ZONE: "us-central1-a"
 
 jobs:
   kitchen-sink:
