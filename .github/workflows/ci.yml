@@ -354,7 +354,11 @@ jobs:
             }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
-      - name: Tests
+      - if: ${{ !(matrix.arch == 'arm64' && matrix.sdk == 'dotnet') }}
+        # We use QEMU to run ARM64 images on AMD64, but .NET Core isn't supported by QEMU, skip
+        # running the tests for this combination.
+        # https://gitlab.com/qemu-project/qemu/-/issues/249
+        name: Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \

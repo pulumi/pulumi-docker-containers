@@ -6,7 +6,7 @@
 FROM ubuntu:bionic AS builder
 
 ARG PULUMI_VERSION
-ARG LANGUAGE_VERSION
+ARG GO_RUNTIME_VERSION=1.21.1
 ENV GO_RUNTIME_386_SHA256 b93850666cdadbd696a986cf7b03111fe99db8c34a9aaa113d7c96d0081e1901
 ENV GO_RUNTIME_AMD64_SHA256 b3075ae1ce5dab85f89bc7905d1632de23ca196bd8336afd93fa97434cfa55ae
 ENV GO_RUNTIME_ARM64_SHA256 7da1a3936a928fd0b2602ed4f3ef535b8cd1990f1503b8d3e1acc0fa0759c967
@@ -42,7 +42,7 @@ RUN case $(uname -m) in \
     GO_RUNTIME_SHA256="${GO_RUNTIME_ARMV6L_SHA256}" \
     ;; \
     esac && \
-    curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${LANGUAGE_VERSION}.linux-${ARCH}.tar.gz && \
+    curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GO_RUNTIME_VERSION}.linux-${ARCH}.tar.gz && \
     echo "${GO_RUNTIME_SHA256} /tmp/go.tgz" | sha256sum -c -; \
     mkdir -p bin; \
     tar -C /golang -xzf /tmp/go.tgz; \

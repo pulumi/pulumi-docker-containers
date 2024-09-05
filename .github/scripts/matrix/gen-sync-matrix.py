@@ -27,21 +27,15 @@ matrix = {"image": [
 ]}
 
 # Images without language versions
-for sdk in versions.sdks:
+for sdk in versions.unversioned:
     matrix["image"].append(f"pulumi-{sdk}")
 
-# Python without suffix
-matrix["image"].append("pulumi-python")
-
-# Python with version suffixes
-for version in [versions.python_default_version, *versions.python_additional_versions]:
-    matrix["image"].append(f"pulumi-python-{version}")
-
-# Nodejs without suffix
-matrix["image"].append("pulumi-nodejs")
-
-# Nodejs with version suffixes
-for version in [versions.nodejs_default_version, *versions.nodejs_additional_versions]:
-    matrix["image"].append(f"pulumi-nodejs-{version}")
+for sdk, info in versions.versioned.items():
+    # Without suffix
+    matrix["image"].append(f"pulumi-{sdk}")
+    matrix["image"].append(f"pulumi-{sdk}-{info['default']}")
+    # Additional versions with suffixes
+    for version in info["additional"]:
+        matrix["image"].append(f"pulumi-{sdk}-{version}")
 
 print(json.dumps(matrix))
