@@ -5,14 +5,14 @@ This repository contains the source for Pulumi's official Docker images.  Pulumi
 - [`pulumi/pulumi`](https://hub.docker.com/r/pulumi/pulumi): A "kitchen sink" image that includes the Pulumi CLI and all supported SDKs (Golang, Python, Node, Dotnet, Java).
 - [`pulumi/pulumi-base`](https://hub.docker.com/r/pulumi/pulumi-base): A slim image that contains the Pulumi CLI, but no SDK(s).
 - [`pulumi/pulumi-go`](https://hub.docker.com/r/pulumi/pulumi-go): A slim image that contains the Pulumi CLI along with the Golang Pulumi SDK.
-- [`pulumi/pulumi-python`](https://hub.docker.com/r/pulumi/pulumi-python): A slim image that contains the Pulumi CLI along with the Python runtime and Pulumi SDK.
-- [`pulumi/pulumi-nodejs`](https://hub.docker.com/r/pulumi/pulumi-nodejs): A slim image that contains the Pulumi CLI along with the Node runtime and Pulumi SDK and is suitable for both TypeScript and JavaScript development.
-- [`pulumi/pulumi-dotnet`](https://hub.docker.com/r/pulumi/pulumi-dotnet): A slim image that contains the Pulumi CLI along with the .NET runtime and Pulumi SDK.
+- [`pulumi/pulumi-python`](https://hub.docker.com/r/pulumi/pulumi-python): A slim image that contains the Pulumi CLI along with the Python runtime and Pulumi SDK. This image also exists in per-language versions for different Python versions: `pulumi/pulumi-python-3.9` to `pulumi/pulumi-python-3.12`. The `pulumi/pulumi-python` image is based on the default Python version, which is currently 3.9.
+- [`pulumi/pulumi-nodejs`](https://hub.docker.com/r/pulumi/pulumi-nodejs): A slim image that contains the Pulumi CLI along with the Node runtime and Pulumi SDK and is suitable for both TypeScript and JavaScript development. This image also exists in per-language versions for different Node versions: `pulumi/pulumi-nodejs-18`, `pulumi/pulumi-nodejs-20` and `pulumi/pulumi-nodejs-22`. The `pulumi/pulumi-nodejs` image is based on the default Node version, which is currently 18.
+- [`pulumi/pulumi-dotnet`](https://hub.docker.com/r/pulumi/pulumi-dotnet): A slim image that contains the Pulumi CLI along with the .NET runtime and Pulumi SDK. This image also exists in per-language versions for different .NET versions: `pulumi/pulumi-dotnet-6.0` to `pulumi/pulumi-dotnet-8.0`. The `pulumi/pulumi-dotnet` image is based on the default .NET version, which is currently 6.0.
 - [`pulumi/pulumi-java`](https://hub.docker.com/r/pulumi/pulumi-java): A slim image that contains the Pulumi CLI along with the Java runtime and Pulumi SDK.
 
 Tags on each image match the installed version of Pulumi.  The `latest` tag matches the latest production version of Pulumi.
 
-The base and SDK-specific images are considerably smaller than the combined `pulumi/pulumi` container (100 to 150 MB, compared to ~1 GB for the combined image, depending on the base OS).
+The base and SDK-specific images are considerably smaller than the combined `pulumi/pulumi` container (200 to 300 MB, compared to ~2 GB for the combined image).
 
 ## Build Matrix
 
@@ -32,7 +32,7 @@ Images are pushed to:
 * [Amazon ECR Public Gallery](https://gallery.ecr.aws/pulumi/)
 * [GitHub Container Registry](https://github.com/orgs/pulumi/packages)
 
-## Included Versions
+## Default Language Versions
 
 - .NET 6.0
 - Go 1.21
