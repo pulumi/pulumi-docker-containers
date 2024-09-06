@@ -383,6 +383,10 @@ func TestEnvironment(t *testing.T) {
 		t.Run("PATH when running in bash", func(t *testing.T) {
 			t.Parallel()
 			expectedPath := expectedPaths[imageVariant]
+			// When running in bash, we pick up the PATH entry from the pulumi installation script.
+			if imageVariant == "pulumi" {
+				expectedPath += ":/root/.pulumi/bin"
+			}
 			requireOutputWithBash(t, expectedPath, "printenv", "PATH")
 		})
 
