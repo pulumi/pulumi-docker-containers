@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.131.0
+
 - Add per-language versions of the `pulumi/pulumi-dotnet` image
   ([#257](https://github.com/pulumi/pulumi-docker-containers/pull/257))
 
