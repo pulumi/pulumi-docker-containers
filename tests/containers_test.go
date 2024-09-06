@@ -122,6 +122,11 @@ func TestPulumiTemplateTests(t *testing.T) {
 			example := base.With(integration.ProgramTestOptions{
 				Dir:    e.RootPath,
 				Config: test.config,
+				// `pulumi new` already runs `pulumi install for us, don't attempt to `yarn link`
+				// the SDK into the test.
+				PrepareProject: func(info *engine.Projinfo) error {
+					return nil
+				},
 			})
 
 			integration.ProgramTest(t, &example)
@@ -129,27 +134,61 @@ func TestPulumiTemplateTests(t *testing.T) {
 	}
 }
 
-func TestKitchenSinkPythonVersions(t *testing.T) {
+func TestKitchenSinkLanguageVersions(t *testing.T) {
 	if !isKitchenSink(t) {
-		t.Skip("Only running python version tests on kitchen sink")
+		t.Skip("Only language version tests on kitchen sink")
 	}
 	t.Parallel()
 
 	dirs, err := testdata.ReadDir("testdata")
 	require.NoError(t, err)
+
+	t.Run("node-default", func(t *testing.T) {
+		// We need to run the `node-default` test first, before the other tests which modify
+		// the container's default node version.
+		p := filepath.Join("testdata", "node-default")
+		copyTestData(t, p)
+		integration.ProgramTest(t, &integration.ProgramTestOptions{
+			NoParallel:  true,
+			Dir:         p,
+			Quick:       true,
+			SkipRefresh: true,
+			PrepareProject: func(info *engine.Projinfo) error {
+				cmd := exec.Command("pulumi", "install", "--use-language-version-tools")
+				cmd.Dir = info.Root
+				out, err := cmd.CombinedOutput()
+				if err != nil {
+					t.Logf("install failed: %s: %s", err, out)
+				}
+				return err
+			},
+		})
+	})
+
 	for _, dir := range dirs {
 		dir := dir
 		t.Run(dir.Name(), func(t *testing.T) {
+			if dir.Name() == "node-default" {
+				// The `node-default` test is run first, so we skip it here.
+				t.Skip()
+			}
 			p := filepath.Join("testdata", dir.Name())
 			copyTestData(t, p)
 			integration.ProgramTest(t, &integration.ProgramTestOptions{
+				// We can't run the node tests in parallel because setting the node version is a
+				// global for the container.
+				NoParallel:  strings.HasPrefix(dir.Name(), "node-"),
 				Dir:         p,
 				Quick:       true,
 				SkipRefresh: true,
 				PrepareProject: func(info *engine.Projinfo) error {
 					cmd := exec.Command("pulumi", "install", "--use-language-version-tools")
 					cmd.Dir = info.Root
-					return cmd.Run()
+					out, err := cmd.CombinedOutput()
+					if err != nil {
+						t.Logf("install failed: %s: %s", err, out)
+					}
+					return err
 				},
 			})
 		})
@@ -283,26 +322,26 @@ func TestEnvironment(t *testing.T) {
 				name:            "node",
 				expectedDebian:  "/usr/local/bin/node",
 				expectedUbi:     "/usr/bin/node",
-				expectedKitchen: "/usr/bin/node",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/node",
 			},
 			{
 				name:            "npm",
 				expectedDebian:  "/usr/local/bin/npm",
 				expectedUbi:     "/usr/local/bin/npm",
-				expectedKitchen: "/usr/bin/npm",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/npm",
 			},
 
 			{
 				name:            "yarn",
 				expectedDebian:  "/usr/local/bin/yarn",
 				expectedUbi:     "/usr/local/bin/yarn",
-				expectedKitchen: "/usr/bin/yarn",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/yarn",
 			},
 			{
 				name:            "corepack",
 				expectedDebian:  "/usr/local/bin/corepack",
 				expectedUbi:     "/usr/bin/corepack",
-				expectedKitchen: "/usr/bin/corepack",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/corepack",
 			},
 		} {
 			testCase := testCase
@@ -328,7 +367,7 @@ func TestEnvironment(t *testing.T) {
 		// Install scripts for various tools can sometimes modify PATH, usually by adding entries
 		// to ~/.bashrc. This test ensures that we notice such modifications.
 		expectedPaths := map[string]string{
-			"pulumi":               "/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi":               "/usr/local/share/fnm/aliases/default/bin:/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/share/dotnet:/pulumi/bin:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-go":     "/pulumi/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-java":   "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
