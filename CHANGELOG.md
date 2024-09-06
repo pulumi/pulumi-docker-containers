@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add dotnet 8.0 to the kitchen sink image
+  ([#259](https://github.com/pulumi/pulumi-docker-containers/pull/259)
+
 - Include fnm and Nodejs 18, 20 and 22 in the kitchen sink image
   ([#253](https://github.com/pulumi/pulumi-docker-containers/pull/253)
 
@@ -37,7 +40,7 @@
 - Add per-language versions of the `pulumi/pulumi-python` image
   ([#226](https://github.com/pulumi/pulumi-docker-containers/pull/226))
 
-- Unpin Azure CLI tools ([#214])(https://github.com/pulumi/pulumi-docker-containers/pull/214)
+- Unpin Azure CLI tools ([#214])(https://github.com/pulumi/pulumi-docker-containers/pull/214))
 
 - Ensure that the containers are compatible with deployments
   ([#219])(https://github.com/pulumi/pulumi-docker-containers/pull/219)
