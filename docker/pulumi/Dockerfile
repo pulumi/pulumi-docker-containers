@@ -1,12 +1,15 @@
 FROM debian:12 AS base
 
+ARG TARGETARCH
+
 LABEL "repository"="https://github.com/pulumi/pulumi"
 LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
 ENV GOLANG_VERSION 1.21.1
-ENV GOLANG_SHA256 b3075ae1ce5dab85f89bc7905d1632de23ca196bd8336afd93fa97434cfa55ae
+ENV GOLANG_AMD64_SHA256 b3075ae1ce5dab85f89bc7905d1632de23ca196bd8336afd93fa97434cfa55ae
+ENV GOLANG_ARM64_SHA256 7da1a3936a928fd0b2602ed4f3ef535b8cd1990f1503b8d3e1acc0fa0759c967
 
 # Install base dependencies
 RUN apt-get update -y && \
@@ -36,11 +39,17 @@ RUN apt-get update -y && \
 
 # Install cloud tools
 RUN \
+  # Setup environment variables for architecture-specific packages
+  if [ "$TARGETARCH" = "amd64" ]; then \
+    AWSCLI_ARCH=x86_64; \
+  else \
+    AWSCLI_ARCH=aarch64; \
+  fi && \
   # IAM Authenticator for EKS
-  curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.28.2/2023-10-17/bin/linux/amd64/aws-iam-authenticator && \
+  curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.28.2/2023-10-17/bin/linux/${TARGETARCH}/aws-iam-authenticator && \
   chmod +x /usr/bin/aws-iam-authenticator && \
   # AWS v2 cli
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" -o "awscliv2.zip" && \
   unzip awscliv2.zip && \
   ./aws/install && \
   rm -rf aws && \
@@ -49,13 +58,13 @@ RUN \
   curl -fsSL https://download.docker.com/linux/debian/gpg          | apt-key add - && \
   curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
   curl -fsSL https://packages.microsoft.com/keys/microsoft.asc     | apt-key add - && \
-  echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list && \
+  echo "deb [arch=${TARGETARCH}] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list && \
   echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main"               | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
   KUBE_LATEST=$(curl -L -s https://dl.k8s.io/release/stable.txt | awk 'BEGIN { FS="." } { printf "%s.%s", $1, $2 }') && \
   mkdir -p /etc/apt/keyrings && \
   curl -fsSL https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
   echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list && \
-  echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list && \
+  echo "deb [arch=${TARGETARCH}] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list && \
   # Install azure-cli, docker, gcloud, kubectl
   apt-get update -y && \
   apt-get install -y \
@@ -67,7 +76,14 @@ RUN \
   rm -rf /var/lib/apt/lists/*
 
 # Install Go
-RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+RUN \
+  # Setup environment variables for architecture-specific packages
+  if [ "$TARGETARCH" = "amd64" ]; then \
+    GOLANG_SHA256=$GOLANG_AMD64_SHA256; \
+  else \
+    GOLANG_SHA256=$GOLANG_ARM64_SHA256; \
+  fi && \
+  curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz && \
   echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c - && \
   tar -C /usr/local -xzf /tmp/go.tgz && \
   rm /tmp/go.tgz && \
@@ -157,6 +173,8 @@ ENTRYPOINT ["pulumi"]
 
 FROM base AS build-environment
 
+ARG TARGETARCH
+
 # https://github.com/pulumi/pulumictl/releases
 ENV PULUMICTL_VERSION 0.0.32
 # https://github.com/golangci/golangci-lint/releases
@@ -166,14 +184,21 @@ ENV GORELEASER_VERSION 1.11.4
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
-RUN curl \
+RUN \
+  # Setup environment variables for architecture-specific packages
+  if [ "$TARGETARCH" = "amd64" ]; then \
+   GORELEASER_ARCH=x86_64; \
+  else \
+    GORELEASER_ARCH=arm64; \
+  fi && \
+  curl \
     --proto "=https" \
     --tlsv1.2 \
     --location \
     --fail \
     --verbose \
     --output "pulumictl.tar.gz" \
-    "https://github.com/pulumi/pulumictl/releases/download/v${PULUMICTL_VERSION}/pulumictl-v${PULUMICTL_VERSION}-linux-amd64.tar.gz" && \
+    "https://github.com/pulumi/pulumictl/releases/download/v${PULUMICTL_VERSION}/pulumictl-v${PULUMICTL_VERSION}-linux-${TARGETARCH}.tar.gz" && \
     mkdir pulumictl_extraction && \
     tar --extract --gunzip --verbose --directory pulumictl_extraction --file pulumictl.tar.gz && \
     mv pulumictl_extraction/pulumictl /usr/local/bin/pulumictl && \
@@ -197,7 +222,7 @@ RUN curl \
     --fail \
     --verbose \
     --output "goreleaser.tar.gz" \
-    "https://github.com/goreleaser/goreleaser/releases/download/v${GORELEASER_VERSION}/goreleaser_Linux_x86_64.tar.gz" && \
+    "https://github.com/goreleaser/goreleaser/releases/download/v${GORELEASER_VERSION}/goreleaser_Linux_${GORELEASER_ARCH}.tar.gz" && \
     mkdir goreleaser_extraction && \
     tar --extract --gunzip --verbose --directory goreleaser_extraction --file goreleaser.tar.gz && \
     mv goreleaser_extraction/goreleaser /usr/local/bin/goreleaser && \
