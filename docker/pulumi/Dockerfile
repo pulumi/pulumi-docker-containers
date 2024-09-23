@@ -163,6 +163,7 @@ ARG GID=1000
 RUN addgroup --gid $GID pulumi && \
   adduser --uid $UID --gid $GID --disabled-password --gecos "" pulumi
 USER pulumi:pulumi
+ENV GOPATH /home/pulumi/go
 
 # Pulumi Bridged Terraform Provider Build Environment
 #
