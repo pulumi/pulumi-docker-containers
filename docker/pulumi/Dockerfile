@@ -163,7 +163,13 @@ ARG GID=1000
 RUN addgroup --gid $GID pulumi && \
   adduser --uid $UID --gid $GID --disabled-password --gecos "" pulumi
 USER pulumi:pulumi
-ENV GOPATH /home/pulumi/go
+# Update env vars for the non-root user
+ENV GOPATH=/home/pulumi/go
+ENV XDG_CONFIG_HOME=/home/pulumi/.config
+ENV XDG_CACHE_HOME=/home/pulumi/.cache
+# Re-run the helm setup for the non-root user
+RUN helm repo add stable https://charts.helm.sh/stable && \
+  helm repo update
 
 # Pulumi Bridged Terraform Provider Build Environment
 #
