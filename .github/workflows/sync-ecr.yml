@@ -135,21 +135,25 @@ jobs:
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
           docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
 
+  define-ubi-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix
+        id: define-matrix
+        run: |
+          echo matrix=$(python ./.github/scripts/matrix/gen-sync-matrix.py) >> "$GITHUB_OUTPUT"
+
   # NOTE: If UBI images become multi platform, this job can be replaced by adding a similar step to "-debian" for "-ubi" the previous job.
   ubi-images:
     name: UBI SDK and base images
     runs-on: ubuntu-latest
+    needs: define-ubi-matrix
     strategy:
       fail-fast: false
-      matrix:
-        image:
-          [
-            "pulumi-base",
-            "pulumi-go",
-            "pulumi-nodejs",
-            "pulumi-python",
-            "pulumi-dotnet",
-          ]
+      matrix: ${{ fromJSON(needs.define-ubi-matrix.outputs.matrix) }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1

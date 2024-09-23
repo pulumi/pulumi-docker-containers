@@ -340,7 +340,7 @@ func TestEnvironment(t *testing.T) {
 			{
 				name:            "corepack",
 				expectedDebian:  "/usr/local/bin/corepack",
-				expectedUbi:     "/usr/bin/corepack",
+				expectedUbi:     "/usr/local/bin/corepack",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/corepack",
 			},
 		} {

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add per language versions for ubi images
+  ([#260](https://github.com/pulumi/pulumi-docker-containers/pull/260))
+
 ## 3.132.0
 
 - Add dotnet 8.0 to the kitchen sink image

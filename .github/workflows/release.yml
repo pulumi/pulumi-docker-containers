@@ -319,7 +319,7 @@ jobs:
             ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-base:latest
 
-  define-matrix:
+  define-debian-matrix:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.define-matrix.outputs.matrix }}
@@ -332,13 +332,13 @@ jobs:
 
   debian-sdk:
     name: Debian SDK images
-    needs: define-matrix
+    needs: define-debian-matrix
     runs-on: ubuntu-latest
     permissions:
       id-token: write
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.define-debian-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@master
       - name: Set image name
@@ -519,17 +519,40 @@ jobs:
             ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:latest
 
+  define-ubi-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix for UBI SDK Manifests
+        id: define-matrix
+        # Filter out the nodejs 22 and version from the matrix, as it is not supported on UBI.
+        # https://access.redhat.com/articles/3376841
+        # Filter out the python 3.10 version from the matrix, as it is not supported on UBI.
+        # https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/installing_and_using_dynamic_programming_languages/assembly_introduction-to-python_installing-and-using-dynamic-programming-languages#con_python-versions_assembly_introduction-to-python
+        run: |
+          echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py --no-arch |
+            jq '.include |= map(
+              select(
+                (.sdk != "nodejs" or .language_version != "22") and
+                (.sdk != "python" or .language_version != "3.10")
+              )
+            )') >> "$GITHUB_OUTPUT"
 
   ubi-sdk:
     name: UBI SDK images
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+    needs: define-ubi-matrix
     strategy:
       fail-fast: false
-      matrix:
-        sdk: ["nodejs", "python", "dotnet", "go", "java"]
+      matrix: ${{ fromJSON(needs.define-ubi-matrix.outputs.matrix) }}
     steps:
+      - name: Set image name
+        run: |
+          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-ubi" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -545,15 +568,13 @@ jobs:
       - name: Build
         # We only build UBI for amd64 due to arm64 builds hanging on `npm
         # install -g yarn` with no additional output.
-        #
-        # We supply a working directory to the command below due to the
-        # dnf/nodej2.module file that has to mounted into the container.
         run: |
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -565,7 +586,6 @@ jobs:
         working-directory: tests
         run: |
           GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
-
       - name: Set SDKS_TO_TEST (dotnet)
         if: ${{ matrix.sdk == 'dotnet' }}
         run: echo "SDKS_TO_TEST=csharp" >> $GITHUB_ENV
@@ -615,11 +635,11 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            ${{ env.IMAGE_NAME }} \
             -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
       - name: Push image
         run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
+          docker push ${{ env.IMAGE_NAME }}
 
   start-syncs:
     name: Start syncs to other container registries
