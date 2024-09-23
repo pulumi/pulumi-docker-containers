@@ -411,7 +411,7 @@ func TestEnvironment(t *testing.T) {
 		t.Parallel()
 
 		cmd := exec.Command("git", "--version")
-		_, err := cmd.Output()
+		err := cmd.Run()
 		require.NoError(t, err)
 	})
 
