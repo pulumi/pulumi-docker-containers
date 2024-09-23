@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.132.0
+
 - Add dotnet 8.0 to the kitchen sink image
   ([#259](https://github.com/pulumi/pulumi-docker-containers/pull/259)
 
