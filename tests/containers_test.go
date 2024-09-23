@@ -406,6 +406,15 @@ func TestEnvironment(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	// All images must include git. Deployments uses this to checkout the source code.
+	t.Run("Git", func(t *testing.T) {
+		t.Parallel()
+
+		cmd := exec.Command("git", "--version")
+		err := cmd.Run()
+		require.NoError(t, err)
+	})
+
 	t.Run("Workdir", func(t *testing.T) {
 		t.Parallel()
 		// Kitchen sink does not set `WORKDIR`.
