@@ -164,6 +164,7 @@ jobs:
             -test.timeout=1h -test.v
       - name: Tests for nonroot variant
         run: |
+          chmod o+r $GOOGLE_APPLICATION_CREDENTIALS
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e IMAGE_VARIANT=pulumi-nonroot \
