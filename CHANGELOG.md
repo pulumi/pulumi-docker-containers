@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add nonroot variant for the kitchen sink image
+([#277](https://github.com/pulumi/pulumi-docker-containers/pull/277)
+
 - Add per language versions for ubi images
   ([#260](https://github.com/pulumi/pulumi-docker-containers/pull/260))
 

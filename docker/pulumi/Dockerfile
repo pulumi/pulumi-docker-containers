@@ -146,6 +146,24 @@ ENV PATH="/pulumi/bin:${PATH}"
 # I think it's safe to say if we're using this mega image, we want pulumi
 ENTRYPOINT ["pulumi"]
 
+# Nonroot variant of the image
+#
+# This sets up a non-root user and uses that user for the image.
+########################################################################
+
+FROM base AS nonroot
+
+LABEL "repository"="https://github.com/pulumi/pulumi"
+LABEL "homepage"="https://pulumi.com"
+LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
+LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
+
+ARG UID=1000
+ARG GID=1000
+RUN addgroup --gid $GID pulumi && \
+  adduser --uid $UID --gid $GID --disabled-password --gecos "" pulumi
+USER pulumi:pulumi
+
 # Pulumi Bridged Terraform Provider Build Environment
 #
 # Bundles together everything needed to build a Terraform-based

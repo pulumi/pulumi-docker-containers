@@ -100,6 +100,16 @@ jobs:
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
+      - name: Build nonroot variant
+        run: |
+          docker build \
+            -f docker/pulumi/Dockerfile \
+            --platform linux/amd64 \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            --target nonroot \
+            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            --load \
+            docker/pulumi
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -151,6 +161,29 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            -test.timeout=1h -test.v
+      - name: Tests for nonroot variant
+        run: |
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e IMAGE_VARIANT=pulumi-nonroot \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
+            --volume /tmp:/src \
+            --entrypoint /src/pulumi-test-containers \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
             -test.timeout=1h -test.v
 
   provider-build-environment:
