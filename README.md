@@ -48,14 +48,6 @@ Language runtimes are kept up-to-date with current LTS versions. You can pin the
 
 Images are scanned nightly for vulnerabilities.  Results are checked periodically for issues that can be remediated (best effort), however there are some issues over which we have no control, e.g. vulnerabilities in base images for which there is no known remediation.
 
-## Usage
-
-In order to try and keep the images flexible and try to meet as many use cases as possible, none of these images have `CMD` or entrypoint set, so you'll need to specify the commands you want to run, for example:
-
-```bash
-docker run -e PULUMI_ACCESS_TOKEN=<TOKEN> -v "$(pwd)":/pulumi/projects $IMG /bin/bash -c "npm ci && pulumi preview -s <stackname>"
-```
-
 ## Considerations
 
 The base and SDK images _do not_ include additional tools you might want to use when running a Pulumi provider. For example, if you're using the [pulumi-kubernetes](https://github.com/pulumi/pulumi-kubernetes) provider with [Helm](https://helm.sh/), you'll need to use these images as a base image, and install `helm` as part of your CI setup.
