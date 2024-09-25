@@ -1,5 +1,7 @@
 FROM debian:12 AS base
 
+# These values are passed in by the build system automatically. The options are: arm64, amd64
+# See: https://docs.docker.com/build/building/variables/#pre-defined-build-arguments
 ARG TARGETARCH
 
 LABEL "repository"="https://github.com/pulumi/pulumi"
@@ -40,10 +42,10 @@ RUN apt-get update -y && \
 # Install cloud tools
 RUN \
   # Setup environment variables for architecture-specific packages
-  if [ "$TARGETARCH" = "amd64" ]; then \
-    AWSCLI_ARCH=x86_64; \
-  else \
+  if [ "$TARGETARCH" = "arm64" ]; then \
     AWSCLI_ARCH=aarch64; \
+  else \
+    AWSCLI_ARCH=x86_64; \
   fi && \
   # IAM Authenticator for EKS
   curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.28.2/2023-10-17/bin/linux/${TARGETARCH}/aws-iam-authenticator && \
@@ -78,10 +80,10 @@ RUN \
 # Install Go
 RUN \
   # Setup environment variables for architecture-specific packages
-  if [ "$TARGETARCH" = "amd64" ]; then \
-    GOLANG_SHA256=$GOLANG_AMD64_SHA256; \
-  else \
+  if [ "$TARGETARCH" = "arm64" ]; then \
     GOLANG_SHA256=$GOLANG_ARM64_SHA256; \
+  else \
+    GOLANG_SHA256=$GOLANG_AMD64_SHA256; \
   fi && \
   curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz && \
   echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c - && \
@@ -186,10 +188,10 @@ SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
 RUN \
   # Setup environment variables for architecture-specific packages
-  if [ "$TARGETARCH" = "amd64" ]; then \
-   GORELEASER_ARCH=x86_64; \
-  else \
+  if [ "$TARGETARCH" = "arm64" ]; then \
     GORELEASER_ARCH=arm64; \
+  else \
+    GORELEASER_ARCH=x86_64; \
   fi && \
   curl \
     --proto "=https" \
