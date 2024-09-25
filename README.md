@@ -36,7 +36,7 @@ Images are pushed to:
 
 - .NET 6.0
 - Go 1.21
-- JDK 11
+- JDK 17
 - Node.js 18
 - Python 3.9
 
@@ -47,14 +47,6 @@ Language runtimes are kept up-to-date with current LTS versions. You can pin the
 ## Scanning
 
 Images are scanned nightly for vulnerabilities.  Results are checked periodically for issues that can be remediated (best effort), however there are some issues over which we have no control, e.g. vulnerabilities in base images for which there is no known remediation.
-
-## Usage
-
-In order to try and keep the images flexible and try to meet as many use cases as possible, none of these images have `CMD` or entrypoint set, so you'll need to specify the commands you want to run, for example:
-
-```bash
-docker run -e PULUMI_ACCESS_TOKEN=<TOKEN> -v "$(pwd)":/pulumi/projects $IMG /bin/bash -c "npm ci && pulumi preview -s <stackname>"
-```
 
 ## Considerations
 

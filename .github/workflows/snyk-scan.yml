@@ -19,6 +19,10 @@ jobs:
     strategy:
       matrix:
         image: ["pulumi", "pulumi-provider-build-environment"]
+        include:
+          # For the pulumi image add a the nonroot variant
+          - suffix: -nonroot
+            image: pulumi
     steps:
       - uses: actions/checkout@master
       - name: Set version
@@ -30,7 +34,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.DOCKER_ORG }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
+          image: ${{ env.DOCKER_ORG }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}
           args: --severity-threshold=high --file=docker/pulumi/Dockerfile
 
   base:

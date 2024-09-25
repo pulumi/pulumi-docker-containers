@@ -28,6 +28,10 @@ jobs:
     strategy:
       matrix:
         image: ["pulumi", "pulumi-provider-build-environment"]
+        include:
+          # For the pulumi image add a the nonroot variant
+          - suffix: -nonroot
+            image: pulumi
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
@@ -37,15 +41,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Tag ${{ env.PULUMI_VERSION }} and push to GHCR
         run: |
-          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
-          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }} ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
-          docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }} ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}
+          docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}
       - name: Tag latest and push to GHCR
         if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         run: |
-          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
-          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
-          docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }}
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }} ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }}
+          docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }}
 
   define-debian-matrix:
     runs-on: ubuntu-latest
@@ -114,21 +118,31 @@ jobs:
             ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
           docker manifest push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
 
+  define-ubi-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix
+        id: define-matrix
+          # Filter out the nodejs 22 and version from the matrix, as it is not supported on UBI.
+          # https://access.redhat.com/articles/3376841
+          # Filter out the python 3.10 version from the matrix, as it is not supported on UBI.
+          # https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/installing_and_using_dynamic_programming_languages/assembly_introduction-to-python_installing-and-using-dynamic-programming-languages#con_python-versions_assembly_introduction-to-python
+        run: |
+          echo matrix=$(python ./.github/scripts/matrix/gen-sync-matrix.py |
+            jq '.image |= map(select(. != "pulumi-python-3.10" and . != "pulumi-nodejs-22"))'
+          ) >> "$GITHUB_OUTPUT"
+
   # NOTE: If UBI images become multi platform, this job can be replaced by adding a similar step to "-debian" for "-ubi" the previous job.
   ubi-images:
     name: UBI SDK and base images
     runs-on: ubuntu-latest
+    needs: define-ubi-matrix
     strategy:
       fail-fast: false
-      matrix:
-        image:
-          [
-            "pulumi-base",
-            "pulumi-go",
-            "pulumi-nodejs",
-            "pulumi-python",
-            "pulumi-dotnet",
-          ]
+      matrix: ${{ fromJSON(needs.define-ubi-matrix.outputs.matrix) }}
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1

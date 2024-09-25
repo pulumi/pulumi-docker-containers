@@ -164,6 +164,31 @@ ENV PATH="/pulumi/bin:${PATH}"
 # I think it's safe to say if we're using this mega image, we want pulumi
 ENTRYPOINT ["pulumi"]
 
+# Nonroot variant of the image
+#
+# This sets up a non-root user and uses that user for the image.
+########################################################################
+
+FROM base AS nonroot
+
+LABEL "repository"="https://github.com/pulumi/pulumi"
+LABEL "homepage"="https://pulumi.com"
+LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
+LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
+
+ARG UID=1000
+ARG GID=1000
+RUN addgroup --gid $GID pulumi && \
+  adduser --uid $UID --gid $GID --disabled-password --gecos "" pulumi
+USER pulumi:pulumi
+# Update env vars for the non-root user
+ENV GOPATH=/home/pulumi/go
+ENV XDG_CONFIG_HOME=/home/pulumi/.config
+ENV XDG_CACHE_HOME=/home/pulumi/.cache
+# Re-run the helm setup for the non-root user
+RUN helm repo add stable https://charts.helm.sh/stable && \
+  helm repo update
+
 # Pulumi Bridged Terraform Provider Build Environment
 #
 # Bundles together everything needed to build a Terraform-based

@@ -100,6 +100,16 @@ jobs:
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
+      - name: Build nonroot variant
+        run: |
+          docker build \
+            -f docker/pulumi/Dockerfile \
+            --platform linux/amd64 \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            --target nonroot \
+            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            --load \
+            docker/pulumi
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -151,6 +161,30 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            -test.timeout=1h -test.v
+      - name: Tests for nonroot variant
+        run: |
+          chmod o+r $GOOGLE_APPLICATION_CREDENTIALS
+          docker run \
+            -e RUN_CONTAINER_TESTS=true \
+            -e IMAGE_VARIANT=pulumi-nonroot \
+            -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e PULUMI_ORG=${PULUMI_ORG} \
+            -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+            -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+            -e ARM_TENANT_ID=${ARM_TENANT_ID} \
+            -e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} \
+            -e AWS_REGION=${AWS_REGION} \
+            -e GCP_PROJECT_NAME=${GCP_PROJECT_NAME} \
+            -e GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER} \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/src/creds.json \
+            --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
+            --volume /tmp:/src \
+            --entrypoint /src/pulumi-test-containers \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
             -test.timeout=1h -test.v
 
   provider-build-environment:
@@ -384,15 +418,36 @@ jobs:
             ${{ env.IMAGE_NAME }} \
             -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
 
+  define-ubi-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define-matrix-sdk-manifests.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Define Matrix for UBI SDK Manifests
+        id: define-matrix-sdk-manifests
+        # Filter out the nodejs 22 and version from the matrix, as it is not supported on UBI.
+        # https://access.redhat.com/articles/3376841
+        # Filter out the python 3.10 version from the matrix, as it is not supported on UBI.
+        # https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/installing_and_using_dynamic_programming_languages/assembly_introduction-to-python_installing-and-using-dynamic-programming-languages#con_python-versions_assembly_introduction-to-python
+        run: |
+          echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py --no-arch |
+            jq '.include |= map(
+              select(
+                (.sdk != "nodejs" or .language_version != "22") and
+                (.sdk != "python" or .language_version != "3.10")
+              )
+            )') >> "$GITHUB_OUTPUT"
+
   ubi-sdk:
     name: UBI SDK images
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+    needs: define-ubi-matrix
     strategy:
       fail-fast: false
-      matrix:
-        sdk: ["nodejs", "python", "dotnet", "go", "java"]
+      matrix: ${{ fromJSON(needs.define-ubi-matrix.outputs.matrix) }}
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -400,6 +455,9 @@ jobs:
         if: ${{ !env.PULUMI_VERSION }}
         run: |
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
+      - name: Set image name
+        run: |
+          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-ubi" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -411,15 +469,13 @@ jobs:
         # We only build UBI for amd64 due to arm64 builds hanging on `npm
         # install -g yarn` with no additional output, plus the apparent
         # requirement of a paid subscription in order to file a bug with RedHat.
-        #
-        # We supply a working directory to the command below due to the
-        # dnf/nodej2.module file that has to mounted into the container.
         run: |
           docker build \
             -f docker/${{ matrix.sdk }}/Dockerfile.ubi \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -480,5 +536,5 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi \
+            ${{ env.IMAGE_NAME }} \
             -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"

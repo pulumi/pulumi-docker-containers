@@ -340,7 +340,7 @@ func TestEnvironment(t *testing.T) {
 			{
 				name:            "corepack",
 				expectedDebian:  "/usr/local/bin/corepack",
-				expectedUbi:     "/usr/bin/corepack",
+				expectedUbi:     "/usr/local/bin/corepack",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/corepack",
 			},
 		} {
@@ -368,6 +368,7 @@ func TestEnvironment(t *testing.T) {
 		// to ~/.bashrc. This test ensures that we notice such modifications.
 		expectedPaths := map[string]string{
 			"pulumi":               "/pulumi/bin:/usr/local/share/fnm/aliases/default/bin:/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/local/share/dotnet:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-nonroot":       "/pulumi/bin:/usr/local/share/fnm/aliases/default/bin:/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/local/share/dotnet:/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-dotnet": "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-go":     "/pulumi/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-debian-java":   "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -406,10 +407,19 @@ func TestEnvironment(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	// All images must include git. Deployments uses this to checkout the source code.
+	t.Run("Git", func(t *testing.T) {
+		t.Parallel()
+
+		cmd := exec.Command("git", "--version")
+		err := cmd.Run()
+		require.NoError(t, err)
+	})
+
 	t.Run("Workdir", func(t *testing.T) {
 		t.Parallel()
 		// Kitchen sink does not set `WORKDIR`.
-		if imageVariant == "pulumi" {
+		if imageVariant == "pulumi" || imageVariant == "pulumi-nonroot" {
 			requireOutput(t, "/", "pwd")
 			requireOutputWithBash(t, "/", "pwd")
 		} else {
@@ -420,14 +430,24 @@ func TestEnvironment(t *testing.T) {
 
 	t.Run("User", func(t *testing.T) {
 		t.Parallel()
-		requireOutput(t, "root", "whoami")
-		requireOutputWithBash(t, "root", "whoami")
+		if isNonRoot(t) {
+			requireOutput(t, "pulumi", "whoami")
+			requireOutputWithBash(t, "pulumi", "whoami")
+		} else {
+			requireOutput(t, "root", "whoami")
+			requireOutputWithBash(t, "root", "whoami")
+		}
 	})
 
 	t.Run("Home", func(t *testing.T) {
 		t.Parallel()
-		requireOutput(t, "/root", "printenv", "HOME")
-		requireOutputWithBash(t, "/root", "printenv", "HOME")
+		if isNonRoot(t) {
+			requireOutput(t, "/home/pulumi", "printenv", "HOME")
+			requireOutputWithBash(t, "/home/pulumi", "printenv", "HOME")
+		} else {
+			requireOutput(t, "/root", "printenv", "HOME")
+			requireOutputWithBash(t, "/root", "printenv", "HOME")
+		}
 	})
 }
 
@@ -483,6 +503,11 @@ func isDebian(t *testing.T) bool {
 func isUBI(t *testing.T) bool {
 	imageVariant := mustEnv(t, "IMAGE_VARIANT")
 	return strings.HasPrefix(imageVariant, "pulumi-ubi")
+}
+
+func isNonRoot(t *testing.T) bool {
+	imageVariant := mustEnv(t, "IMAGE_VARIANT")
+	return strings.HasSuffix(imageVariant, "-nonroot")
 }
 
 func RandomStackName(t *testing.T) string {
