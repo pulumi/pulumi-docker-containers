@@ -126,8 +126,14 @@ jobs:
       - uses: actions/checkout@master
       - name: Define Matrix
         id: define-matrix
+          # Filter out the nodejs 22 and version from the matrix, as it is not supported on UBI.
+          # https://access.redhat.com/articles/3376841
+          # Filter out the python 3.10 version from the matrix, as it is not supported on UBI.
+          # https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/installing_and_using_dynamic_programming_languages/assembly_introduction-to-python_installing-and-using-dynamic-programming-languages#con_python-versions_assembly_introduction-to-python
         run: |
-          echo matrix=$(python ./.github/scripts/matrix/gen-sync-matrix.py) >> "$GITHUB_OUTPUT"
+          echo matrix=$(python ./.github/scripts/matrix/gen-sync-matrix.py |
+            jq '.image |= map(select(. != "pulumi-python-3.10" and . != "pulumi-nodejs-22"))'
+          ) >> "$GITHUB_OUTPUT"
 
   # NOTE: If UBI images become multi platform, this job can be replaced by adding a similar step to "-debian" for "-ubi" the previous job.
   ubi-images:
