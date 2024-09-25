@@ -254,7 +254,7 @@ jobs:
           docker build \
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}=${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
