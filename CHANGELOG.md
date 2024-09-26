@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 3.134.1
+
+- Add arm64 variant for the kitchen sink image
+  ([#274](https://github.com/pulumi/pulumi-docker-containers/pull/274)
+
 - Add nonroot variant for the kitchen sink image
 ([#277](https://github.com/pulumi/pulumi-docker-containers/pull/277)
 
