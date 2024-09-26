@@ -61,6 +61,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.21.x]
+        arch: ["arm64", "amd64"]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -87,9 +88,8 @@ jobs:
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -t ${{ env.DOCKER_ORG }}/pulumi:latest \
+            --platform linux/${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
@@ -98,9 +98,8 @@ jobs:
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
-            -t ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot \
+            --platform linux/${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }} \
             --target nonroot \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
@@ -153,7 +152,7 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             -test.timeout=1h -test.v
       - name: Tests for nonroot variant
         run: |
@@ -177,23 +176,57 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }} \
             -test.timeout=1h -test.v
       - name: Push ${{ env.PULUMI_VERSION }}
         run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
-          docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
-      - name: Push latest
-        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
+            docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
+            docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }}
+  kitchen-sink-manifests:
+    name: Kitchen sink image manifests
+    needs: ["kitchen-sink"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: Versioned manifest
         run: |
-          docker push ${{ env.DOCKER_ORG }}/pulumi:latest
-          docker push ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot
-
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
+            
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
+      - name: Latest manifest
+        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
+        # Manifest lists can't be a source for `docker tag`, so we create an
+        # additional copy of the previous manifest to tag latest:
+        run: |
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi:latest \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi:latest
+      
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot
   provider-build-environment:
     name: Provider Build Environment image
     strategy:
       matrix:
         go-version: [1.21.1]
+        arch: ["arm64", "amd64"]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -221,8 +254,7 @@ jobs:
           docker build \
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest \
+            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
@@ -275,13 +307,36 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             -test.parallel=1 -test.timeout=1h -test.v
       - name: Push ${{ env.PULUMI_VERSION }}
-        run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
-      - name: Push latest
+        run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
+  provider-build-environment-manifests:
+    name: Provider Build Environment manifests
+    needs: ["provider-build-environment"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: Versioned manifest
+        run: |
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-amd64
+      - name: Latest manifest
         if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
-        run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest
+        # Manifest lists can't be a source for `docker tag`, so we create an
+        # additional copy of the previous manifest to tag latest:
+        run: |
+          docker manifest create \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-arm64 \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-amd64
+          docker manifest push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest
 
   base:
     name: Base image
