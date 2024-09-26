@@ -100,6 +100,7 @@ jobs:
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
             -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            -t ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot \
             --target nonroot \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
