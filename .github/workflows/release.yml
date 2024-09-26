@@ -134,14 +134,14 @@ jobs:
       - name: Select Tests for AMD64
         if: ${{ matrix.arch == 'amd64' }}
         # Run all tests on AMD64
-        run: echo "CONTAINER_TESTS_TO_RUN="" >> $GITHUB_ENV
+        run: echo "CONTAINER_TESTS_TO_RUN=''" >> $GITHUB_ENV
       - name: Select Tests for ARM64
         if: ${{ matrix.arch == 'arm64' }}
         # We use QEMU to run ARM64 images on AMD64, but .NET Core isn't supported by QEMU,
         # for now we only run the basic TestEnvironment tests on ARM64.
         # https://gitlab.com/qemu-project/qemu/-/issues/249
         # TODO: enable more tests https://github.com/pulumi/pulumi-docker-containers/issues/289
-        run: echo "CONTAINER_TESTS_TO_RUN="-test.run "TestEnvironment"" >> $GITHUB_ENV
+        run: echo "CONTAINER_TESTS_TO_RUN='-test.run TestEnvironment' >> $GITHUB_ENV
       - name: Tests
         run: |
           docker run \
