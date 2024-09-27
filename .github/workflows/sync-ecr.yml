@@ -49,11 +49,12 @@ jobs:
             --query 'authorizationData.authorizationToken' | \
             tr -d '"' | base64 --decode | cut -d: -f2 | \
             docker login -u AWS --password-stdin https://public.ecr.aws
-      - name: Tag ${{ env.PULUMI_VERSION }}-arm64 and push to AWS Public ECR
-        run: |
-          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
-          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64 public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
-          docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+      # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
+      # - name: Tag ${{ env.PULUMI_VERSION }}-arm64 and push to AWS Public ECR
+      #   run: |
+      #     docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+      #     docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64 public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+      #     docker push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
       - name: Tag ${{ env.PULUMI_VERSION }}-amd64 and push to AWS Public ECR
         run: |
           docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
@@ -62,10 +63,10 @@ jobs:
       - name: Push latest manifest
         if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         run: |
+          # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
           docker manifest create \
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }} \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64 \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
           docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }}
 
   define-debian-matrix:
