@@ -39,11 +39,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Tag ${{ env.PULUMI_VERSION }}-arm64 and push to GHCR
-        run: |
-          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
-          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64 ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
-          docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+      # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
+      # - name: Tag ${{ env.PULUMI_VERSION }}-arm64 and push to GHCR
+      #   run: |
+      #     docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+      #     docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64 ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+      #     docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
       - name: Tag ${{ env.PULUMI_VERSION }}-amd64 and push to GHCR
         run: |
           docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
@@ -52,10 +53,10 @@ jobs:
       - name: Push latest manifest to GHCR
         if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
         run: |
+          # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
           docker manifest create \
             ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }} \
-            ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64 \
-            ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+            ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
           docker manifest push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }}
 
   define-debian-matrix:

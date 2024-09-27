@@ -61,7 +61,10 @@ jobs:
     strategy:
       matrix:
         go-version: [1.21.x]
-        arch: ["arm64", "amd64"]
+        # Disabling arm64 for now as it takes too long to build Python when running Docker with QEMU.
+        # Once arm64 runners are availble to OSS projects, we can re-enable this.
+        # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
+        arch: ["amd64"] # "arm64"
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -83,8 +86,6 @@ jobs:
         with:
           install: true
       - name: Build
-        # We only build the "kitchen sink" image for AMD64 as it's rather large
-        # and we want to steer users to use the single SDK images going forward:
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
@@ -205,15 +206,14 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - name: Versioned manifest
         run: |
+          # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
 
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
       - name: Latest manifest
@@ -223,13 +223,11 @@ jobs:
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi:latest \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:latest
 
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot
   provider-build-environment:
@@ -237,7 +235,10 @@ jobs:
     strategy:
       matrix:
         go-version: [1.21.1]
-        arch: ["arm64", "amd64"]
+        # Disabling arm64 for now as it takes too long to build Python when running Docker with QEMU.
+        # Once arm64 runners are availble to OSS projects, we can re-enable this.
+        # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
+        arch: ["amd64"] # "arm64"
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -264,7 +265,7 @@ jobs:
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
+            --platform linux/${{ matrix.arch }} \
             -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
@@ -336,7 +337,6 @@ jobs:
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
-            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-amd64
       - name: Latest manifest
         if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
@@ -345,7 +345,6 @@ jobs:
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest \
-            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest
 
