@@ -1,4 +1,4 @@
-FROM debian:12 AS base
+FROM --platform=${BUILDPLATFORM} debian:12 AS base
 
 # These values are passed in by the build system automatically. The options are: arm64, amd64
 # See: https://docs.docker.com/build/building/variables/#pre-defined-build-arguments
@@ -198,7 +198,7 @@ RUN helm repo add stable https://charts.helm.sh/stable && \
 # for more background.
 ########################################################################
 
-FROM base AS build-environment
+FROM --platform=${BUILDPLATFORM} base AS build-environment
 
 ARG TARGETARCH
 
