@@ -40,6 +40,19 @@ Images are pushed to:
 - Node.js 18
 - Python 3.9
 
+> [!NOTE]
+> In **November 2024** the default language versions will be updated to the latest versions for each of the language runtimes:
+>
+> - .NET 8.0
+> - Go 1.23
+> - JDK 21
+> - Node.js 22
+> - Python 3.13
+>
+> Images without a version suffix will stay evergreen and continue to be updated as new language versions are released.
+>
+> The [pulumi-provider-build-environment](https://hub.docker.com/r/pulumi/pulumi-provider-build-environment/tags) image will be updated to include [goreleaser](https://github.com/goreleaser/goreleaser) v2.
+
 ### Version Policy
 
 Language runtimes are kept up-to-date with current LTS versions. You can pin the image tag to a particular version in order to avoid unintended upgrades.
