@@ -32,7 +32,9 @@ Images are pushed to:
 * [Amazon ECR Public Gallery](https://gallery.ecr.aws/pulumi/)
 * [GitHub Container Registry](https://github.com/orgs/pulumi/packages)
 
-## Default Language Versions
+## Language Versions
+
+Images without a version suffix use the following language versions by default:
 
 - .NET 6.0
 - Go 1.21
@@ -56,6 +58,45 @@ Images are pushed to:
 ### Version Policy
 
 Language runtimes are kept up-to-date with current LTS versions. You can pin the image tag to a particular version in order to avoid unintended upgrades.
+
+### Choosing a Language Version
+
+For the language specific slim images, you can choose a specific version of the language runtime by using the suffixed images. For example to use Node.js 22, you would use `pulumi/pulumi-nodejs-22`, for Python 3.12, you would use `pulumi/pulumi-python-3.12`, etc.
+
+For the kitchen sink image (`pulumi/pulumi`), choosing a specific version depends on the language.
+
+#### .NET
+
+The `pulumi/pulumi` image includes .NET 6.0 and 8.0. The `TargetFramework` property in your project’s `.csproj` or `.fsproj` file determines which SDK is used.
+
+```xml
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    ...
+```
+
+#### Go
+
+The Go version used to compile your program is determined by the `go` statement in your Pulumi project's `go.mod` file, see [Go Toolchains](https://go.dev/doc/toolchain).
+
+#### Java
+
+The images currently only ship a single version of the JDK, which is 17.
+
+#### Node.js
+
+The `pulumi/pulumi` image uses [fnm](https://github.com/Schniz/fnm) to manage Node.js versions, and comes with the latest patch releases of Node.js 18, 20 and 22 preinstalled. To select a specific version, create a `.node-version` file in your project directory with the desired version number, and run the command `pulumi install --use-language-version-tools`. This will setup the aliases for the image's default version of Node.js, npm, and other Node.js specific tools in `/usr/local/share/fnm/aliases/default/bin`.
+
+To avoid downloading Node.js versions on each run, it is recommended to only specify the major version number, for example `22`. This ensures that the pre-installed version is used.
+
+If you are building your own image by extending the `pulumi/pulumi` image, you can use the `fnm` command `fnm alias ${MY_NODEJS_VERSION} default` to configure the default version of Node.js to be used in your image.
+
+#### Python
+
+The `pulumi/pulumi` image uses [pyenv](https://github.com/pyenv/pyenv) to manage Python versions, and comes with Python 3.9 to 3.12 preinstalled. To select a specific version, create a `.python-version` file in your project directory with the desired version number.
+
+To avoid downloading and building Python versions on each run, it is recommended to only specify the major version number, for example `3.12`. This ensures that the pre-installed version of Python 3.12 is used.
 
 ## Scanning
 
