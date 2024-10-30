@@ -126,6 +126,7 @@ RUN curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-
 RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /usr/local/share/pyenv
 ENV PYENV_ROOT /usr/local/share/pyenv
 ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+RUN pyenv install 3.13
 RUN pyenv install 3.12
 RUN pyenv install 3.11
 RUN pyenv install 3.10
@@ -147,6 +148,7 @@ ENV FNM_DIR=/usr/local/share/fnm
 RUN fnm install 18 && \
   fnm install 20 && \
   fnm install 22 && \
+  fnm install 23 && \
   fnm alias 18 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
 RUN corepack install --global pnpm yarn
