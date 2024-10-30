@@ -8,11 +8,11 @@ unversioned = ["go", "java"]
 versioned = {
     "nodejs": {
         "default": "18",
-        "additional": ["20", "22"]
+        "additional": ["20", "22", "23"]
     },
     "python": {
         "default": "3.9",
-        "additional": ["3.10", "3.11", "3.12"]
+        "additional": ["3.10", "3.11", "3.12", "3.13"]
     },
     "dotnet": {
         "default": "6.0",
