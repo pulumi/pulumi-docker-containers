@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add Node.js 23 and Python 3.13 to the kitchen sink and as per-language versions
+  ([#309](https://github.com/pulumi/pulumi-docker-containers/pull/309)
+
 - Add nonroot variant for the kitchen sink image
 ([#277](https://github.com/pulumi/pulumi-docker-containers/pull/277)
 
