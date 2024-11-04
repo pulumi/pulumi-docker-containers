@@ -633,7 +633,7 @@ jobs:
         id: define-matrix
         # Filter out the nodejs 22 and 23 versions from the matrix, as they are not supported on UBI.
         # https://access.redhat.com/articles/3376841
-        # Filter out the python 3.10 and 3.13 versions from the matrix, as they are supported on UBI.
+        # Filter out the python 3.10 and 3.13 versions from the matrix, as they are not supported on UBI.
         # https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/installing_and_using_dynamic_programming_languages/assembly_introduction-to-python_installing-and-using-dynamic-programming-languages#con_python-versions_assembly_introduction-to-python
         run: |
           echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py --no-arch |
