@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add .NET 9.0 to the kitchen sink and as per-language version
+  ([#318](https://github.com/pulumi/pulumi-docker-containers/pull/318)
+
 - Add Node.js 23 and Python 3.13 to the kitchen sink and as per-language versions
   ([#309](https://github.com/pulumi/pulumi-docker-containers/pull/309)
 

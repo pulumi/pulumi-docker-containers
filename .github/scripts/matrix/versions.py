@@ -16,6 +16,6 @@ versioned = {
     },
     "dotnet": {
         "default": "6.0",
-        "additional": ["8.0"]
+        "additional": ["8.0", "9.0"]
     }
 }
