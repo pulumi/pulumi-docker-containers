@@ -84,7 +84,6 @@ func TestPulumiTemplateTests(t *testing.T) {
 	for _, sdk := range sdksToTest {
 		if sdk == "csharp" && languageVersion == "6.0" {
 			// .NET 6.0 is not supported by our templates anymore.
-			// require.True(t, false)
 			continue
 		}
 		// Base language templates: python, typescript, ...
