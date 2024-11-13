@@ -397,6 +397,7 @@ jobs:
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e IMAGE_VARIANT=pulumi-debian-${{ matrix.sdk }} \
+            -e LANGUAGE_VERSION=${{ matrix.language_version }} \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
@@ -521,6 +522,7 @@ jobs:
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e IMAGE_VARIANT=pulumi-ubi-${{ matrix.sdk }} \
+            -e LANGUAGE_VERSION=${{ matrix.language_version }} \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \

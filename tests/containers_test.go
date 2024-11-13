@@ -63,6 +63,8 @@ func TestPulumiTemplateTests(t *testing.T) {
 
 	stackOwner := mustEnv(t, "PULUMI_ORG")
 
+	languageVersion := os.Getenv("LANGUAGE_VERSION") // Not set for kitchen sink
+
 	sdksToTest := []string{"csharp", "python", "typescript", "go", "java"}
 	if os.Getenv("SDKS_TO_TEST") != "" {
 		sdksToTest = strings.Split(os.Getenv("SDKS_TO_TEST"), ",")
@@ -80,10 +82,15 @@ func TestPulumiTemplateTests(t *testing.T) {
 
 	testCases := []testCase{}
 	for _, sdk := range sdksToTest {
-		// python, typescript, ...
+		if sdk == "csharp" && languageVersion == "6.0" {
+			// .NET 6.0 is not supported by our templates anymore.
+			// require.True(t, false)
+			continue
+		}
+		// Base language templates: python, typescript, ...
 		testCases = append(testCases, testCase{sdk, map[string]string{}})
 		for _, cloud := range clouds {
-			// azure-python, aws-python, ...
+			// Cloud templates azure-python, aws-python, ...
 			if sdk == "typescript" && cloud == "azure" {
 				// We use docker & qemu to run arm64 images, and azure seems to be too large
 				// to successfully run in that environment.
