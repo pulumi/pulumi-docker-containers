@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Update default language versions
-  ([](https://github.com/pulumi/pulumi-docker-containers/pull/324))
+  ([324](https://github.com/pulumi/pulumi-docker-containers/pull/324))
 
 - Add .NET 9.0 to the kitchen sink and as per-language version
   ([#318](https://github.com/pulumi/pulumi-docker-containers/pull/318)
