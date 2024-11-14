@@ -20,7 +20,7 @@ WORKDIR /pulumi/projects
 RUN microdnf install -y \
     git \
     tar \
-    java-11-openjdk-devel \
+    java-21-openjdk-devel \
     curl \
     unzip \
     zip \
@@ -43,8 +43,8 @@ COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
 COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
 
 ENV PATH="/pulumi/bin:/root/.sdkman/candidates/maven/current/bin:/root/.sdkman/candidates/gradle/current/bin:${PATH}" \
-    JAVA_HOME="/usr/lib/jvm/jre-11-openjdk" \
+    JAVA_HOME="/usr/lib/jvm/jre-21-openjdk" \
     JAVA_VENDOR="openjdk" \
-    JAVA_VERSION="11"
+    JAVA_VERSION="21"
 
 CMD ["pulumi"]

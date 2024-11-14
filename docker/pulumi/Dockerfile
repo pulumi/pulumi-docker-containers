@@ -32,6 +32,7 @@ RUN apt-get update -y && \
   libssl-dev \
   libxml2-dev \
   libxmlsec1-dev \
+  lsb-release \
   software-properties-common \
   unzip  \
   wget \
@@ -95,8 +96,13 @@ ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Install Java
+ RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
+  dpkg -i packages-microsoft-prod.deb && \
+  rm packages-microsoft-prod.deb
+
 RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  msopenjdk-21 \
   gradle \
   maven && \
   rm -rf /var/lib/apt/lists/*
