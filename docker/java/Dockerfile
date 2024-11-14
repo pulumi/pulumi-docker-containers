@@ -23,6 +23,7 @@ RUN apt-get update -y && \
     lsb-release && \
     rm -rf /var/lib/apt/lists/*
 
+# https://learn.microsoft.com/en-gb/java/openjdk/install
 RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
     dpkg -i packages-microsoft-prod.deb && \
     rm packages-microsoft-prod.deb
