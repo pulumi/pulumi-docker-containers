@@ -9,9 +9,9 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.21.1
-ENV GOLANG_AMD64_SHA256 b3075ae1ce5dab85f89bc7905d1632de23ca196bd8336afd93fa97434cfa55ae
-ENV GOLANG_ARM64_SHA256 7da1a3936a928fd0b2602ed4f3ef535b8cd1990f1503b8d3e1acc0fa0759c967
+ENV GOLANG_VERSION 1.23.3
+ENV GO_RUNTIME_AMD64_SHA256 a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8
+ENV GO_RUNTIME_ARM64_SHA256 1f7cbd7f668ea32a107ecd41b6488aaee1f5d77a66efd885b175494439d4e1ce
 
 # Install base dependencies
 RUN apt-get update -y && \
