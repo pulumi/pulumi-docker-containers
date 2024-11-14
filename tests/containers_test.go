@@ -291,11 +291,8 @@ func TestEnvironment(t *testing.T) {
 		}
 		t.Parallel()
 		expected := "/usr/local/bin/python"
-		if isKitchenSink(t) {
+		if isKitchenSink(t) || isUBI(t) {
 			expected = "/usr/local/share/pyenv/shims/python"
-		}
-		if isUBI(t) {
-			expected = "/usr/bin/python"
 		}
 		p, err := exec.LookPath("python")
 		require.NoError(t, err)
@@ -327,7 +324,7 @@ func TestEnvironment(t *testing.T) {
 			{
 				name:            "node",
 				expectedDebian:  "/usr/local/bin/node",
-				expectedUbi:     "/usr/bin/node",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/node",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/node",
 			},
 			{
