@@ -333,20 +333,20 @@ func TestEnvironment(t *testing.T) {
 			{
 				name:            "npm",
 				expectedDebian:  "/usr/local/bin/npm",
-				expectedUbi:     "/usr/local/bin/npm",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/npm",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/npm",
 			},
 
 			{
 				name:            "yarn",
 				expectedDebian:  "/usr/local/bin/yarn",
-				expectedUbi:     "/usr/local/bin/yarn",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/yarn",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/yarn",
 			},
 			{
 				name:            "corepack",
 				expectedDebian:  "/usr/local/bin/corepack",
-				expectedUbi:     "/usr/local/bin/corepack",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/corepack",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/corepack",
 			},
 		} {
