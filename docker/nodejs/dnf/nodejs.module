@@ -1,5 +1,0 @@
-[nodejs]
-name=nodejs
-stream=__LANGUAGE_VERSION_PLACEHOLDER__
-profiles=
-state=enabled

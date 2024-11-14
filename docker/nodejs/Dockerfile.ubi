@@ -15,18 +15,22 @@ ARG LANGUAGE_VERSION
 LABEL org.opencontainers.image.description="Pulumi CLI container for nodejs"
 WORKDIR /pulumi/projects
 
-COPY dnf/nodejs.module /etc/dnf/modules.d/nodejs.module
-RUN sed -i s"/__LANGUAGE_VERSION_PLACEHOLDER__/${LANGUAGE_VERSION}/g" /etc/dnf/modules.d/nodejs.module
-RUN cat /etc/dnf/modules.d/nodejs.module
-
 RUN microdnf install -y \
     ca-certificates \
     curl \
     git \
-    nodejs \
-    tar && \
-    npm install -g npm@10.5.1 && \
-    npm install -g corepack && \
+    tar \
+    unzip
+
+# Install nodejs using fnm
+RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/usr/local/share/fnm" --skip-shell && \
+    ln -s /usr/local/share/fnm/fnm /usr/local/bin/fnm
+ENV FNM_COREPACK_ENABLED="true"
+ENV FNM_DIR=/usr/local/share/fnm
+RUN fnm install ${LANGUAGE_VERSION} && \
+    fnm alias ${LANGUAGE_VERSION} default
+ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
+RUN npm install -g corepack && \
     corepack install -g yarn@1
 
 # Uses the workdir, copies from pulumi interim container
