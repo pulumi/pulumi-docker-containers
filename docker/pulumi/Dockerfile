@@ -132,7 +132,7 @@ RUN pyenv install 3.12
 RUN pyenv install 3.11
 RUN pyenv install 3.10
 RUN pyenv install 3.9
-RUN pyenv global 3.9 # Default version
+RUN pyenv global 3.13 # Default version
 # Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
 RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
@@ -150,7 +150,7 @@ RUN fnm install 18 && \
   fnm install 20 && \
   fnm install 22 && \
   fnm install 23 && \
-  fnm alias 18 default
+  fnm alias 22 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
 RUN corepack install --global pnpm yarn
 
