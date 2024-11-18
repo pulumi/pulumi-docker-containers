@@ -9,9 +9,9 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.21.1
-ENV GOLANG_AMD64_SHA256 b3075ae1ce5dab85f89bc7905d1632de23ca196bd8336afd93fa97434cfa55ae
-ENV GOLANG_ARM64_SHA256 7da1a3936a928fd0b2602ed4f3ef535b8cd1990f1503b8d3e1acc0fa0759c967
+ENV GOLANG_VERSION 1.23.3
+ENV GOLANG_AMD64_SHA256 a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8
+ENV GOLANG_ARM64_SHA256 1f7cbd7f668ea32a107ecd41b6488aaee1f5d77a66efd885b175494439d4e1ce
 
 # Install base dependencies
 RUN apt-get update -y && \
@@ -32,6 +32,7 @@ RUN apt-get update -y && \
   libssl-dev \
   libxml2-dev \
   libxmlsec1-dev \
+  lsb-release \
   software-properties-common \
   unzip  \
   wget \
@@ -95,8 +96,14 @@ ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Install Java
+# https://learn.microsoft.com/en-gb/java/openjdk/install
+ RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
+  dpkg -i packages-microsoft-prod.deb && \
+  rm packages-microsoft-prod.deb
+
 RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  msopenjdk-21 \
   gradle \
   maven && \
   rm -rf /var/lib/apt/lists/*
@@ -132,7 +139,7 @@ RUN pyenv install 3.12
 RUN pyenv install 3.11
 RUN pyenv install 3.10
 RUN pyenv install 3.9
-RUN pyenv global 3.9 # Default version
+RUN pyenv global 3.13 # Default version
 # Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
 RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
@@ -150,7 +157,7 @@ RUN fnm install 18 && \
   fnm install 20 && \
   fnm install 22 && \
   fnm install 23 && \
-  fnm alias 18 default
+  fnm alias 22 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
 RUN corepack install --global pnpm yarn
 
@@ -206,11 +213,11 @@ FROM base AS build-environment
 ARG TARGETARCH
 
 # https://github.com/pulumi/pulumictl/releases
-ENV PULUMICTL_VERSION 0.0.32
+ENV PULUMICTL_VERSION 0.0.46
 # https://github.com/golangci/golangci-lint/releases
-ENV GOLANGCI_LINT_VERSION 1.49.0
+ENV GOLANGCI_LINT_VERSION 1.62.0
 # https://github.com/goreleaser/goreleaser/releases
-ENV GORELEASER_VERSION 1.11.4
+ENV GORELEASER_VERSION 2.4.4
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
