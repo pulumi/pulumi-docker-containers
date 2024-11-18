@@ -36,24 +36,11 @@ Images are pushed to:
 
 Images without a version suffix use the following language versions by default:
 
-- .NET 6.0
-- Go 1.21
-- JDK 17
-- Node.js 18
-- Python 3.9
-
-> [!NOTE]
-> In **November 2024** the default language versions will be updated to the latest versions for each of the language runtimes:
->
-> - .NET 8.0
-> - Go 1.23
-> - JDK 21
-> - Node.js 22
-> - Python 3.13
->
-> Images without a version suffix will stay evergreen and continue to be updated as new language versions are released.
->
-> The [pulumi-provider-build-environment](https://hub.docker.com/r/pulumi/pulumi-provider-build-environment/tags) image will be updated to include [goreleaser](https://github.com/goreleaser/goreleaser) v2.
+ - .NET 8.0
+ - Go 1.23
+ - JDK 21
+ - Node.js 22
+ - Python 3.13
 
 ### Version Policy
 
