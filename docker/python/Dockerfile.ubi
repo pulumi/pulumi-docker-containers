@@ -14,18 +14,36 @@ ARG LANGUAGE_VERSION
 LABEL org.opencontainers.image.description="Pulumi CLI container for python"
 WORKDIR /pulumi/projects
 
-
-# Set the shell to bash so we can do the shell substitution below
-SHELL ["/bin/bash", "-c"]
-# Install needed tools, like git
+# Install needed tools, like git, and build dependencies
 RUN microdnf install -y \
+    bzip2 \
+    bzip2-devel \
     ca-certificates \
+    findutils \
+    gcc \
+    gdbm-libs \
     git \
-    # For Python 3.9 we need the package names python39 and python39-pip
-    python${LANGUAGE_VERSION//3.9/39} \
-    python${LANGUAGE_VERSION//3.9/39}-pip \
-    tar && \
-    pip3 install --user pipenv
+    libffi-devel \
+    libnsl2 \
+    libuuid-devel \
+    make \
+    ncurses \
+    ncurses-devel \
+    openssl-devel \
+    patch \
+    readline \
+    sqlite \
+    sqlite-devel \
+    tar \
+    xz-devel \
+    zlib-devel
+
+# Install python using pyenv
+RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /usr/local/share/pyenv
+ENV PYENV_ROOT=/usr/local/share/pyenv
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+RUN pyenv install ${LANGUAGE_VERSION}
+RUN pyenv global ${LANGUAGE_VERSION}
 
 # Install poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -

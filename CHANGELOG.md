@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Install Python and Node.js in the UBI containers using pyenv and fnm
+  ([326])https://github.com/pulumi/pulumi-docker-containers/pull/326))
+
 - Update default language versions
   ([324](https://github.com/pulumi/pulumi-docker-containers/pull/324))
 

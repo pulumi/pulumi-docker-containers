@@ -291,11 +291,8 @@ func TestEnvironment(t *testing.T) {
 		}
 		t.Parallel()
 		expected := "/usr/local/bin/python"
-		if isKitchenSink(t) {
+		if isKitchenSink(t) || isUBI(t) {
 			expected = "/usr/local/share/pyenv/shims/python"
-		}
-		if isUBI(t) {
-			expected = "/usr/bin/python"
 		}
 		p, err := exec.LookPath("python")
 		require.NoError(t, err)
@@ -327,26 +324,26 @@ func TestEnvironment(t *testing.T) {
 			{
 				name:            "node",
 				expectedDebian:  "/usr/local/bin/node",
-				expectedUbi:     "/usr/bin/node",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/node",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/node",
 			},
 			{
 				name:            "npm",
 				expectedDebian:  "/usr/local/bin/npm",
-				expectedUbi:     "/usr/local/bin/npm",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/npm",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/npm",
 			},
 
 			{
 				name:            "yarn",
 				expectedDebian:  "/usr/local/bin/yarn",
-				expectedUbi:     "/usr/local/bin/yarn",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/yarn",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/yarn",
 			},
 			{
 				name:            "corepack",
 				expectedDebian:  "/usr/local/bin/corepack",
-				expectedUbi:     "/usr/local/bin/corepack",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/corepack",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/corepack",
 			},
 		} {
@@ -383,8 +380,8 @@ func TestEnvironment(t *testing.T) {
 			"pulumi-ubi-dotnet":    "/root/.dotnet:/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-ubi-go":        "/pulumi/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"pulumi-ubi-java":      "/pulumi/bin:/root/.sdkman/candidates/maven/current/bin:/root/.sdkman/candidates/gradle/current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-			"pulumi-ubi-nodejs":    "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-			"pulumi-ubi-python":    "/pulumi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-ubi-nodejs":    "/pulumi/bin:/usr/local/share/fnm/aliases/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			"pulumi-ubi-python":    "/pulumi/bin:/usr/local/share/pyenv/shims:/usr/local/share/pyenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		}
 
 		t.Run("PATH when running in bash", func(t *testing.T) {
