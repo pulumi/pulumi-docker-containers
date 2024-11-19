@@ -156,7 +156,7 @@ jobs:
       - name: Define Matrix
         id: define-matrix
         run: |
-          echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py --no-arch) >> "$GITHUB_OUTPUT"
+          echo matrix=$(python ./.github/scripts/matrix/gen-sync-matrix.py) >> "$GITHUB_OUTPUT"
 
   # NOTE: If UBI images become multi platform, this job can be replaced by adding a similar step to "-debian" for "-ubi" the previous job.
   ubi-images:
