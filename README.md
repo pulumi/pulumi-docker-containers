@@ -44,7 +44,7 @@ Images without a version suffix use the following language versions by default:
 
 ### Version Policy
 
-Language runtimes are kept up-to-date with current LTS versions. For Python, the default version corresponds to the release prior to the latest release, for other languages thedefault version corresponds to the latest release. You can pin the image tag to a particular version in order to avoid unintended upgrades.
+Language runtimes are kept up-to-date with current LTS versions. For Python, the default version corresponds to the release prior to the latest release, for other languages the default version corresponds to the latest release. You can pin the image tag to a particular version in order to avoid unintended upgrades.
 
 ### Choosing a Language Version
 
