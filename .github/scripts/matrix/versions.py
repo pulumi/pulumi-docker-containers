@@ -3,7 +3,7 @@
 unversioned = ["go", "java"]
 
 # For the versioned SDKS we have a default version and additional versions with suffixes.
-# The default version is used for the unsuffixed image `pulumi-python` and for the suffixed version `pulumi-python-3.13`.
+# The default version is used for the unsuffixed image `pulumi-python` and for the suffixed version `pulumi-python-3.12`.
 # The additional versions are used for the suffixed images `pulumi-python-3.10`, `pulumi-python-3.11`, ...
 versioned = {
     "nodejs": {
@@ -11,8 +11,8 @@ versioned = {
         "additional": ["18", "20", "23"]
     },
     "python": {
-        "default": "3.13",
-        "additional": ["3.9", "3.10", "3.11", "3.12"]
+        "default": "3.12",
+        "additional": ["3.9", "3.10", "3.11", "3.13"]
     },
     "dotnet": {
         "default": "8.0",

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Default to Python 3.12 instead of 3.13
+  ([335](https://github.com/pulumi/pulumi-docker-containers/pull/335))
+
 - Install Python and Node.js in the UBI containers using pyenv and fnm
   ([326])https://github.com/pulumi/pulumi-docker-containers/pull/326))
 
