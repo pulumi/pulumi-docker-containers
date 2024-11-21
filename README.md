@@ -40,11 +40,11 @@ Images without a version suffix use the following language versions by default:
  - Go 1.23
  - JDK 21
  - Node.js 22
- - Python 3.13
+ - Python 3.12
 
 ### Version Policy
 
-Language runtimes are kept up-to-date with current LTS versions. You can pin the image tag to a particular version in order to avoid unintended upgrades.
+Language runtimes are kept up-to-date with current LTS versions. For Python, the default version corresponds to the release prior to the latest release, for other languages thedefault version corresponds to the latest release. You can pin the image tag to a particular version in order to avoid unintended upgrades.
 
 ### Choosing a Language Version
 
