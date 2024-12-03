@@ -4,6 +4,7 @@
 
 # Build container
 FROM ubuntu:bionic AS builder
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
 ARG PULUMI_VERSION
 ARG GO_RUNTIME_VERSION=1.23.3
@@ -52,6 +53,7 @@ RUN case $(uname -m) in \
 
 # The runtime container
 FROM debian:11-slim
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 LABEL org.opencontainers.image.description="Pulumi CLI container for go"
 WORKDIR /pulumi/projects
 
