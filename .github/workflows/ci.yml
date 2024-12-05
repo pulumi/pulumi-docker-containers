@@ -107,6 +107,10 @@ jobs:
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
+      - name: Image Info
+        run: |
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
       - name: Build nonroot variant
         run: |
           docker build \
@@ -117,6 +121,10 @@ jobs:
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
+      - name: Image Info
+        run: |
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
+          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -232,6 +240,10 @@ jobs:
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
+      - name: Image Info
+        run: |
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
+          docker history ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -311,7 +323,7 @@ jobs:
             --platform linux/arm64,linux/amd64 \
             . \
             -t ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }} \
-            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }}
+            --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
   define-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -359,6 +371,10 @@ jobs:
             --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
             docker/${{ matrix.sdk }} \
             --load
+      - name: Image Info
+        run: |
+          docker image ls ${{ env.IMAGE_NAME }}
+          docker history ${{ env.IMAGE_NAME }}
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -476,6 +492,10 @@ jobs:
             --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
             docker/${{ matrix.sdk }} \
             --load
+      - name: Image Info
+        run: |
+          docker image ls ${{ env.IMAGE_NAME }}
+          docker history ${{ env.IMAGE_NAME }}
       - name: Install go
         uses: actions/setup-go@v5
         with:
