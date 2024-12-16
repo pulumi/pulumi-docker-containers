@@ -308,7 +308,7 @@ func TestEnvironment(t *testing.T) {
 		// Use bash `command` builtin to lookup the path to poetry
 		requireOutputWithBash(t, expectedPoetryPath, "command", "-v", "poetry")
 
-		// uvy should be available
+		// uv should be available
 		expectedUvPath := "/usr/local/bin/uv"
 		uvPath, err := exec.LookPath("uv")
 		require.NoError(t, err)
