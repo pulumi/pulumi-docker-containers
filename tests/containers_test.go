@@ -314,7 +314,7 @@ func TestEnvironment(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedUvPath, uvPath)
 		// Use bash `command` builtin to lookup the path to uv
-		requireOutputWithBash(t, expectedPoetryPath, "command", "-v", "uv")
+		requireOutputWithBash(t, expectedUvPath, "command", "-v", "uv")
 	})
 
 	t.Run("Node", func(t *testing.T) {
