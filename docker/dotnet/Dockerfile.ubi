@@ -3,7 +3,6 @@
 FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
 RUN microdnf install -y \
-    curl \
     gzip \
     tar
 # Install the Pulumi SDK, including the CLI and language runtimes.
@@ -17,7 +16,6 @@ WORKDIR /pulumi/projects
 
 RUN microdnf install -y \
     ca-certificates \
-    curl \
     # Required by the dotnet-install script, which calls `find`:
     findutils \
     git \

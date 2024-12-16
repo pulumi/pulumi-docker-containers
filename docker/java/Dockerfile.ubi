@@ -4,7 +4,6 @@
 FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
 RUN microdnf install -y \
-    curl \
     git \
     tar \
     unzip
@@ -21,7 +20,6 @@ RUN microdnf install -y \
     git \
     tar \
     java-21-openjdk-devel \
-    curl \
     unzip \
     zip \
     findutils \
