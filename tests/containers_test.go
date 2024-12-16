@@ -399,6 +399,10 @@ func TestEnvironment(t *testing.T) {
 			if imageVariant == "pulumi" {
 				expectedPath += ":/root/.pulumi/bin"
 			}
+			// When running in bash, the UBI images include /root/.local/bin:/root/bin:
+			if isUBI(t) {
+				expectedPath = "/root/.local/bin:/root/bin:" + expectedPath
+			}
 			requireOutputWithBash(t, expectedPath, "printenv", "PATH")
 		})
 
