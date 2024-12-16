@@ -305,8 +305,16 @@ func TestEnvironment(t *testing.T) {
 		poetryPath, err := exec.LookPath("poetry")
 		require.NoError(t, err)
 		require.Equal(t, expectedPoetryPath, poetryPath)
-		// Use bash `command` builtin to lookup the path to python
+		// Use bash `command` builtin to lookup the path to poetry
 		requireOutputWithBash(t, expectedPoetryPath, "command", "-v", "poetry")
+
+		// uvy should be available
+		expectedUvPath := "/usr/local/bin/uv"
+		uvPath, err := exec.LookPath("uv")
+		require.NoError(t, err)
+		require.Equal(t, expectedUvPath, uvPath)
+		// Use bash `command` builtin to lookup the path to uv
+		requireOutputWithBash(t, expectedPoetryPath, "command", "-v", "uv")
 	})
 
 	t.Run("Node", func(t *testing.T) {

@@ -31,6 +31,11 @@ RUN apt-get update -y && \
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
 RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
 
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | XDG_BIN_HOME=/usr/local/share/uv bash -s -- --no-modify-path
+RUN ln -s /usr/local/share/uv/uv /usr/local/bin/
+RUN ln -s /usr/local/share/uv/uvx /usr/local/bin/
+
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 COPY --from=builder /root/.pulumi/bin/*-python* /pulumi/bin/
