@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
-FROM redhat/ubi8-minimal:latest as builder
+FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
 RUN microdnf install -y \
     curl \
@@ -10,7 +10,7 @@ RUN microdnf install -y \
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # The runtime container
-FROM redhat/ubi8-minimal:latest
+FROM redhat/ubi9-minimal:latest
 ARG LANGUAGE_VERSION
 LABEL org.opencontainers.image.description="Pulumi CLI container for nodejs"
 WORKDIR /pulumi/projects
