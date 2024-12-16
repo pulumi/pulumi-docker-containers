@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Include uv in images that provide Python
+  -([341](https://github.com/pulumi/pulumi-docker-containers/pull/341))
+
 - Default to Python 3.12 instead of 3.13
   ([335](https://github.com/pulumi/pulumi-docker-containers/pull/335))
 
