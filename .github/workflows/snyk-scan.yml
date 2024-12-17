@@ -17,14 +17,15 @@ jobs:
     name: All SDKs images
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        image: ["pulumi", "pulumi-provider-build-environment"]
-        include:
-          # For the pulumi image add a the nonroot variant
-          - suffix: -nonroot
-            image: pulumi
+        suffix: ["", "-nonroot"]
     steps:
       - uses: actions/checkout@master
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
       - name: Set version
         run: |
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
@@ -34,8 +35,49 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.DOCKER_ORG }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}
+          image: ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
           args: --severity-threshold=high --file=docker/pulumi/Dockerfile
+      - name: Filter Sarif File
+        # GitHub Code Scanning does not allow more than 20 runs per file. We
+        # filter out empty runs to avoid this limit. Note that the file needs to
+        # include at least one run.
+        run: |
+          python -c 'import json; sarif = json.loads(open("snyk.sarif").read()); runs = [run for run in sarif["runs"] if len(run["results"]) > 0]; sarif["runs"] = runs if len(runs) > 0 else [sarif["runs"][0]]; open("out.sarif", "w").write(json.dumps(sarif, indent=2))'
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: out.sarif
+
+  provider-build-environment:
+    name: Provider Build Environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+      - name: Set version
+        run: |
+          [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
+      - name: Snyk scan
+        continue-on-error: true
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-amd64
+          args: --severity-threshold=high --file=docker/pulumi/Dockerfile
+      - name: Filter Sarif File
+        # GitHub Code Scanning does not allow more than 20 runs per file. We
+        # filter out empty runs to avoid this limit. Note that the file needs to
+        # include at least one run.
+        run: |
+          python -c 'import json; sarif = json.loads(open("snyk.sarif").read()); runs = [run for run in sarif["runs"] if len(run["results"]) > 0]; sarif["runs"] = runs if len(runs) > 0 else [sarif["runs"][0]]; open("out.sarif", "w").write(json.dumps(sarif, indent=2))'
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: out.sarif
 
   base:
     name: Base image
@@ -57,7 +99,18 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }}
-          args: --severity-threshold=high --file=docker/base/Dockerfile.${{ matrix.os }}
+          args: --severity-threshold=high --file=docker/base/Dockerfile.${{ matrix.os }} --platform=linux/${{ matrix.arch }}
+      - name: Filter Sarif File
+        # GitHub Code Scanning does not allow more than 20 runs per file. We
+        # filter out empty runs to avoid this limit. Note that the file needs to
+        # include at least one run.
+        run: |
+          python -c 'import json; sarif = json.loads(open("snyk.sarif").read()); runs = [run for run in sarif["runs"] if len(run["results"]) > 0]; sarif["runs"] = runs if len(runs) > 0 else [sarif["runs"][0]]; open("out.sarif", "w").write(json.dumps(sarif, indent=2))'
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: out.sarif
+
   define-debian-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -68,6 +121,7 @@ jobs:
         id: define-matrix
         run: |
           echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py) >> "$GITHUB_OUTPUT"
+
   debian-sdk:
     name: Debian SDK images
     runs-on: ubuntu-latest
@@ -90,7 +144,18 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.IMAGE_NAME }}
-          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian
+          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/${{ matrix.arch }}
+      - name: Filter Sarif File
+        # GitHub Code Scanning does not allow more than 20 runs per file. We
+        # filter out empty runs to avoid this limit. Note that the file needs to
+        # include at least one run.
+        run: |
+          python -c 'import json; sarif = json.loads(open("snyk.sarif").read()); runs = [run for run in sarif["runs"] if len(run["results"]) > 0]; sarif["runs"] = runs if len(runs) > 0 else [sarif["runs"][0]]; open("out.sarif", "w").write(json.dumps(sarif, indent=2))'
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: out.sarif
+
   ubi-sdk:
     name: UBI SDK images
     runs-on: ubuntu-latest
@@ -110,4 +175,14 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
-          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.ubi
+          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.ubi --platform=linux/amd64
+      - name: Filter Sarif File
+        # GitHub Code Scanning does not allow more than 20 runs per file. We
+        # filter out empty runs to avoid this limit. Note that the file needs to
+        # include at least one run.
+        run: |
+          python -c 'import json; sarif = json.loads(open("snyk.sarif").read()); runs = [run for run in sarif["runs"] if len(run["results"]) > 0]; sarif["runs"] = runs if len(runs) > 0 else [sarif["runs"][0]]; open("out.sarif", "w").write(json.dumps(sarif, indent=2))'
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: out.sarif
