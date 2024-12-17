@@ -28,7 +28,6 @@ WORKDIR /pulumi/projects
 
 # Install needed tools, like git
 RUN microdnf install -y \
-    curl \
     git \
     tar \
     ca-certificates; \
