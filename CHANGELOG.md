@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Update to redhat/ubi9 for UBI based images
+  ([342](https://github.com/pulumi/pulumi-docker-containers/pull/342))
+
 - Include uv in images that provide Python
   -([341](https://github.com/pulumi/pulumi-docker-containers/pull/341))
 
