@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Update aws-iam-authenticator to version 0.6.29
+  ([#345](https://github.com/pulumi/pulumi-docker-containers/pull/345))
+
 - Include uv in images that provide Python
   -([341](https://github.com/pulumi/pulumi-docker-containers/pull/341))
 

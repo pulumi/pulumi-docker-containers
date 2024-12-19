@@ -1,6 +1,6 @@
 module github.com/pulumi/pulumi-docker-containers/tests
 
-go 1.20
+go 1.23
 
 replace github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.5.0
 

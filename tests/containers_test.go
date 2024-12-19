@@ -243,6 +243,12 @@ func TestCLIToolTests(t *testing.T) {
 		arn, ok := result["Arn"].(string)
 		require.True(t, ok)
 		require.Contains(t, arn, "pulumi-docker-containers@githubActions")
+
+		// Ensure that aws-iam-authenticator is installed
+		cmd = exec.Command("aws-iam-authenticator", "token", "--cluster-id", "test-123")
+		out, err = cmd.Output()
+		require.NoError(t, err)
+		require.Contains(t, string(out), "ExecCredential")
 	})
 
 	t.Run("GCP CLI", func(t *testing.T) {
