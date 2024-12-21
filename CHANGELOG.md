@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Update Go container to debian 12 (bookworm) slim as base image
+  ([#347](https://github.com/pulumi/pulumi-docker-containers/pull/347))
+
 - Update aws-iam-authenticator to version 0.6.29
   ([#345](https://github.com/pulumi/pulumi-docker-containers/pull/345))
 
