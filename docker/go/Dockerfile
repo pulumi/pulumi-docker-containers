@@ -51,7 +51,7 @@ RUN case $(uname -m) in \
     go version
 
 # The runtime container
-FROM debian:11-slim
+FROM debian:12-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for go"
 WORKDIR /pulumi/projects
 
