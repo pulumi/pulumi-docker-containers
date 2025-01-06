@@ -2,7 +2,7 @@ module github.com/pulumi/pulumi-docker-containers/tests
 
 go 1.23
 
-replace github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.5.0
+replace github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.9.3
 
 require (
 	github.com/pulumi/pulumi/pkg/v3 v3.144.1
