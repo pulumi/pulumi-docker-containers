@@ -1,3 +1,7 @@
+FROM golang:1.23-bookworm as builder
+
+RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.6.29
+
 FROM debian:12 AS base
 
 # These values are passed in by the build system automatically. The options are: arm64, amd64
@@ -41,6 +45,7 @@ RUN apt-get update -y && \
   rm -rf /var/lib/apt/lists/*
 
 # Install cloud tools
+COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/aws-iam-authenticator
 RUN \
   # Setup environment variables for architecture-specific packages
   if [ "$TARGETARCH" = "arm64" ]; then \
@@ -48,9 +53,6 @@ RUN \
   else \
     AWSCLI_ARCH=x86_64; \
   fi && \
-  # IAM Authenticator for EKS
-  curl -fsSLo /usr/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.28.2/2023-10-17/bin/linux/${TARGETARCH}/aws-iam-authenticator && \
-  chmod +x /usr/bin/aws-iam-authenticator && \
   # AWS v2 cli
   curl "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" -o "awscliv2.zip" && \
   unzip awscliv2.zip && \
@@ -143,9 +145,6 @@ RUN pyenv global 3.12 # Default version
 # Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
 RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
-# Set poetry to prefer the active python version so it interacts nicely with pyenv, otherwise
-# poetry will create virtual environments using the python version used by poetry itself.
-RUN poetry config virtualenvs.prefer-active-python true
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | XDG_BIN_HOME=/usr/local/share/uv bash -s -- --no-modify-path
 RUN ln -s /usr/local/share/uv/uv /usr/local/bin/

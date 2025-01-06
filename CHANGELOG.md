@@ -5,6 +5,17 @@
 - Update to redhat/ubi9 for UBI based images
   ([342](https://github.com/pulumi/pulumi-docker-containers/pull/342))
 
+- Update Poetry config for the Poetry 2.0 release
+  ([#353](https://github.com/pulumi/pulumi-docker-containers/pull/353)
+
+## 3.144.0
+
+- Update Go container to debian 12 (bookworm) slim as base image
+  ([#347](https://github.com/pulumi/pulumi-docker-containers/pull/347))
+
+- Update aws-iam-authenticator to version 0.6.29
+  ([#345](https://github.com/pulumi/pulumi-docker-containers/pull/345))
+
 - Include uv in images that provide Python
   -([341](https://github.com/pulumi/pulumi-docker-containers/pull/341))
 
