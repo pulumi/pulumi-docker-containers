@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Update Poetry config for the Poetry 2.0 release
+  ([#353](https://github.com/pulumi/pulumi-docker-containers/pull/353)
+
 ## 3.144.0
 
 - Update Go container to debian 12 (bookworm) slim as base image
