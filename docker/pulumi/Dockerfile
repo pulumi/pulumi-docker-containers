@@ -145,9 +145,6 @@ RUN pyenv global 3.12 # Default version
 # Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
 RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
-# Set poetry to prefer the active python version so it interacts nicely with pyenv, otherwise
-# poetry will create virtual environments using the python version used by poetry itself.
-RUN poetry config virtualenvs.prefer-active-python true
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | XDG_BIN_HOME=/usr/local/share/uv bash -s -- --no-modify-path
 RUN ln -s /usr/local/share/uv/uv /usr/local/bin/
