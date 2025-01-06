@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.144.0
+
 - Update Go container to debian 12 (bookworm) slim as base image
   ([#347](https://github.com/pulumi/pulumi-docker-containers/pull/347))
 
