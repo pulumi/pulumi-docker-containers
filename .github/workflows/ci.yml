@@ -153,6 +153,7 @@ jobs:
       # Note we use /src/pulumi-test-containers as entrypoint and not bash to avoid bash
       # changing the environment in some way.
         run: |
+          chmod o+r $GOOGLE_APPLICATION_CREDENTIALS
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e IMAGE_VARIANT=pulumi \
@@ -173,10 +174,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
-            -test.timeout=1h -test.v
-      - name: Tests for nonroot variant
-        run: |
-          chmod o+r $GOOGLE_APPLICATION_CREDENTIALS
+            -test.timeout=1h -test.v | sed 's/.*/[root] &/' &
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e IMAGE_VARIANT=pulumi-nonroot \
@@ -197,7 +195,8 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
-            -test.timeout=1h -test.v
+            -test.timeout=1h -test.v | sed 's/.*/[nonroot] &/' &
+          wait
 
   provider-build-environment:
     name: Provider Build Environment image
