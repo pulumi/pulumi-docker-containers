@@ -71,9 +71,6 @@ jobs:
             [1]: ${{ steps.vars.outputs.run-url }}
   kitchen-sink:
     name: All SDKs image
-    strategy:
-      matrix:
-        go-version: [1.21.x]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -557,3 +554,11 @@ jobs:
             --entrypoint /src/pulumi-test-containers \
             ${{ env.IMAGE_NAME }} \
             -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+
+  ci-ok:
+    name: ci-ok
+    needs: [kitchen-sink, provider-build-environment, base, debian-sdk, ubi-sdk]
+    runs-on: ubuntu-latest
+    steps:
+      - name: CI succeeded
+        run: exit 0
