@@ -22,7 +22,7 @@ Each of the images described above (except the full `pulumi/pulumi` image) are b
   - `-debian-amd64`: Image manifest for the `linux/amd64` platform.
   - `-debian-arm64`: Image manifest for the `linux/arm64` platform.
   - `-debian`:  Manifest list of `-debian-amd64` and `-debian-arm64`.  Executing `docker pull` against this tag will grab the appropriate image for the supported platform you are currently running, and thus should be the default choice.
-- [redhat/ubi8-minimal](https://hub.docker.com/r/redhat/ubi8-minimal), tagged with a suffix of `-ubi`.  UBI images use [`microdnf`](https://github.com/rpm-software-management/microdnf) as a package manager instead of yum to minimize the size of the image.  We currently only support `linux/amd64` for our UBI SDK images.
+- [redhat/ubi9-minimal](https://hub.docker.com/r/redhat/ubi9-minimal), tagged with a suffix of `-ubi`.  UBI images use [`microdnf`](https://github.com/rpm-software-management/microdnf) as a package manager instead of yum to minimize the size of the image.  We currently only support `linux/amd64` for our UBI SDK images.
 
 Images with no suffix tag are identical to the corresponding `-debian` tag.
 

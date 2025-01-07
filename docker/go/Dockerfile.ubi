@@ -1,9 +1,8 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
-FROM redhat/ubi8-minimal:latest as builder
+FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
 RUN microdnf install -y \
-    curl \
     gzip \
     tar
 # Install the Pulumi SDK, including the CLI and language runtimes.
@@ -23,13 +22,12 @@ RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${RUNTIME_VERSION}.linux-amd
     go version
 
 # The runtime container
-FROM redhat/ubi8-minimal:latest
+FROM redhat/ubi9-minimal:latest
 LABEL org.opencontainers.image.description="Pulumi CLI container for go"
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git
 RUN microdnf install -y \
-    curl \
     git \
     tar \
     ca-certificates; \

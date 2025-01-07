@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Update to redhat/ubi9 for UBI based images
+  ([342](https://github.com/pulumi/pulumi-docker-containers/pull/342))
+
 - Update Poetry config for the Poetry 2.0 release
   ([#353](https://github.com/pulumi/pulumi-docker-containers/pull/353)
 
