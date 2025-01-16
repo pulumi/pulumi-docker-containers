@@ -557,6 +557,7 @@ jobs:
   ci-ok:
     name: ci-ok
     needs: [kitchen-sink, provider-build-environment, base, debian-sdk, ubi-sdk]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: CI succeeded
