@@ -72,6 +72,9 @@ jobs:
   kitchen-sink:
     name: All SDKs image
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: ["arm64", "amd64"]
     permissions:
       id-token: write
     steps:
@@ -98,30 +101,30 @@ jobs:
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            --platform linux/${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
       - name: Image Info
         run: |
-          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
-          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
+          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
       - name: Build nonroot variant
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }} \
             --target nonroot \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
       - name: Image Info
         run: |
-          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
-          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}-nonroot
+          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}-nonroot
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -407,11 +410,7 @@ jobs:
             }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
-      - if: ${{ !(matrix.arch == 'arm64' && matrix.sdk == 'dotnet') }}
-        # We use QEMU to run ARM64 images on AMD64, but .NET Core isn't supported by QEMU, skip
-        # running the tests for this combination.
-        # https://gitlab.com/qemu-project/qemu/-/issues/249
-        name: Tests
+      - name: Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
