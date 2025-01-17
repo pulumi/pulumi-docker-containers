@@ -61,10 +61,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.21.x]
-        # Disabling arm64 for now as it takes too long to build Python when running Docker with QEMU.
-        # Once arm64 runners are availble to OSS projects, we can re-enable this.
-        # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
-        arch: ["amd64"] # "arm64"
+        arch: ["amd64", "arm64"]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -132,17 +129,6 @@ jobs:
             }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
-      - name: Select Tests for AMD64
-        if: ${{ matrix.arch == 'amd64' }}
-        # Run all tests on AMD64
-        run: echo "CONTAINER_TESTS_TO_RUN=''" >> $GITHUB_ENV
-      - name: Select Tests for ARM64
-        if: ${{ matrix.arch == 'arm64' }}
-        # We use QEMU to run ARM64 images on AMD64, but .NET Core isn't supported by QEMU,
-        # for now we only run the basic TestEnvironment tests on ARM64.
-        # https://gitlab.com/qemu-project/qemu/-/issues/249
-        # TODO: enable more tests https://github.com/pulumi/pulumi-docker-containers/issues/289
-        run: echo "CONTAINER_TESTS_TO_RUN='-test.run TestEnvironment'" >> $GITHUB_ENV
       - name: Tests
         run: |
           docker run \
@@ -165,7 +151,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
-            -test.timeout=1h -test.v ${{ env.CONTAINER_TESTS_TO_RUN }}
+            -test.timeout=1h
       - name: Tests for nonroot variant
         run: |
           chmod o+r $GOOGLE_APPLICATION_CREDENTIALS
@@ -189,7 +175,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }} \
-            -test.timeout=1h -test.v ${{ env.CONTAINER_TESTS_TO_RUN }}
+            -test.timeout=1h
       - name: Push ${{ env.PULUMI_VERSION }}
         run: |
             docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
@@ -206,14 +192,15 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - name: Versioned manifest
         run: |
-          # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
 
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
       - name: Latest manifest
@@ -223,11 +210,13 @@ jobs:
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi:latest \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:latest
 
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot
   provider-build-environment:
@@ -235,10 +224,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.21.1]
-        # Disabling arm64 for now as it takes too long to build Python when running Docker with QEMU.
-        # Once arm64 runners are availble to OSS projects, we can re-enable this.
-        # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
-        arch: ["amd64"] # "arm64"
+        arch: ["amd64", "arm64"]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -337,6 +323,7 @@ jobs:
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-amd64
       - name: Latest manifest
         if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
@@ -345,6 +332,7 @@ jobs:
         run: |
           docker manifest create \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:latest
 
@@ -510,11 +498,7 @@ jobs:
             }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
-      - if: ${{ !(matrix.arch == 'arm64' && matrix.sdk == 'dotnet') }}
-        # We use QEMU to run ARM64 images on AMD64, but .NET Core isn't supported by QEMU, skip
-        # running the tests for this combination.
-        # https://gitlab.com/qemu-project/qemu/-/issues/249
-        name: Tests
+      - name: Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
