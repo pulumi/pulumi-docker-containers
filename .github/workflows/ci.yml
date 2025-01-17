@@ -69,12 +69,18 @@ jobs:
             Please view the results of the Downstream Containers Tests [Here][1]
 
             [1]: ${{ steps.vars.outputs.run-url }}
+
   kitchen-sink:
     name: All SDKs image
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         arch: ["arm64", "amd64"]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       id-token: write
     steps:
@@ -205,8 +211,13 @@ jobs:
     name: Provider Build Environment image
     strategy:
       matrix:
-        go-version: [1.21.x]
-    runs-on: ubuntu-latest
+        arch: ["arm64", "amd64"]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       id-token: write
     steps:
@@ -234,15 +245,15 @@ jobs:
           docker build \
             -f docker/pulumi/Dockerfile \
             --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
       - name: Image Info
         run: |
-          docker image ls ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
-          docker history ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
+          docker history ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -291,7 +302,7 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             -test.parallel=1 -test.timeout=1h -test.v
 
   base:
@@ -336,13 +347,13 @@ jobs:
 
   debian-sdk:
     name: Debian SDK images
-    runs-on: ${{ matrix.runner }}
-    permissions:
-      id-token: write
     needs: define-matrix
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      id-token: write
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:

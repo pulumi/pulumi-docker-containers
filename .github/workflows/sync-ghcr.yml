@@ -39,12 +39,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
-      # - name: Tag ${{ env.PULUMI_VERSION }}-arm64 and push to GHCR
-      #   run: |
-      #     docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
-      #     docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64 ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
-      #     docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+      - name: Tag ${{ env.PULUMI_VERSION }}-arm64 and push to GHCR
+        run: |
+          docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+          docker tag docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64 ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
+          docker push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
       - name: Tag ${{ env.PULUMI_VERSION }}-amd64 and push to GHCR
         run: |
           docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
@@ -56,7 +55,8 @@ jobs:
           # TODO: https://github.com/pulumi/pulumi-docker-containers/issues/297
           docker manifest create \
             ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }} \
-            ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
+            ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64 \
+            ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
           docker manifest push ghcr.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }}
 
   define-debian-matrix:
@@ -78,11 +78,10 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.define-debian-matrix.outputs.matrix) }}
     steps:
-      # NOTE: The process we use for the Kichen Sink image, which is
-      # single-platform, will not work here.  Pulling a multi-arch manifest from
-      # Docker Hub, tagging, then pushing will only result in the image of the
-      # host's architecture (e.g. linux/amd64) getting pushed to the desintation repo.
-      # For more information, see: https://docs.docker.com/registry/spec/manifest-v2-2/
+      # Pulling a multi-arch manifest from Docker Hub, tagging, then pushing
+      # will only result in the image of the host's architecture (e.g.
+      # linux/amd64) getting pushed to the desintation repo. For more
+      # information, see: https://docs.docker.com/registry/spec/manifest-v2-2/
       #
       # Prior to re-creating the manifests, we must pull, tag, and push the
       # consituent images in the manifests because manifests cannot use source

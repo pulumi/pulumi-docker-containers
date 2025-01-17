@@ -60,9 +60,13 @@ jobs:
     name: All SDKs image
     strategy:
       matrix:
-        go-version: [1.21.x]
-        arch: ["amd64", "arm64"]
-    runs-on: ubuntu-latest
+        arch: ["arm64", "amd64"]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       id-token: write
     steps:
@@ -180,6 +184,7 @@ jobs:
         run: |
             docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
             docker push ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }}
+
   kitchen-sink-manifests:
     name: Kitchen sink image manifests
     needs: ["kitchen-sink"]
@@ -219,13 +224,18 @@ jobs:
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-arm64 \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-amd64
           docker manifest push ${{ env.DOCKER_ORG }}/pulumi:latest-nonroot
+
   provider-build-environment:
     name: Provider Build Environment image
     strategy:
       matrix:
-        go-version: [1.21.1]
-        arch: ["amd64", "arm64"]
-    runs-on: ubuntu-latest
+        arch: ["arm64", "amd64"]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       id-token: write
     steps:
@@ -309,6 +319,7 @@ jobs:
             -test.parallel=1 -test.timeout=1h -test.v
       - name: Push ${{ env.PULUMI_VERSION }}
         run: docker push ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
+
   provider-build-environment-manifests:
     name: Provider Build Environment manifests
     needs: ["provider-build-environment"]
@@ -369,6 +380,7 @@ jobs:
       - name: Push image
         run: |
           docker push ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os}}-${{ matrix.arch }}
+
   base-manifests:
     name: Base image manifests
     needs: ["base"]
@@ -425,12 +437,12 @@ jobs:
   debian-sdk:
     name: Debian SDK images
     needs: define-debian-matrix
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.define-debian-matrix.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@master
       - name: Set image name

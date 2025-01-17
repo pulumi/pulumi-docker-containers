@@ -22,6 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         suffix: ["", "-nonroot"]
+        arch: ["amd64", "arm64"]
     steps:
       - uses: actions/checkout@master
       - name: Free Disk Space (Ubuntu)
@@ -42,7 +43,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
+          image: ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-${{ matrix.arch }}
           args: --severity-threshold=high --file=docker/pulumi/Dockerfile
       - name: Filter Sarif File
         run: python ./.github/scripts/filter-sarif.py
@@ -54,6 +55,11 @@ jobs:
   provider-build-environment:
     name: Provider Build Environment
     runs-on: ubuntu-latest
+    strategy:
+      # Try to complete the scan for all images, even if one fails.
+      fail-fast: false
+      matrix:
+        arch: ["amd64", "arm64"]
     steps:
       - uses: actions/checkout@master
       - name: Free Disk Space (Ubuntu)
@@ -74,7 +80,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-amd64
+          image: ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
           args: --severity-threshold=high --file=docker/pulumi/Dockerfile
       - name: Filter Sarif File
         run: python ./.github/scripts/filter-sarif.py
