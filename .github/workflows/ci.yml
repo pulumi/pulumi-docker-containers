@@ -333,7 +333,7 @@ jobs:
 
   debian-sdk:
     name: Debian SDK images
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     permissions:
       id-token: write
     needs: define-matrix
