@@ -102,8 +102,6 @@ jobs:
         with:
           install: true
       - name: Build
-        # We only build the "kitchen sink" image for AMD64 as it's rather large
-        # and we want to steer users to use the single SDK images going forward:
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
@@ -121,7 +119,7 @@ jobs:
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
+            --platform linux/${{ matrix.arch }} \
             -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }} \
             --target nonroot \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
@@ -139,7 +137,7 @@ jobs:
       - name: Compile tests
         working-directory: tests
         run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -239,12 +237,10 @@ jobs:
         with:
           install: true
       - name: Build
-        # This image is only built for AMD64 for the same reasons as
-        # the "kitchen sink" image, listed above.
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
+            --platform linux/${{ matrix.arch }} \
             -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
@@ -262,7 +258,7 @@ jobs:
       - name: Compile tests
         working-directory: tests
         run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:

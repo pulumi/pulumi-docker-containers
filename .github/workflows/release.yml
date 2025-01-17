@@ -114,7 +114,7 @@ jobs:
       - name: Compile tests
         working-directory: tests
         run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -256,8 +256,6 @@ jobs:
         with:
           install: true
       - name: Build
-        # This image is only built for AMD64 for the same reasons as
-        # the "kitchen sink" image, listed above.
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
@@ -275,7 +273,7 @@ jobs:
       - name: Compile tests
         working-directory: tests
         run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
