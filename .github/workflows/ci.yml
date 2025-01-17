@@ -127,8 +127,8 @@ jobs:
             docker/pulumi
       - name: Image Info
         run: |
-          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}-nonroot
-          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}-nonroot
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }}
+          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }}
       - name: Install go
         uses: actions/setup-go@v5
         with:
