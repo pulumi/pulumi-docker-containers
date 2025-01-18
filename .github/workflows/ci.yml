@@ -160,6 +160,7 @@ jobs:
       # Note we use /src/pulumi-test-containers as entrypoint and not bash to avoid bash
       # changing the environment in some way.
         run: |
+          set -exo pipefail
           chmod o+r $GOOGLE_APPLICATION_CREDENTIALS
           docker run \
             -e RUN_CONTAINER_TESTS=true \
@@ -180,7 +181,7 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             -test.timeout=1h -test.v | sed 's/.*/[root] &/' &
           docker run \
             -e RUN_CONTAINER_TESTS=true \
@@ -201,7 +202,7 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}-nonroot \
             -test.timeout=1h -test.v | sed 's/.*/[nonroot] &/' &
           wait
 
