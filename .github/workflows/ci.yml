@@ -182,7 +182,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
-            -test.timeout=1h -test.v | sed 's/.*/[root] &/' &
+            -test.parallel=8 -test.timeout=1h -test.v | sed 's/.*/[root] &/' &
           docker run \
             -e RUN_CONTAINER_TESTS=true \
             -e IMAGE_VARIANT=pulumi-nonroot \
@@ -203,7 +203,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}-nonroot \
-            -test.timeout=1h -test.v | sed 's/.*/[nonroot] &/' &
+            -test.parallel=8 -test.timeout=1h -test.v | sed 's/.*/[nonroot] &/' &
           wait
 
   provider-build-environment:
@@ -300,7 +300,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
-            -test.parallel=1 -test.timeout=1h -test.v
+            -test.parallel=8 -test.timeout=1h -test.v
 
   base:
     name: Base image
@@ -443,7 +443,7 @@ jobs:
             --entrypoint /src/pulumi-test-containers \
             --platform ${{ matrix.arch }} \
             ${{ env.IMAGE_NAME }} \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+            -test.parallel=8 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
 
   define-ubi-matrix:
     runs-on: ubuntu-latest
@@ -559,7 +559,7 @@ jobs:
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
             ${{ env.IMAGE_NAME }} \
-            -test.parallel=1 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
+            -test.parallel=8 -test.timeout=1h -test.v -test.run "TestPulumiTemplateTests|TestEnvironment"
 
   ci-ok:
     name: ci-ok
