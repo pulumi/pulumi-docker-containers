@@ -95,8 +95,6 @@ jobs:
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -231,8 +229,6 @@ jobs:
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -317,8 +313,6 @@ jobs:
         run: |
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -362,8 +356,6 @@ jobs:
         run: |
           echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
       - uses: actions/checkout@master
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -476,8 +468,6 @@ jobs:
         run: |
           echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-ubi" >> $GITHUB_ENV
       - uses: actions/checkout@master
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
