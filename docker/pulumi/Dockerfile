@@ -216,7 +216,7 @@ FROM base AS build-environment
 ARG TARGETARCH
 
 # https://github.com/pulumi/pulumictl/releases
-ENV PULUMICTL_VERSION 0.0.46
+ENV PULUMICTL_VERSION 0.0.48
 # https://github.com/golangci/golangci-lint/releases
 ENV GOLANGCI_LINT_VERSION 1.62.0
 # https://github.com/goreleaser/goreleaser/releases
