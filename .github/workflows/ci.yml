@@ -352,9 +352,6 @@ jobs:
         if: ${{ !env.PULUMI_VERSION }}
         run: |
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
-      - name: Test failure in a matrix job to ensure ci-ok fails
-        if: ${{ matrix.sdk == 'dotnet' }}
-        run: exit 1
       - name: Set image name
         run: |
           echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
