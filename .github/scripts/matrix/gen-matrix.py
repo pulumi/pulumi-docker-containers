@@ -6,12 +6,12 @@
 #
 # matrix = {
 #     "include": [
-#         {"sdk": "go",     "arch": "amd64", "default": True},
-#         {"sdk": "go",     "arch": "arm64", "default": True},
-#         {"sdk": "python", "arch": "amd64", "default": True,  "language_version": "3.9",  "suffix": "-3.9"},
-#         {"sdk": "python", "arch": "arm64", "default": True,  "language_version": "3.9",  "suffix": "-3.9"},
-#         {"sdk": "python", "arch": "amd64", "default": False, "language_version": "3.10", "suffix": "-3.10"},
-#         {"sdk": "python", "arch": "arm64", "default": False, "language_version": "3.10", "suffix": "-3.10"},
+#         {"sdk": "go",     "arch": "amd64", "runner": "ubuntu-24.04",     "default": True},
+#         {"sdk": "go",     "arch": "arm64", "runner": "ubuntu-24.04-arm", "default": True},
+#         {"sdk": "python", "arch": "amd64", "runner": "ubuntu-24.04",     "default": True,  "language_version": "3.9",  "suffix": "-3.9"},
+#         {"sdk": "python", "arch": "arm64", "runner": "ubuntu-24.04-arm", "default": True,  "language_version": "3.9",  "suffix": "-3.9"},
+#         {"sdk": "python", "arch": "amd64", "runner": "ubuntu-24.04",     "default": False, "language_version": "3.10", "suffix": "-3.10"},
+#         {"sdk": "python", "arch": "arm64", "runner": "ubuntu-24.04-arm", "default": False, "language_version": "3.10", "suffix": "-3.10"},
 #         ...
 #     ]
 # }
@@ -47,6 +47,7 @@ def make_entry(*, sdk, arch, default, language_version=None, suffix=None):
         entry["language_version"] = language_version
     if arch is not None:
         entry["arch"] = arch
+        entry["runner"] = "ubuntu-24.04-arm" if arch == "arm64" else "ubuntu-24.04"
     if suffix is not None:
         entry["suffix"] = suffix
     return entry

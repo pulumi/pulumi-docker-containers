@@ -90,12 +90,6 @@ func TestPulumiTemplateTests(t *testing.T) {
 		testCases = append(testCases, testCase{sdk, map[string]string{}})
 		for _, cloud := range clouds {
 			// Cloud templates azure-python, aws-python, ...
-			if sdk == "typescript" && cloud == "azure" {
-				// We use docker & qemu to run arm64 images, and azure seems to be too large
-				// to successfully run in that environment.
-				// TODO: https://github.com/pulumi/pulumi-docker-containers/issues/211
-				continue
-			}
 			testCases = append(testCases, testCase{
 				template: fmt.Sprintf("%s-%s", cloud, sdk),
 				config:   configs[cloud],

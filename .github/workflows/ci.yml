@@ -69,9 +69,18 @@ jobs:
             Please view the results of the Downstream Containers Tests [Here][1]
 
             [1]: ${{ steps.vars.outputs.run-url }}
+
   kitchen-sink:
     name: All SDKs image
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: ["arm64", "amd64"]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       id-token: write
     steps:
@@ -93,35 +102,33 @@ jobs:
         with:
           install: true
       - name: Build
-        # We only build the "kitchen sink" image for AMD64 as it's rather large
-        # and we want to steer users to use the single SDK images going forward:
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            --platform linux/${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
       - name: Image Info
         run: |
-          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
-          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
+          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
       - name: Build nonroot variant
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            --platform linux/${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }} \
             --target nonroot \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
       - name: Image Info
         run: |
-          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
-          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }}
+          docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }}
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -130,7 +137,7 @@ jobs:
       - name: Compile tests
         working-directory: tests
         run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -153,6 +160,7 @@ jobs:
       # Note we use /src/pulumi-test-containers as entrypoint and not bash to avoid bash
       # changing the environment in some way.
         run: |
+          set -exo pipefail
           chmod o+r $GOOGLE_APPLICATION_CREDENTIALS
           docker run \
             -e RUN_CONTAINER_TESTS=true \
@@ -173,7 +181,7 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             -test.timeout=1h -test.v | sed 's/.*/[root] &/' &
           docker run \
             -e RUN_CONTAINER_TESTS=true \
@@ -194,7 +202,7 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot \
+            ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}-nonroot \
             -test.timeout=1h -test.v | sed 's/.*/[nonroot] &/' &
           wait
 
@@ -202,8 +210,13 @@ jobs:
     name: Provider Build Environment image
     strategy:
       matrix:
-        go-version: [1.21.x]
-    runs-on: ubuntu-latest
+        arch: ["arm64", "amd64"]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       id-token: write
     steps:
@@ -225,21 +238,19 @@ jobs:
         with:
           install: true
       - name: Build
-        # This image is only built for AMD64 for the same reasons as
-        # the "kitchen sink" image, listed above.
         run: |
           docker build \
             -f docker/pulumi/Dockerfile \
-            --platform linux/amd64 \
-            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            --platform linux/${{ matrix.arch }} \
+            -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
       - name: Image Info
         run: |
-          docker image ls ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
-          docker history ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}
+          docker image ls ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
+          docker history ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
       - name: Install go
         uses: actions/setup-go@v5
         with:
@@ -248,7 +259,7 @@ jobs:
       - name: Compile tests
         working-directory: tests
         run: |
-          GOOS=linux GOARCH=amd64 go test -c -o /tmp/pulumi-test-containers ./...
+          GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -288,7 +299,7 @@ jobs:
             --mount type=bind,source=$GOOGLE_APPLICATION_CREDENTIALS,target=/src/creds.json \
             --volume /tmp:/src \
             --entrypoint /src/pulumi-test-containers \
-            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }} \
+            ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             -test.parallel=1 -test.timeout=1h -test.v
 
   base:
@@ -333,13 +344,13 @@ jobs:
 
   debian-sdk:
     name: Debian SDK images
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     needs: define-matrix
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      id-token: write
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -407,11 +418,7 @@ jobs:
             }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
-      - if: ${{ !(matrix.arch == 'arm64' && matrix.sdk == 'dotnet') }}
-        # We use QEMU to run ARM64 images on AMD64, but .NET Core isn't supported by QEMU, skip
-        # running the tests for this combination.
-        # https://gitlab.com/qemu-project/qemu/-/issues/249
-        name: Tests
+      - name: Tests
         run: |
           docker run \
             -e RUN_CONTAINER_TESTS=true \
