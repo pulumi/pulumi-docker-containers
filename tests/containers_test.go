@@ -107,6 +107,8 @@ func TestPulumiTemplateTests(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.template, func(t *testing.T) {
+			t.Parallel()
+
 			e := ptesting.NewEnvironment(t)
 			defer func() {
 				e.RunCommand("pulumi", "stack", "rm", "--force", "--yes")
@@ -117,8 +119,9 @@ func TestPulumiTemplateTests(t *testing.T) {
 			e.RunCommand("pulumi", "new", test.template, "-y", "-f", "-s", stackName)
 
 			example := base.With(integration.ProgramTestOptions{
-				Dir:    e.RootPath,
-				Config: test.config,
+				Dir:        e.RootPath,
+				Config:     test.config,
+				NoParallel: true, // Called above
 				// `pulumi new` already runs `pulumi install for us, don't attempt to `yarn link`
 				// the SDK into the test.
 				PrepareProject: func(info *engine.Projinfo) error {
