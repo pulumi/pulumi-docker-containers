@@ -1,15 +1,17 @@
 # CHANGELOG
 
-## Unreleased
+## 3.147.0
+
+- Add ARM64 version of the kitchen sink and provider build environment images
+  ([#377](https://github.com/pulumi/pulumi-docker-containers/pull/377)
+
+## 3.146.0
 
 - Update to redhat/ubi9 for UBI based images
   ([342](https://github.com/pulumi/pulumi-docker-containers/pull/342))
 
 - Update Poetry config for the Poetry 2.0 release
   ([#353](https://github.com/pulumi/pulumi-docker-containers/pull/353)
-
-- Add ARM64 version of the kitchen sink and provider build environment images
-  ([#377](https://github.com/pulumi/pulumi-docker-containers/pull/377)
 
 ## 3.144.0
 
