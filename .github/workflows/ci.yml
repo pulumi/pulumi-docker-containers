@@ -554,10 +554,12 @@ jobs:
   ci-ok:
     name: ci-ok
     needs: [kitchen-sink, provider-build-environment, base, debian-sdk, ubi-sdk]
-    if: always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: CI succeeded
-        run: exit 0
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            exit 1
+          fi
+          exit 0
