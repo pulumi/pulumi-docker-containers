@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- Update corepack
+  ([391](https://github.com/pulumi/pulumi-docker-containers/pull/391))
+
 ## 3.147.0
 
 - Add ARM64 version of the kitchen sink and provider build environment images
