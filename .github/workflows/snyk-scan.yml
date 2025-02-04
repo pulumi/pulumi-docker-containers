@@ -131,8 +131,11 @@ jobs:
       - uses: actions/checkout@master
       - name: Define Matrix
         id: define-matrix
+        # To avoid pulling the snyk image too often due to a very large matrix,
+        # we generate a matrix without architecure, and run the scan twice
+        # in each job, once for amd64 and once for arm64.
         run: |
-          echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py) >> "$GITHUB_OUTPUT"
+          echo matrix=$(python ./.github/scripts/matrix/gen-matrix.py --no-arch) >> "$GITHUB_OUTPUT"
 
   debian-sdk:
     name: Debian SDK images
@@ -152,20 +155,37 @@ jobs:
       - name: Set version
         run: |
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
-      - name: Set image name
+      - name: Set image name - amd64
         run: |
-          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
-      - name: Snyk scan
+          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64" >> $GITHUB_ENV
+      - name: Snyk scan - amd64
         continue-on-error: true
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.IMAGE_NAME }}
-          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/${{ matrix.arch }}
-      - name: Filter Sarif File
+          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/amd64
+      - name: Filter Sarif File - amd64
         run: python ./.github/scripts/filter-sarif.py
       - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: out.sarif
+      - name: Set image name - arm64
+        run: |
+          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64" >> $GITHUB_ENV
+      - name: Snyk scan - arm64
+        continue-on-error: true
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/arm64
+      - name: Filter Sarif File - arm64
+        run: python ./.github/scripts/filter-sarif.py
+      - name: Upload result to GitHub Code Scanning - arm64
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: out.sarif
