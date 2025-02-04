@@ -172,6 +172,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: out.sarif
+          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64
       - name: Set image name - arm64
         run: |
           echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64" >> $GITHUB_ENV
@@ -189,6 +190,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: out.sarif
+          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64
 
   ubi-sdk:
     name: UBI SDK images
