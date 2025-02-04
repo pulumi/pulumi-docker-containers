@@ -221,7 +221,7 @@ ENV PULUMICTL_VERSION 0.0.48
 # https://github.com/golangci/golangci-lint/releases
 ENV GOLANGCI_LINT_VERSION 1.62.0
 # https://github.com/goreleaser/goreleaser/releases
-ENV GORELEASER_VERSION 2.4.4
+ENV GORELEASER_VERSION 2.6.1
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
