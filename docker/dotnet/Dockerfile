@@ -25,7 +25,7 @@ RUN apt-get update -y && \
     git \
     curl
 
-# Install dotnet 6.0 using instructions from:
+# Install dotnet using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -channel ${LANGUAGE_VERSION}
 
