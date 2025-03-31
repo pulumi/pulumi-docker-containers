@@ -110,9 +110,8 @@ RUN apt-get update -y && \
   maven && \
   rm -rf /var/lib/apt/lists/*
 
-# Install dotnet 6.0, 8.0 and 9.0 using instructions from:
+# Install dotnet 8.0 and 9.0 using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 6.0 --install-dir /usr/local/share/dotnet
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0 --install-dir /usr/local/share/dotnet
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 9.0 --install-dir /usr/local/share/dotnet
 ENV PATH "/usr/local/share/dotnet:${PATH}"
