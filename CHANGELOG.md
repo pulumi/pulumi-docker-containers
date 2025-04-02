@@ -4,8 +4,10 @@
 
 - Update corepack
   ([#391](https://github.com/pulumi/pulumi-docker-containers/pull/391))
-- Drop .NET 6.0
+- Drop .NET 6.0 container
   ([#436](https://github.com/pulumi/pulumi-docker-containers/pull/436))
+- Drop .NET 6.0 from kitchen sink
+  ([#437](https://github.com/pulumi/pulumi-docker-containers/pull/437))
 
 ## 3.147.0
 
