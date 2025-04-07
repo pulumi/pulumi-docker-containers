@@ -10,6 +10,8 @@
   ([#437](https://github.com/pulumi/pulumi-docker-containers/pull/437))
 - Update tools in build-environment
   ([#441](https://github.com/pulumi/pulumi-docker-containers/pull/441))
+- Update aws-iam-authenticator to 0.6.31
+  ([442](https://github.com/pulumi/pulumi-docker-containers/pull/442))
 
 ## 3.147.0
 
