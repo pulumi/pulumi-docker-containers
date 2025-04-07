@@ -216,11 +216,11 @@ FROM base AS build-environment
 ARG TARGETARCH
 
 # https://github.com/pulumi/pulumictl/releases
-ENV PULUMICTL_VERSION 0.0.48
+ENV PULUMICTL_VERSION 0.0.49
 # https://github.com/golangci/golangci-lint/releases
-ENV GOLANGCI_LINT_VERSION 1.62.0
+ENV GOLANGCI_LINT_VERSION 1.64.8
 # https://github.com/goreleaser/goreleaser/releases
-ENV GORELEASER_VERSION 2.6.1
+ENV GORELEASER_VERSION 2.8.2
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 

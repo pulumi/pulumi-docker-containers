@@ -8,6 +8,8 @@
   ([#436](https://github.com/pulumi/pulumi-docker-containers/pull/436))
 - Drop .NET 6.0 from kitchen sink
   ([#437](https://github.com/pulumi/pulumi-docker-containers/pull/437))
+- Update tools in build-environment
+  ([#441](https://github.com/pulumi/pulumi-docker-containers/pull/441))
 
 ## 3.147.0
 
