@@ -1,6 +1,6 @@
 FROM golang:1.23-bookworm as builder
 
-RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.6.29
+RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.6.31
 
 FROM debian:12 AS base
 
