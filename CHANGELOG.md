@@ -11,7 +11,9 @@
 - Update tools in build-environment
   ([#441](https://github.com/pulumi/pulumi-docker-containers/pull/441))
 - Update aws-iam-authenticator to 0.6.31
-  ([442](https://github.com/pulumi/pulumi-docker-containers/pull/442))
+  ([#442](https://github.com/pulumi/pulumi-docker-containers/pull/442))
+- Update to Go 1.24
+  ([#443](https://github.com/pulumi/pulumi-docker-containers/pull/443))
 
 ## 3.147.0
 

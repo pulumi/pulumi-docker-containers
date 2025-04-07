@@ -1,4 +1,4 @@
-FROM golang:1.23-bookworm as builder
+FROM golang:1.24-bookworm as builder
 
 RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.6.31
 
@@ -13,9 +13,9 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.23.3
-ENV GOLANG_AMD64_SHA256 a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8
-ENV GOLANG_ARM64_SHA256 1f7cbd7f668ea32a107ecd41b6488aaee1f5d77a66efd885b175494439d4e1ce
+ENV GOLANG_VERSION 1.24.2
+ENV GOLANG_AMD64_SHA256 68097bd680839cbc9d464a0edce4f7c333975e27a90246890e9f1078c7e702ad
+ENV GOLANG_ARM64_SHA256 756274ea4b68fa5535eb9fe2559889287d725a8da63c6aae4d5f23778c229f4b
 
 # Install base dependencies
 RUN apt-get update -y && \

@@ -9,8 +9,8 @@ RUN microdnf install -y \
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # Set go versions
-ARG RUNTIME_VERSION=1.23.3
-ENV RUNTIME_SHA256 a0afb9744c00648bafb1b90b4aba5bdb86f424f02f9275399ce0c20b93a2c3a8
+ARG RUNTIME_VERSION=1.24.2
+ENV RUNTIME_SHA256 68097bd680839cbc9d464a0edce4f7c333975e27a90246890e9f1078c7e702ad
 
 WORKDIR /golang
 RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${RUNTIME_VERSION}.linux-amd64.tar.gz && \
