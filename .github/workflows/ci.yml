@@ -1,3 +1,4 @@
+permissions: write-all # Equivalent to default permissions plus id-token: write
 name: CI Build
 on:
   workflow_dispatch:
@@ -27,8 +28,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GITHUB_TOKEN: ${{ secrets.PULUMI_BOT_TOKEN }}
-  PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} # Used by test-containers.sh\
   # The organization in the Pulumi SaaS service against which the integration
   # tests will run:
   PULUMI_ORG: "pulumi-test"
@@ -36,11 +35,6 @@ env:
   PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
   # Do not depend on C library for the tests.
   CGO_ENABLED: "0"
-  # Azure credentials for the tests
-  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   AWS_REGION: "us-west-2"
   # GCP
   GCP_SERVICE_ACCOUNT_EMAIL: "pulumi-ci@pulumi-ci-gcp-provider.iam.gserviceaccount.com"
@@ -50,12 +44,20 @@ env:
   GCP_WORKLOAD_IDENTITY_PROVIDER: "pulumi-ci"
   GCP_REGION: "us-central1"
   GCP_ZONE: "us-central1-a"
+  ESC_ACTION_OIDC_AUTH: true
+  ESC_ACTION_OIDC_ORGANIZATION: pulumi
+  ESC_ACTION_OIDC_REQUESTED_TOKEN_TYPE: urn:pulumi:token-type:access_token:organization
+  ESC_ACTION_ENVIRONMENT: imports/github-secrets
+  ESC_ACTION_EXPORT_ENVIRONMENT_VARIABLES: GITHUB_TOKEN=PULUMI_BOT_TOKEN,PULUMI_ACCESS_TOKEN,ARM_CLIENT_ID,ARM_CLIENT_SECRET,ARM_TENANT_ID,ARM_SUBSCRIPTION_ID
 
 jobs:
   comment-notification:
     if: github.event_name == 'repository_dispatch' && github.event.client_payload.github.payload.issue.number
     runs-on: ubuntu-latest
     steps:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Create URL to the run output
         id: vars
         run: echo run-url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID >> "$GITHUB_OUTPUT"
@@ -86,6 +88,9 @@ jobs:
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -144,19 +149,17 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
-          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          role-to-assume: ${{ steps.esc-secrets.outputs.AWS_CI_ROLE_ARN }}
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
         with:
           service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
-          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
-            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
-            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
-      # Note we use /src/pulumi-test-containers as entrypoint and not bash to avoid bash
-      # changing the environment in some way.
+        # Note we use /src/pulumi-test-containers as entrypoint and not bash to avoid bash
+        # changing the environment in some way.
         run: |
           set -exo pipefail
           chmod o+r $GOOGLE_APPLICATION_CREDENTIALS
@@ -220,6 +223,9 @@ jobs:
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -264,14 +270,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
-          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          role-to-assume: ${{ steps.esc-secrets.outputs.AWS_CI_ROLE_ARN }}
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
         with:
           service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
-          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
-            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
-            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
@@ -308,6 +312,9 @@ jobs:
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -330,6 +337,9 @@ jobs:
     outputs:
       matrix: ${{ steps.define-matrix.outputs.matrix }}
     steps:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - uses: actions/checkout@master
       - name: Define Matrix
         id: define-matrix
@@ -348,6 +358,9 @@ jobs:
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -400,14 +413,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
-          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          role-to-assume: ${{ steps.esc-secrets.outputs.AWS_CI_ROLE_ARN }}
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
         with:
           service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
-          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
-            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
-            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
@@ -442,6 +453,9 @@ jobs:
     outputs:
       matrix: ${{ steps.define-matrix-sdk-manifests.outputs.matrix }}
     steps:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - uses: actions/checkout@master
       - name: Define Matrix for UBI SDK Manifests
         id: define-matrix-sdk-manifests
@@ -460,6 +474,9 @@ jobs:
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -515,14 +532,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 14400 # 4 hours
           role-session-name: pulumi-docker-containers@githubActions
-          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          role-to-assume: ${{ steps.esc-secrets.outputs.AWS_CI_ROLE_ARN }}
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
         with:
           service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
-          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER
-            }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL
-            }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
       - name: Tests
@@ -557,6 +572,9 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: CI succeeded
         run: |
           if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
