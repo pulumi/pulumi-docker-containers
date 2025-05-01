@@ -1,3 +1,4 @@
+permissions: write-all # Equivalent to default permissions plus id-token: write
 # Copies all Pulumi Docker images for the supplied version from Docker Hub to
 # AWS ECR Public Gallery.
 name: Sync to ECR
@@ -20,6 +21,11 @@ on:
 env:
   DOCKER_USERNAME: pulumi
   PULUMI_VERSION: ${{ github.event.inputs.pulumi_version || github.event.client_payload.ref }}
+  ESC_ACTION_OIDC_AUTH: true
+  ESC_ACTION_OIDC_ORGANIZATION: pulumi
+  ESC_ACTION_OIDC_REQUESTED_TOKEN_TYPE: urn:pulumi:token-type:access_token:organization
+  ESC_ACTION_ENVIRONMENT: imports/github-secrets
+  ESC_ACTION_EXPORT_ENVIRONMENT_VARIABLES: false
 
 jobs:
   sync-to-ecr:
@@ -33,6 +39,9 @@ jobs:
           - suffix: -nonroot
             image: pulumi
     steps:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
@@ -42,7 +51,7 @@ jobs:
           role-duration-seconds: 3600
           role-external-id: upload-pulumi-release
           role-session-name: pulumi@githubActions
-          role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
+          role-to-assume: ${{ steps.esc-secrets.outputs.AWS_UPLOAD_ROLE_ARN }}
       - name: Get Public ECR Authorization token
         run: |
           aws --region us-east-1 ecr-public get-authorization-token \
@@ -87,6 +96,9 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.define-debian-matrix.outputs.matrix) }}
     steps:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
@@ -96,22 +108,13 @@ jobs:
           role-duration-seconds: 3600
           role-external-id: upload-pulumi-release
           role-session-name: pulumi@githubActions
-          role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
+          role-to-assume: ${{ steps.esc-secrets.outputs.AWS_UPLOAD_ROLE_ARN }}
       - name: Get Public ECR Authorization token
         run: |
           aws --region us-east-1 ecr-public get-authorization-token \
             --query 'authorizationData.authorizationToken' | \
             tr -d '"' | base64 --decode | cut -d: -f2 | \
             docker login -u AWS --password-stdin https://public.ecr.aws
-      # NOTE: The process we use for the Kichen Sink image, which is
-      # single-platform, will not work here.  Pulling a multi-arch manifest from
-      # Docker Hub, tagging, then pushing will only result in the image of the
-      # host's architecture (e.g. linux/amd64) getting pushed to the desintation repo.
-      # For more information, see: https://docs.docker.com/registry/spec/manifest-v2-2/
-      #
-      # Prior to re-creating the manifests, we must pull, tag, and push the
-      # consituent images in the manifests because manifests cannot use source
-      # images from a different registry.
       - name: Tag ${{ env.PULUMI_VERSION }}-debian-amd64 image and push to AWS Public ECR
         run: |
           docker pull docker.io/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64
@@ -166,6 +169,9 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.define-ubi-matrix.outputs.matrix) }}
     steps:
+      - name: Fetch secrets from ESC
+        id: esc-secrets
+        uses: pulumi/esc-action@v1
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
@@ -175,7 +181,7 @@ jobs:
           role-duration-seconds: 3600
           role-external-id: upload-pulumi-release
           role-session-name: pulumi@githubActions
-          role-to-assume: ${{ secrets.AWS_UPLOAD_ROLE_ARN }}
+          role-to-assume: ${{ steps.esc-secrets.outputs.AWS_UPLOAD_ROLE_ARN }}
       - name: Get Public ECR Authorization token
         run: |
           aws --region us-east-1 ecr-public get-authorization-token \
