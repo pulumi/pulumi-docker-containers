@@ -41,7 +41,7 @@ Images without a version suffix use the following language versions by default:
  - .NET 8.0
  - Go 1.24
  - JDK 21
- - Node.js 22
+ - Node.js 24
  - Python 3.12
 
 ### Version Policy
