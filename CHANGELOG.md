@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Support Node.js 24
+  ([#464](https://github.com/pulumi/pulumi-docker-containers/pull/464))
+
+## 3.167.0
+
 - Update corepack
   ([#391](https://github.com/pulumi/pulumi-docker-containers/pull/391))
 - Drop .NET 6.0 container
