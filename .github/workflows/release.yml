@@ -80,7 +80,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -194,7 +194,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Versioned manifest
         run: |
           docker manifest create \
@@ -251,7 +251,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -329,7 +329,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Versioned manifest
         run: |
           docker manifest create \
@@ -364,7 +364,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -394,7 +394,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Debian manifest
         run: |
           docker manifest create \
@@ -467,7 +467,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -580,7 +580,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Debian manifest
         run: |
           docker manifest create \
@@ -672,7 +672,7 @@ jobs:
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_TOKEN }}
+          password: ${{ steps.esc-secrets.outputs.DOCKER_HUB_PASSWORD }}
       - name: Setup docker buildx
         uses: docker/setup-buildx-action@v3
         with:
