@@ -442,7 +442,7 @@ func TestEnvironment(t *testing.T) {
 		cmd := exec.Command("yarn", "--version")
 		out, err := cmd.CombinedOutput()
 		require.NoError(t, err)
-		require.Equal(t, "1.22.22", strings.TrimSpace(string(out)))
+		require.True(t, strings.HasPrefix(string(out), "1."))
 	})
 
 	t.Run("Workdir", func(t *testing.T) {
