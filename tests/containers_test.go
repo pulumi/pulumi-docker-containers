@@ -432,6 +432,19 @@ func TestEnvironment(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	// We only support yarn classic
+	t.Run("Yarn", func(t *testing.T) {
+		if !hasNodejs(t) {
+			t.Skip("Skipping test for images without nodejs")
+		}
+		t.Parallel()
+
+		cmd := exec.Command("yarn", "--version")
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err)
+		require.Equal(t, "1.22.22", strings.TrimSpace(string(out)))
+	})
+
 	t.Run("Workdir", func(t *testing.T) {
 		t.Parallel()
 		// Kitchen sink does not set `WORKDIR`.

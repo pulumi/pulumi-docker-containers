@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Ensure we install Yarn classic
+  ([480](https://github.com/pulumi/pulumi-docker-containers/pull/480))
+
+## 3.171.0
+
 - Support Node.js 24
   ([#464](https://github.com/pulumi/pulumi-docker-containers/pull/464))
 

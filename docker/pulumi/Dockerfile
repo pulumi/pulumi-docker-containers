@@ -162,7 +162,7 @@ RUN fnm install 20 && \
   fnm alias 24 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
 RUN npm install -g corepack && \
-    corepack install -g pnpm yarn
+    corepack install -g pnpm yarn@1.22.22
 
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
 # of the SDK. Otherwise, we use whatever get.pulumi.com thinks is
