@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+- Pin Gradle to 8.14.2 and Maven to 3.9.10 in the UBI Java image
+  ([#487](https://github.com/pulumi/pulumi-docker-containers/pull/487))
+
+## 3.175.0
+
 - Ensure we install Yarn classic
-  ([480](https://github.com/pulumi/pulumi-docker-containers/pull/480))
+  ([#480](https://github.com/pulumi/pulumi-docker-containers/pull/480))
 
 ## 3.171.0
 

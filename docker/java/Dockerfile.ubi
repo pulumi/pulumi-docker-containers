@@ -16,6 +16,9 @@ FROM redhat/ubi9-minimal:latest
 LABEL org.opencontainers.image.description="Pulumi CLI container for Java"
 WORKDIR /pulumi/projects
 
+ENV MAVEN_VERSION 3.9.10
+ENV GRADLE_VERSION 8.14.2
+
 RUN microdnf install -y \
     git \
     tar \
@@ -29,8 +32,8 @@ RUN microdnf install -y \
 
 RUN curl -fsSL "https://get.sdkman.io" | bash \
     && bash -c ". /root/.sdkman/bin/sdkman-init.sh \
-        && sdk install maven \
-        && sdk install gradle \
+        && sdk install maven ${MAVEN_VERSION} \
+        && sdk install gradle ${GRADLE_VERSION} \
         && sdk flush archives \
         && sdk flush temp \
         "
