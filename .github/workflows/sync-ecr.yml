@@ -38,6 +38,8 @@ jobs:
           # For the pulumi image add a the nonroot variant
           - suffix: -nonroot
             image: pulumi
+          - suffix: ""
+            image: pulumi
     steps:
       - name: Fetch secrets from ESC
         id: esc-secrets
@@ -74,7 +76,7 @@ jobs:
           docker manifest create \
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }} \
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64 \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64
+            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
           docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }}
 
   define-debian-matrix:
