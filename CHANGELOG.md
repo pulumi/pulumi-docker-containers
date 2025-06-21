@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fix pushing all image variants of pulumi/pulumi to ECR and GHCR
+  ([#492](https://github.com/pulumi/pulumi-docker-containers/pull/492))
+
+## 3.178.0
+
 - Pin Gradle to 8.14.2 and Maven to 3.9.10 in the UBI Java image
   ([#487](https://github.com/pulumi/pulumi-docker-containers/pull/487))
 
