@@ -33,13 +33,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: ["pulumi", "pulumi-provider-build-environment"]
         include:
-          # For the pulumi image add a the nonroot variant
-          - suffix: -nonroot
-            image: pulumi
-          - suffix: ""
-            image: pulumi
+          - image: pulumi-provider-build-environment
+            suffix: ""
+          - image: pulumi
+            suffix: ""
+          - image: pulumi
+            suffix: "-nonroot"
     steps:
       - name: Fetch secrets from ESC
         id: esc-secrets
