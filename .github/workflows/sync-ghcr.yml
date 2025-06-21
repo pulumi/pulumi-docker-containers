@@ -27,13 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: ["pulumi", "pulumi-provider-build-environment"]
         include:
-          # For the pulumi image add a the nonroot variant
-          - suffix: -nonroot
-            image: pulumi
-          - suffix: ""
-            image: pulumi
+          - image: pulumi-provider-build-environment
+            suffix: ""
+          - image: pulumi
+            suffix: ""
+          - image: pulumi
+            suffix: "-nonroot"
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
