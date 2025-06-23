@@ -9,11 +9,6 @@ on:
         description: The image tag to copy, fully specified, e.g. "3.18.1"
         type: string
         required: true
-      tag_latest:
-        description: Whether to also tag this version as "latest".
-        type: boolean
-        required: true
-        default: true
   repository_dispatch:
     types:
       - sync-ecr
@@ -77,14 +72,6 @@ jobs:
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64 \
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
           docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}
-      - name: Push latest manifest
-        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
-        run: |
-          docker manifest create \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }} \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-amd64 \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-arm64
-          docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest${{ matrix.suffix }}
 
   define-debian-matrix:
     runs-on: ubuntu-latest
@@ -149,14 +136,6 @@ jobs:
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
             public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
           docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}
-      - name: Push latest manifest
-        if: ${{ github.event.inputs.tag_latest || github.event_name == 'repository_dispatch' }}
-        run: |
-          docker manifest create \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-amd64 \
-            public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:${{ env.PULUMI_VERSION }}-debian-arm64
-          docker manifest push public.ecr.aws/${{ env.DOCKER_USERNAME }}/${{ matrix.image }}:latest
 
   define-ubi-matrix:
     runs-on: ubuntu-latest
