@@ -111,7 +111,7 @@ jobs:
             -f docker/pulumi/Dockerfile \
             --platform linux/${{ matrix.arch }} \
             -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.variant }}-${{ matrix.arch }} \
-            --target base \
+            --target $(if [ "${{ matrix.variant }}" = "-nonroot" ]; then echo "nonroot"; else echo "base"; fi) \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --load \
             docker/pulumi
