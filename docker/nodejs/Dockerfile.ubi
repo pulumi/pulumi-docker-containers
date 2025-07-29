@@ -28,8 +28,8 @@ ENV FNM_DIR=/usr/local/share/fnm
 RUN fnm install ${LANGUAGE_VERSION} && \
     fnm alias ${LANGUAGE_VERSION} default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
-RUN npm install -g corepack && \
-    corepack install -g yarn@1
+RUN npm install -g corepack bun && \
+    corepack install -g yarn@1 pnpm
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi

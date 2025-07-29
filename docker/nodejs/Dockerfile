@@ -27,7 +27,7 @@ RUN apt-get update -y && \
     curl \
     git \
     ca-certificates && \
-    npm install -g npm@10.5.1
+    npm install -g npm@10.5.1 bun pnpm
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
