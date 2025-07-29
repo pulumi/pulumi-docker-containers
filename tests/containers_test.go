@@ -341,7 +341,6 @@ func TestEnvironment(t *testing.T) {
 				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/npm",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/npm",
 			},
-
 			{
 				name:            "yarn",
 				expectedDebian:  "/usr/local/bin/yarn",
@@ -353,6 +352,18 @@ func TestEnvironment(t *testing.T) {
 				expectedDebian:  "/usr/local/bin/corepack",
 				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/corepack",
 				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/corepack",
+			},
+			{
+				name:            "bun",
+				expectedDebian:  "/usr/local/bin/bun",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/bun",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/bun",
+			},
+			{
+				name:            "pnpm",
+				expectedDebian:  "/usr/local/bin/pnpm",
+				expectedUbi:     "/usr/local/share/fnm/aliases/default/bin/pnpm",
+				expectedKitchen: "/usr/local/share/fnm/aliases/default/bin/pnpm",
 			},
 		} {
 			testCase := testCase
