@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add Bun to allow using it as a package manager for Node.js programs
+ ([509](https://github.com/pulumi/pulumi-docker-containers/pull/509))
+
+- Add pnpm to Node.js images
+ ([509](https://github.com/pulumi/pulumi-docker-containers/pull/509))
+
 - Fix pushing all image variants of pulumi/pulumi to ECR and GHCR
   ([#492](https://github.com/pulumi/pulumi-docker-containers/pull/492))
 
