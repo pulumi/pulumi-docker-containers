@@ -16,7 +16,7 @@ with open("snyk.sarif") as f:
 
     # GitHub expects each tool to only create 1 run, but Snyk splits the results
     # across multiple runs. As a workaround, we rename the tools for each run to
-    # ensure they are unique in thef ile.
+    # ensure they are unique within the file.
     # https://github.blog/changelog/2025-07-21-code-scanning-will-stop-combining-multiple-sarif-runs-uploaded-in-the-same-sarif-file/
     for i, run in enumerate(runs):
         run["tool"]["driver"]["name"] += f"_{i}"
