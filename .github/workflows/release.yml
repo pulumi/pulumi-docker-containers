@@ -52,6 +52,9 @@ env:
   ESC_ACTION_OIDC_REQUESTED_TOKEN_TYPE: urn:pulumi:token-type:access_token:organization
   ESC_ACTION_ENVIRONMENT: imports/github-secrets
   ESC_ACTION_EXPORT_ENVIRONMENT_VARIABLES: GITHUB_TOKEN=PULUMI_BOT_TOKEN,PULUMI_ACCESS_TOKEN,ARM_CLIENT_ID,ARM_CLIENT_SECRET,ARM_TENANT_ID,ARM_SUBSCRIPTION_ID
+  # Automatically set labels like org.opencontainers.image.source on the docker images
+  # https://docs.docker.com/build/building/variables/#buildx_git_labels
+  BUILDX_GIT_LABELS: full
 
 jobs:
   kitchen-sink:
@@ -759,7 +762,14 @@ jobs:
 
   start-syncs:
     name: Start syncs to other container registries
-    needs: ["kitchen-sink", "base-manifests", "debian-sdk-manifests", "ubi-sdk"]
+    needs:
+      [
+        "kitchen-sink-manifests",
+        "provider-build-environment-manifests",
+        "base-manifests",
+        "debian-sdk-manifests",
+        "ubi-sdk",
+      ]
     runs-on: ubuntu-latest
     # This workflow can be triggered by 2 events: workflow_dispatch, i.e., a
     # manual run, or repository_dispatch, which is triggered by a Pulumi
@@ -787,3 +797,27 @@ jobs:
         run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ecr ${{ env.PULUMI_VERSION }}
       - name: Kick off GHCR sync
         run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ghcr ${{ env.PULUMI_VERSION }}
+
+  create-git-tags:
+    name: Create git tags for Docker releases
+    needs:
+      [
+        "kitchen-sink-manifests",
+        "provider-build-environment-manifests",
+        "base-manifests",
+        "debian-sdk-manifests",
+        "ubi-sdk",
+      ]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.force_release || github.event_name == 'repository_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+      - name: Create git tags
+        run: |
+          python ./.github/scripts/git/create_tags.py \
+            --pulumi-version ${{ env.PULUMI_VERSION }} \
+            ${{ (github.event.inputs.tag_latest || github.event_name == 'repository_dispatch') && '--tag-latest' || '' }}
