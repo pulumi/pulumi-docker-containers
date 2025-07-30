@@ -49,6 +49,9 @@ env:
   ESC_ACTION_OIDC_REQUESTED_TOKEN_TYPE: urn:pulumi:token-type:access_token:organization
   ESC_ACTION_ENVIRONMENT: imports/github-secrets
   ESC_ACTION_EXPORT_ENVIRONMENT_VARIABLES: GITHUB_TOKEN=PULUMI_BOT_TOKEN,PULUMI_ACCESS_TOKEN,ARM_CLIENT_ID,ARM_CLIENT_SECRET,ARM_TENANT_ID,ARM_SUBSCRIPTION_ID
+  # Automatically set labels like org.opencontainers.image.source on the docker images
+  # https://docs.docker.com/build/building/variables/#buildx_git_labels
+  BUILDX_GIT_LABELS: full
 
 jobs:
   comment-notification:
