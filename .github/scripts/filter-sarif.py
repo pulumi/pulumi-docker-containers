@@ -14,6 +14,9 @@ with open("snyk.sarif") as f:
     # Keep at least one run
     runs = runs if len(runs) > 0 else [sarif["runs"][0]]
 
+    for i, run in enumerate(runs):
+        run["tool"]["driver"]["name"] += f"_{i}"
+
     sarif["runs"] = runs
 
     with open("out.sarif", "w") as out:
