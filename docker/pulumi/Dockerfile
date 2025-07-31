@@ -1,6 +1,6 @@
 FROM golang:1.24-bookworm as builder
 
-RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.6.31
+RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.7.4
 
 FROM debian:12 AS base
 
@@ -13,9 +13,9 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.24.2
-ENV GOLANG_AMD64_SHA256 68097bd680839cbc9d464a0edce4f7c333975e27a90246890e9f1078c7e702ad
-ENV GOLANG_ARM64_SHA256 756274ea4b68fa5535eb9fe2559889287d725a8da63c6aae4d5f23778c229f4b
+ENV GOLANG_VERSION 1.24.5
+ENV GOLANG_AMD64_SHA256 10ad9e86233e74c0f6590fe5426895de6bf388964210eac34a6d83f38918ecdc
+ENV GOLANG_ARM64_SHA256 0df02e6aeb3d3c06c95ff201d575907c736d6c62cfa4b6934c11203f1d600ffa
 
 # Install base dependencies
 RUN apt-get update -y && \
@@ -216,11 +216,11 @@ FROM base AS build-environment
 ARG TARGETARCH
 
 # https://github.com/pulumi/pulumictl/releases
-ENV PULUMICTL_VERSION 0.0.49
+ENV PULUMICTL_VERSION 0.0.50
 # https://github.com/golangci/golangci-lint/releases
-ENV GOLANGCI_LINT_VERSION 1.64.8
+ENV GOLANGCI_LINT_VERSION 2.3.0
 # https://github.com/goreleaser/goreleaser/releases
-ENV GORELEASER_VERSION 2.8.2
+ENV GORELEASER_VERSION 2.11.1
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
