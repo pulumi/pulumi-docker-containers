@@ -2,7 +2,7 @@
 # Interim container so we can copy pulumi binaries
 FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
     gzip \
     tar
 # Install the Pulumi SDK, including the CLI and language runtimes.
@@ -14,7 +14,7 @@ ARG LANGUAGE_VERSION
 LABEL org.opencontainers.image.description="Pulumi CLI container for dotnet"
 WORKDIR /pulumi/projects
 
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
     ca-certificates \
     # Required by the dotnet-install script, which calls `find`:
     findutils \

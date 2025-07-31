@@ -2,7 +2,7 @@
 # Interim container so we can copy pulumi binaries
 FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
     gzip \
     tar
 # Install the Pulumi SDK, including the CLI and language runtimes.
@@ -27,7 +27,7 @@ LABEL org.opencontainers.image.description="Pulumi CLI container for go"
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
     git \
     tar \
     ca-certificates; \
