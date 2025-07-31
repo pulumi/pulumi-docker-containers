@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Provider Build Environment image: Update golangci-lint to v2
+ ([#515](https://github.com/pulumi/pulumi-docker-containers/pull/515))
+
 - Add tags and labels for dependabot
  ([#510](https://github.com/pulumi/pulumi-docker-containers/pull/510))
 
