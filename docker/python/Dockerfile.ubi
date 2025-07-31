@@ -2,7 +2,7 @@
 # Interim container so we can copy pulumi binaries
 FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
     gzip \
     tar
 # Install the Pulumi SDK, including the CLI and language runtimes.
@@ -15,7 +15,7 @@ LABEL org.opencontainers.image.description="Pulumi CLI container for python"
 WORKDIR /pulumi/projects
 
 # Install needed tools, like git, and build dependencies
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
     bzip2 \
     bzip2-devel \
     ca-certificates \

@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:experimental
 FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
   make \
   gcc \
   git \
@@ -17,7 +17,7 @@ LABEL org.opencontainers.image.description="Pulumi CLI container, bring your own
 WORKDIR /pulumi
 COPY --from=builder /root/.pulumi/bin bin
 
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
   git \
   tar \
   ca-certificates

@@ -3,7 +3,7 @@
 # Must be defined first
 FROM redhat/ubi9-minimal:latest as builder
 ARG PULUMI_VERSION
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
     git \
     tar \
     unzip
@@ -19,7 +19,7 @@ WORKDIR /pulumi/projects
 ENV MAVEN_VERSION 3.9.10
 ENV GRADLE_VERSION 8.14.2
 
-RUN microdnf install -y \
+RUN microdnf upgrade -y && microdnf install -y \
     git \
     tar \
     java-21-openjdk-devel \
