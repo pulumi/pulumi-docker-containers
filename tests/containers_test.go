@@ -15,6 +15,7 @@
 package containers
 
 import (
+	"bytes"
 	"crypto/rand"
 	"embed"
 	"encoding/hex"
@@ -174,6 +175,7 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 			}
 			p := filepath.Join("testdata", dir.Name())
 			copyTestData(t, p)
+			stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
 			integration.ProgramTest(t, &integration.ProgramTestOptions{
 				// We can't run the node tests in parallel because setting the node version is a
 				// global for the container.
@@ -181,16 +183,20 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 				Dir:         p,
 				Quick:       true,
 				SkipRefresh: true,
+				Stdout:      stdout,
+				Stderr:      stderr,
 				PrepareProject: func(info *engine.Projinfo) error {
 					cmd := exec.Command("pulumi", "install", "--use-language-version-tools")
 					cmd.Dir = info.Root
 					out, err := cmd.CombinedOutput()
-					if err != nil {
-						t.Logf("install failed: %s: %s", err, out)
-					}
+					t.Logf("pulumi install: err=%s, out=%s", err, out)
 					return err
 				},
+				ExpectFailure: true,
 			})
+			t.Logf("stdout: %s", stdout.String())
+			t.Logf("stderr: %s", stderr.String())
+			require.True(t, false)
 		})
 	}
 }
