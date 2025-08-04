@@ -148,6 +148,7 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 		// the container's default node version.
 		p := filepath.Join("testdata", "node-default")
 		copyTestData(t, p)
+		t.Logf("PATH=%+v\n", os.Getenv("PATH"))
 		integration.ProgramTest(t, &integration.ProgramTestOptions{
 			NoParallel:  true,
 			Dir:         p,
