@@ -812,6 +812,8 @@ jobs:
     if: ${{ github.event.inputs.force_release || github.event_name == 'repository_dispatch' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
