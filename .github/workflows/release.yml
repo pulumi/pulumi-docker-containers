@@ -813,6 +813,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depths: 0
           fetch-tags: true
       - name: Setup Python
         uses: actions/setup-python@v4
