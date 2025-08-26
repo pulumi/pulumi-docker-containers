@@ -5,8 +5,8 @@ go 1.24
 replace github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.9.3
 
 require (
-	github.com/pulumi/pulumi/pkg/v3 v3.188.0
-	github.com/pulumi/pulumi/sdk/v3 v3.188.0
+	github.com/pulumi/pulumi/pkg/v3 v3.191.0
+	github.com/pulumi/pulumi/sdk/v3 v3.191.0
 	github.com/stretchr/testify v1.10.0
 )
 
