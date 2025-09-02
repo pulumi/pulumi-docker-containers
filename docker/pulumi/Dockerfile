@@ -37,7 +37,6 @@ RUN apt-get update -y && \
   libxml2-dev \
   libxmlsec1-dev \
   lsb-release \
-  software-properties-common \
   unzip  \
   wget \
   xz-utils \
