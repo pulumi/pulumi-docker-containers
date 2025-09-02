@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:experimental
 # Interim container so we can copy pulumi binaries
 # Must be defined first
-FROM debian:bookworm-slim AS builder
+FROM debian:trixie-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -12,7 +12,7 @@ RUN apt-get update -y && \
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # The runtime container
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for java"
 WORKDIR /pulumi/projects
 
@@ -20,17 +20,8 @@ RUN apt-get update -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
-    lsb-release && \
-    rm -rf /var/lib/apt/lists/*
-
-# https://learn.microsoft.com/en-gb/java/openjdk/install
-RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
-    dpkg -i packages-microsoft-prod.deb && \
-    rm packages-microsoft-prod.deb
-
-RUN apt-get update -y && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    msopenjdk-21 \
+    lsb-release \
+    openjdk-21-jdk-headless \
     maven \
     gradle && \
     rm -rf /var/lib/apt/lists/*

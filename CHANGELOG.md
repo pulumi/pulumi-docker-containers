@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Update debian based images to Debian Trixie (13)
+
+## 3.192.0
+
 - Provider Build Environment image: Update golangci-lint to v2
  ([#515](https://github.com/pulumi/pulumi-docker-containers/pull/515))
 
