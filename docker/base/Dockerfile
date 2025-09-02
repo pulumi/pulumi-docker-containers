@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:experimental
-FROM debian:bookworm-slim AS builder
+FROM debian:trixie-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
   apt-get upgrade -y && \
@@ -13,7 +13,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # The runtime container
 # This is our base container, so let's copy all the runtimes to .pulumi/bin
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container, bring your own SDK"
 WORKDIR /pulumi
 COPY --from=builder /root/.pulumi/bin bin
