@@ -20,17 +20,8 @@ RUN apt-get update -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
-    lsb-release && \
-    rm -rf /var/lib/apt/lists/*
-
-# https://learn.microsoft.com/en-gb/java/openjdk/install
-RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
-    dpkg -i packages-microsoft-prod.deb && \
-    rm packages-microsoft-prod.deb
-
-RUN apt-get update -y && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    msopenjdk-21 \
+    lsb-release \
+    openjdk-21-jdk-headless \
     maven \
     gradle && \
     rm -rf /var/lib/apt/lists/*
