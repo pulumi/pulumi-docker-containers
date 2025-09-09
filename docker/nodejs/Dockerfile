@@ -3,7 +3,7 @@
 # Must be defined first
 ARG LANGUAGE_VERSION
 
-FROM debian:bookworm-slim AS builder
+FROM debian:trixie-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -17,7 +17,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 
 # The runtime container
-FROM node:${LANGUAGE_VERSION}-bookworm-slim
+FROM node:${LANGUAGE_VERSION}-trixie-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for nodejs"
 WORKDIR /pulumi/projects
 

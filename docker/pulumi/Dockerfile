@@ -1,8 +1,8 @@
-FROM golang:1.24-bookworm as builder
+FROM golang:1.24-trixie as builder
 
 RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.7.4
 
-FROM debian:12 AS base
+FROM debian:trixie AS base
 
 # These values are passed in by the build system automatically. The options are: arm64, amd64
 # See: https://docs.docker.com/build/building/variables/#pre-defined-build-arguments
@@ -37,7 +37,6 @@ RUN apt-get update -y && \
   libxml2-dev \
   libxmlsec1-dev \
   lsb-release \
-  software-properties-common \
   unzip  \
   wget \
   xz-utils \
@@ -98,14 +97,9 @@ ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Install Java
-# https://learn.microsoft.com/en-gb/java/openjdk/install
- RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
-  dpkg -i packages-microsoft-prod.deb && \
-  rm packages-microsoft-prod.deb
-
 RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  msopenjdk-21 \
+  openjdk-21-jdk-headless \
   gradle \
   maven && \
   rm -rf /var/lib/apt/lists/*

@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:experimental
 
-FROM debian:bookworm-slim AS builder
+FROM debian:trixie-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -14,7 +14,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 
 # The runtime container
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for dotnet"
 WORKDIR /pulumi/projects
 
