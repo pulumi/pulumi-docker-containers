@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Update default Python version to 3.13 & add a Python 3.14 standalone image
+  ([#555](https://github.com/pulumi/pulumi-docker-containers/pull/555))
+
+## 3.202.0
+
 - Provider Build Environment image: Update golangci-lint to v2
  ([#515](https://github.com/pulumi/pulumi-docker-containers/pull/515))
 
