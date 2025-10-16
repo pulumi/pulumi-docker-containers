@@ -11,8 +11,8 @@ versioned = {
         "additional": ["20", "22", "23"]
     },
     "python": {
-        "default": "3.12",
-        "additional": ["3.9", "3.10", "3.11", "3.13"]
+        "default": "3.13",
+        "additional": ["3.10", "3.11", "3.12", "3.14"]
     },
     "dotnet": {
         "default": "8.0",

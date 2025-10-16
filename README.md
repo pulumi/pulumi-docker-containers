@@ -42,7 +42,7 @@ Images without a version suffix use the following language versions by default:
  - Go 1.24
  - JDK 21
  - Node.js 24
- - Python 3.12
+ - Python 3.13
 
 ### Version Policy
 
@@ -83,7 +83,7 @@ If you are building your own image by extending the `pulumi/pulumi` image, you c
 
 #### Python
 
-The `pulumi/pulumi` image uses [pyenv](https://github.com/pyenv/pyenv) to manage Python versions, and comes with Python 3.9 to 3.12 preinstalled. To select a specific version, create a `.python-version` file in your project directory with the desired version number.
+The `pulumi/pulumi` image uses [pyenv](https://github.com/pyenv/pyenv) to manage Python versions, and comes with Python 3.10 to 3.14 preinstalled. To select a specific version, create a `.python-version` file in your project directory with the desired version number.
 
 To avoid downloading and building Python versions on each run, it is recommended to only specify the major version number, for example `3.12`. This ensures that the pre-installed version of Python 3.12 is used.
 
