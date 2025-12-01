@@ -3,5 +3,6 @@
   extends: [
     "github>pulumi/renovate-config//default.json5",
     // Don't pin docker images to digests
-    "default:pinDigestsDisabled"
+    "default:pinDigestsDisabled",
+  ]
 }
