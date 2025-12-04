@@ -1,6 +1,6 @@
-# syntax = docker/dockerfile:experimental
+# syntax = docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
 
-FROM debian:bookworm-slim AS builder
+FROM debian:bookworm-slim@sha256:b4aa902587c2e61ce789849cb54c332b0400fe27b1ee33af4669e1f7e7c3e22f AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -14,7 +14,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 
 # The runtime container
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim@sha256:b4aa902587c2e61ce789849cb54c332b0400fe27b1ee33af4669e1f7e7c3e22f
 LABEL org.opencontainers.image.description="Pulumi CLI container for dotnet"
 WORKDIR /pulumi/projects
 

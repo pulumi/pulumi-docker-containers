@@ -57,7 +57,7 @@ jobs:
       - name: Filter Sarif File
         run: python ./.github/scripts/filter-sarif.py
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@497990dfed22177a82ba1bbab381bc8f6d27058f # v3
         with:
           sarif_file: out.sarif
 
@@ -97,7 +97,7 @@ jobs:
       - name: Filter Sarif File
         run: python ./.github/scripts/filter-sarif.py
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@497990dfed22177a82ba1bbab381bc8f6d27058f # v3
         with:
           sarif_file: out.sarif
 
@@ -134,7 +134,7 @@ jobs:
       - name: Filter Sarif File
         run: python ./.github/scripts/filter-sarif.py
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@497990dfed22177a82ba1bbab381bc8f6d27058f # v3
         with:
           sarif_file: out.sarif
 
@@ -187,7 +187,7 @@ jobs:
       - name: Filter Sarif File - amd64
         run: python ./.github/scripts/filter-sarif.py
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@497990dfed22177a82ba1bbab381bc8f6d27058f # v3
         with:
           sarif_file: out.sarif
           category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64
@@ -205,7 +205,7 @@ jobs:
       - name: Filter Sarif File - arm64
         run: python ./.github/scripts/filter-sarif.py
       - name: Upload result to GitHub Code Scanning - arm64
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@497990dfed22177a82ba1bbab381bc8f6d27058f # v3
         with:
           sarif_file: out.sarif
           category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64
@@ -242,6 +242,6 @@ jobs:
       - name: Filter Sarif File
         run: python ./.github/scripts/filter-sarif.py
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@497990dfed22177a82ba1bbab381bc8f6d27058f # v3
         with:
           sarif_file: out.sarif
