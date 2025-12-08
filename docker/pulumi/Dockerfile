@@ -135,12 +135,12 @@ RUN curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-
 RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /usr/local/share/pyenv
 ENV PYENV_ROOT /usr/local/share/pyenv
 ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+RUN pyenv install 3.14
 RUN pyenv install 3.13
 RUN pyenv install 3.12
 RUN pyenv install 3.11
 RUN pyenv install 3.10
-RUN pyenv install 3.9
-RUN pyenv global 3.12 # Default version
+RUN pyenv global 3.13 # Default version
 # Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
 RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
