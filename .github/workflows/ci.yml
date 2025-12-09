@@ -65,7 +65,7 @@ jobs:
         id: vars
         run: echo run-url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID >> "$GITHUB_OUTPUT"
       - name: Update with Result
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae # v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
@@ -105,7 +105,7 @@ jobs:
         with:
           tool-cache: false
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
         with:
           install: true
       - name: Build ${{ env.PULUMI_VERSION }}${{ matrix.variant }}-${{ matrix.arch }}
@@ -123,7 +123,7 @@ jobs:
           docker image ls ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.variant }}-${{ matrix.arch }}
           docker history ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.variant }}-${{ matrix.arch }}
       - name: Install go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
         with:
           go-version: "1.22"
           cache-dependency-path: tests/go.sum
@@ -132,7 +132,7 @@ jobs:
         run: |
           GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -141,12 +141,12 @@ jobs:
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ steps.esc-secrets.outputs.AWS_CI_ROLE_ARN }}
       - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
         with:
           service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
           workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: "Set up Cloud SDK"
-        uses: "google-github-actions/setup-gcloud@v2"
+        uses: "google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f" # v2
       - name: Tests
         # Note we use /src/pulumi-test-containers as entrypoint and not bash to avoid bash
         # changing the environment in some way.
@@ -204,7 +204,7 @@ jobs:
         with:
           tool-cache: false
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
         with:
           install: true
       - name: Build
@@ -222,7 +222,7 @@ jobs:
           docker image ls ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
           docker history ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
       - name: Install go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
         with:
           go-version: "1.22"
           cache-dependency-path: tests/go.sum
@@ -231,7 +231,7 @@ jobs:
         run: |
           GOOS=linux GOARCH=${{ matrix.arch }} go test -c -o /tmp/pulumi-test-containers ./...
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -240,12 +240,12 @@ jobs:
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ steps.esc-secrets.outputs.AWS_CI_ROLE_ARN }}
       - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
         with:
           service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
           workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: "Set up Cloud SDK"
-        uses: "google-github-actions/setup-gcloud@v2"
+        uses: "google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f" # v2
       - name: Tests
         run: |
           docker run \
@@ -289,7 +289,7 @@ jobs:
           echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
         with:
           install: true
       - name: Build
@@ -338,7 +338,7 @@ jobs:
           echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-${{ matrix.arch }}" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
         with:
           install: true
       - name: Build
@@ -356,7 +356,7 @@ jobs:
           docker image ls ${{ env.IMAGE_NAME }}
           docker history ${{ env.IMAGE_NAME }}
       - name: Install go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
         with:
           go-version: "1.22"
           cache-dependency-path: tests/go.sum
@@ -374,7 +374,7 @@ jobs:
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -383,12 +383,12 @@ jobs:
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ steps.esc-secrets.outputs.AWS_CI_ROLE_ARN }}
       - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
         with:
           service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
           workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: "Set up Cloud SDK"
-        uses: "google-github-actions/setup-gcloud@v2"
+        uses: "google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f" # v2
       - name: Tests
         run: |
           docker run \
@@ -454,7 +454,7 @@ jobs:
           echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-ubi" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Setup docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
         with:
           install: true
       - name: Build
@@ -475,7 +475,7 @@ jobs:
           docker image ls ${{ env.IMAGE_NAME }}
           docker history ${{ env.IMAGE_NAME }}
       - name: Install go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
         with:
           go-version: "1.22"
           cache-dependency-path: tests/go.sum
@@ -493,7 +493,7 @@ jobs:
         if: ${{ matrix.sdk != 'dotnet' && matrix.sdk != 'nodejs' }}
         run: echo "SDKS_TO_TEST=${{ matrix.sdk}}" >> $GITHUB_ENV
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -502,12 +502,12 @@ jobs:
           role-session-name: pulumi-docker-containers@githubActions
           role-to-assume: ${{ steps.esc-secrets.outputs.AWS_CI_ROLE_ARN }}
       - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
         with:
           service_account: ${{ env.GCP_SERVICE_ACCOUNT_EMAIL }}
           workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCP_WORKLOAD_IDENTITY_POOL }}/providers/${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       - name: "Set up Cloud SDK"
-        uses: "google-github-actions/setup-gcloud@v2"
+        uses: "google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f" # v2
       - name: Tests
         run: |
           docker run \

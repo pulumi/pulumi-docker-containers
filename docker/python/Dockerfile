@@ -1,9 +1,9 @@
-# syntax = docker/dockerfile:experimental
+# syntax = docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
 # Interim container so we can copy pulumi binaries
 # Must be defined first
 ARG LANGUAGE_VERSION
 
-FROM debian:bookworm-slim AS builder
+FROM debian:bookworm-slim@sha256:e899040a73d36e2b36fa33216943539d9957cba8172b858097c2cabcdb20a3e2 AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
