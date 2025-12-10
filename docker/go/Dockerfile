@@ -3,7 +3,7 @@
 # Must be defined first
 
 # Build container
-FROM ubuntu:noble@sha256:80dd3c3b9c6cecb9f1667e9290b3bc61b78c2678c02cbdae5f0fea92cc6734ab AS builder
+FROM ubuntu:noble@sha256:c35e29c9450151419d9448b0fd75374fec4fff364a27f176fb458d472dfc9e54 AS builder
 
 ARG PULUMI_VERSION
 ARG GO_RUNTIME_VERSION=1.24.2
