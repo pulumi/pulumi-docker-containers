@@ -1,4 +1,4 @@
-# syntax = docker/dockerfile:experimental
+# syntax = docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
 # Interim container so we can copy pulumi binaries
 # Must be defined first
 
@@ -51,7 +51,7 @@ RUN case $(uname -m) in \
     go version
 
 # The runtime container
-FROM debian:12-slim
+FROM debian:12-slim@sha256:e899040a73d36e2b36fa33216943539d9957cba8172b858097c2cabcdb20a3e2
 LABEL org.opencontainers.image.description="Pulumi CLI container for go"
 WORKDIR /pulumi/projects
 
