@@ -1,5 +1,5 @@
-# syntax = docker/dockerfile:experimental
-FROM redhat/ubi9-minimal:latest as builder
+# syntax = docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
+FROM redhat/ubi9-minimal:latest@sha256:6fc28bcb6776e387d7a35a2056d9d2b985dc4e26031e98a2bd35a7137cd6fd71 as builder
 ARG PULUMI_VERSION
 RUN microdnf upgrade -y && microdnf install -y \
   make \
@@ -12,7 +12,7 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
 # The runtime container
 # This is our base container, so let's copy all the runtimes to .pulumi/bin
-FROM redhat/ubi9-minimal:latest
+FROM redhat/ubi9-minimal:latest@sha256:6fc28bcb6776e387d7a35a2056d9d2b985dc4e26031e98a2bd35a7137cd6fd71
 LABEL org.opencontainers.image.description="Pulumi CLI container, bring your own SDK"
 WORKDIR /pulumi
 COPY --from=builder /root/.pulumi/bin bin

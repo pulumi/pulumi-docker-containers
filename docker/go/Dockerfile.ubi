@@ -1,6 +1,6 @@
-# syntax = docker/dockerfile:experimental
+# syntax = docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
 # Interim container so we can copy pulumi binaries
-FROM redhat/ubi9-minimal:latest as builder
+FROM redhat/ubi9-minimal:latest@sha256:6fc28bcb6776e387d7a35a2056d9d2b985dc4e26031e98a2bd35a7137cd6fd71 as builder
 ARG PULUMI_VERSION
 RUN microdnf upgrade -y && microdnf install -y \
     gzip \
@@ -22,7 +22,7 @@ RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${RUNTIME_VERSION}.linux-amd
     go version
 
 # The runtime container
-FROM redhat/ubi9-minimal:latest
+FROM redhat/ubi9-minimal:latest@sha256:6fc28bcb6776e387d7a35a2056d9d2b985dc4e26031e98a2bd35a7137cd6fd71
 LABEL org.opencontainers.image.description="Pulumi CLI container for go"
 WORKDIR /pulumi/projects
 
