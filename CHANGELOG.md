@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.211.0
+
 - Update default Python version to 3.13 & add Python 3.14 to the kitchen sink image
   ([#595](https://github.com/pulumi/pulumi-docker-containers/issues/595))
 
