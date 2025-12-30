@@ -3,7 +3,7 @@
 # Must be defined first
 ARG LANGUAGE_VERSION
 
-FROM debian:bookworm-slim@sha256:e899040a73d36e2b36fa33216943539d9957cba8172b858097c2cabcdb20a3e2 AS builder
+FROM debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
     apt-get upgrade -y && \
