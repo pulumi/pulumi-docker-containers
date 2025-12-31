@@ -58,24 +58,22 @@ RUN \
   ./aws/install && \
   rm -rf aws && \
   rm awscliv2.zip && \
-  # Add additional apt repos
-  curl -fsSL https://download.docker.com/linux/debian/gpg          | apt-key add - && \
-  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-  curl -fsSL https://packages.microsoft.com/keys/microsoft.asc     | apt-key add - && \
-  echo "deb [arch=${TARGETARCH}] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list && \
-  echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main"               | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
-  KUBE_LATEST=$(curl -L -s https://dl.k8s.io/release/stable.txt | awk 'BEGIN { FS="." } { printf "%s.%s", $1, $2 }') && \
+  # Add additional apt repos using modern keyrings approach
   mkdir -p /etc/apt/keyrings && \
+  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/google-cloud.gpg && \
+  echo "deb [arch=${TARGETARCH} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list && \
+  echo "deb [signed-by=/etc/apt/keyrings/google-cloud.gpg] http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
+  KUBE_LATEST=$(curl -L -s https://dl.k8s.io/release/stable.txt | awk 'BEGIN { FS="." } { printf "%s.%s", $1, $2 }') && \
   curl -fsSL https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
   echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list && \
-  echo "deb [arch=${TARGETARCH}] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list && \
-  # Install azure-cli, docker, gcloud, kubectl
+  # Install azure-cli (from Debian repos), docker, gcloud, kubectl
   apt-get update -y && \
   apt-get install -y \
   azure-cli \
   docker-ce \
-  google-cloud-sdk \
-  google-cloud-sdk-gke-gcloud-auth-plugin \
+  google-cloud-cli \
+  google-cloud-cli-gke-gcloud-auth-plugin \
   kubectl && \
   rm -rf /var/lib/apt/lists/*
 
@@ -97,14 +95,9 @@ ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Install Java
-# https://learn.microsoft.com/en-gb/java/openjdk/install
- RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
-  dpkg -i packages-microsoft-prod.deb && \
-  rm packages-microsoft-prod.deb
-
 RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  msopenjdk-21 \
+  openjdk-21-jdk \
   gradle \
   maven && \
   rm -rf /var/lib/apt/lists/*
