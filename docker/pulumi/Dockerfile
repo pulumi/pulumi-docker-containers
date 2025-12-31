@@ -1,8 +1,8 @@
-FROM golang:1.24-bookworm@sha256:328a50f29619c1a805851b8e0606ce94637d65c1b239d2fdccdbc3662c4d7313 as builder
+FROM golang:1.24-trixie as builder
 
 RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.7.4
 
-FROM debian:12@sha256:c66c66fac809bfb56a8001b12f08181a49b6db832d2c8ddabe22b6374264055f AS base
+FROM debian:trixie AS base
 
 # These values are passed in by the build system automatically. The options are: arm64, amd64
 # See: https://docs.docker.com/build/building/variables/#pre-defined-build-arguments
@@ -37,7 +37,6 @@ RUN apt-get update -y && \
   libxml2-dev \
   libxmlsec1-dev \
   lsb-release \
-  software-properties-common \
   unzip  \
   wget \
   xz-utils \
@@ -157,7 +156,6 @@ ENV FNM_VERSION_FILE_STRATEGY="recursive"
 ENV FNM_DIR=/usr/local/share/fnm
 RUN fnm install 20 && \
   fnm install 22 && \
-  fnm install 23 && \
   fnm install 24 && \
   fnm alias 24 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
