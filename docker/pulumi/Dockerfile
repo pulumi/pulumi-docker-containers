@@ -1,8 +1,8 @@
-FROM golang:1.24-bookworm@sha256:328a50f29619c1a805851b8e0606ce94637d65c1b239d2fdccdbc3662c4d7313 as builder
+FROM golang:1.24-trixie as builder
 
 RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.7.4
 
-FROM debian:12@sha256:c66c66fac809bfb56a8001b12f08181a49b6db832d2c8ddabe22b6374264055f AS base
+FROM debian:trixie AS base
 
 # These values are passed in by the build system automatically. The options are: arm64, amd64
 # See: https://docs.docker.com/build/building/variables/#pre-defined-build-arguments
@@ -37,7 +37,6 @@ RUN apt-get update -y && \
   libxml2-dev \
   libxmlsec1-dev \
   lsb-release \
-  software-properties-common \
   unzip  \
   wget \
   xz-utils \
@@ -59,24 +58,22 @@ RUN \
   ./aws/install && \
   rm -rf aws && \
   rm awscliv2.zip && \
-  # Add additional apt repos
-  curl -fsSL https://download.docker.com/linux/debian/gpg          | apt-key add - && \
-  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-  curl -fsSL https://packages.microsoft.com/keys/microsoft.asc     | apt-key add - && \
-  echo "deb [arch=${TARGETARCH}] https://download.docker.com/linux/debian $(lsb_release -cs) stable"      | tee /etc/apt/sources.list.d/docker.list && \
-  echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main"               | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
-  KUBE_LATEST=$(curl -L -s https://dl.k8s.io/release/stable.txt | awk 'BEGIN { FS="." } { printf "%s.%s", $1, $2 }') && \
+  # Add additional apt repos using modern keyrings approach
   mkdir -p /etc/apt/keyrings && \
+  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/google-cloud.gpg && \
+  echo "deb [arch=${TARGETARCH} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list && \
+  echo "deb [signed-by=/etc/apt/keyrings/google-cloud.gpg] http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
+  KUBE_LATEST=$(curl -L -s https://dl.k8s.io/release/stable.txt | awk 'BEGIN { FS="." } { printf "%s.%s", $1, $2 }') && \
   curl -fsSL https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
   echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list && \
-  echo "deb [arch=${TARGETARCH}] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/azure.list && \
-  # Install azure-cli, docker, gcloud, kubectl
+  # Install azure-cli (from Debian repos), docker, gcloud, kubectl
   apt-get update -y && \
   apt-get install -y \
   azure-cli \
   docker-ce \
-  google-cloud-sdk \
-  google-cloud-sdk-gke-gcloud-auth-plugin \
+  google-cloud-cli \
+  google-cloud-cli-gke-gcloud-auth-plugin \
   kubectl && \
   rm -rf /var/lib/apt/lists/*
 
@@ -98,14 +95,9 @@ ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Install Java
-# https://learn.microsoft.com/en-gb/java/openjdk/install
- RUN curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
-  dpkg -i packages-microsoft-prod.deb && \
-  rm packages-microsoft-prod.deb
-
 RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  msopenjdk-21 \
+  openjdk-21-jdk \
   gradle \
   maven && \
   rm -rf /var/lib/apt/lists/*
@@ -157,7 +149,6 @@ ENV FNM_VERSION_FILE_STRATEGY="recursive"
 ENV FNM_DIR=/usr/local/share/fnm
 RUN fnm install 20 && \
   fnm install 22 && \
-  fnm install 23 && \
   fnm install 24 && \
   fnm alias 24 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH

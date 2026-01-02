@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Update Debian-based images to Debian Trixie (13).
+- Remove Node.js 23 support (EOL).
+
 ## 3.211.0
 
 - Update default Python version to 3.13 & add Python 3.14 to the kitchen sink image
