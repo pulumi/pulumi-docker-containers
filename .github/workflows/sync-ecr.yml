@@ -32,6 +32,8 @@ jobs:
     name: Kitchen Sink images
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
+      max-parallel: 2
       matrix:
         include:
           - image: pulumi-provider-build-environment
@@ -113,6 +115,7 @@ jobs:
     needs: define-debian-matrix
     strategy:
       fail-fast: false
+      max-parallel: 2
       matrix: ${{ fromJSON(needs.define-debian-matrix.outputs.matrix) }}
     steps:
       - name: Fetch secrets from ESC
@@ -186,6 +189,7 @@ jobs:
     needs: define-ubi-matrix
     strategy:
       fail-fast: false
+      max-parallel: 2
       matrix: ${{ fromJSON(needs.define-ubi-matrix.outputs.matrix) }}
     steps:
       - name: Fetch secrets from ESC
