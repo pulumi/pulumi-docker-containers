@@ -352,12 +352,17 @@ jobs:
 
   base:
     name: Base image
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         os: ["debian", "ubi"]
         arch: ["arm64", "amd64"]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Fetch secrets from ESC
         id: esc-secrets

@@ -272,11 +272,17 @@ jobs:
 
   base:
     name: Base image
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         os: ["debian", "ubi"]
+        arch: ["arm64", "amd64"]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
@@ -296,7 +302,7 @@ jobs:
         run: |
           docker build \
             -f docker/base/Dockerfile.${{ matrix.os }} \
-            --platform linux/arm64,linux/amd64 \
+            --platform linux/${{ matrix.arch }} \
             . \
             -t ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
