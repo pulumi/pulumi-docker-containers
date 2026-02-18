@@ -41,7 +41,6 @@ RUN curl -fsSL "https://get.sdkman.io" | bash \
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
-COPY --from=builder /root/.pulumi/bin/pulumi-analyzer-policy /pulumi/bin/
 
 ENV PATH="/pulumi/bin:/root/.sdkman/candidates/maven/current/bin:/root/.sdkman/candidates/gradle/current/bin:${PATH}" \
     JAVA_HOME="/usr/lib/jvm/jre-21-openjdk" \
