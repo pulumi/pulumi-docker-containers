@@ -1,4 +1,4 @@
-FROM golang:1.24-trixie as builder
+FROM golang:1.26-trixie as builder
 
 RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.7.4
 
@@ -13,9 +13,9 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.24.5
-ENV GOLANG_AMD64_SHA256 10ad9e86233e74c0f6590fe5426895de6bf388964210eac34a6d83f38918ecdc
-ENV GOLANG_ARM64_SHA256 0df02e6aeb3d3c06c95ff201d575907c736d6c62cfa4b6934c11203f1d600ffa
+ENV GOLANG_VERSION 1.26.0
+ENV GOLANG_AMD64_SHA256 aac1b08a0fb0c4e0a7c1555beb7b59180b05dfc5a3d62e40e9de90cd42f88235
+ENV GOLANG_ARM64_SHA256 bd03b743eb6eb4193ea3c3fd3956546bf0e3ca5b7076c8226334afe6b75704cd
 
 # Install base dependencies
 RUN apt-get update -y && \
