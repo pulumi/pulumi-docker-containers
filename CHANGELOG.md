@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Update Go version to 1.26
+  ([#651](https://github.com/pulumi/pulumi-docker-containers/pull/651))
+
+## 3.214.1
+
 - Update Debian-based images to Debian Trixie (13).
 - Remove Node.js 23 support (EOL).
 

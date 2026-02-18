@@ -39,7 +39,7 @@ Images are pushed to:
 Images without a version suffix use the following language versions by default:
 
  - .NET 8.0
- - Go 1.24
+ - Go 1.26
  - JDK 21
  - Node.js 24
  - Python 3.13
