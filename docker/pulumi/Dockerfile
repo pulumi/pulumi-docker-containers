@@ -163,6 +163,9 @@ ARG PULUMI_VERSION
 # Install the Pulumi SDK, including the CLI and language runtimes.
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION && \
   mv ~/.pulumi/bin/* /usr/bin
+
+# Install the OPA policy analyzer plugin so OPA-based policy packs work out of the box.
+RUN pulumi plugin install analyzer policy-opa
 ENV PATH="/pulumi/bin:${PATH}"
 
 # I think it's safe to say if we're using this mega image, we want pulumi

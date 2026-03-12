@@ -5,6 +5,9 @@
 - Update Go version to 1.26
   ([#651](https://github.com/pulumi/pulumi-docker-containers/pull/651))
 
+- Install OPA policy analyzer plugin in the kitchen sink image
+  ([#664](https://github.com/pulumi/pulumi-docker-containers/pull/664))
+
 ## 3.214.1
 
 - Update Debian-based images to Debian Trixie (13).
