@@ -18,10 +18,11 @@ MAX_CHUNKS = 2
 with open("snyk.sarif") as f:
     sarif = json.load(f)
 
-runs = sarif["runs"]
+# Remove runs with no results to stay well within the chunk limit.
+runs = [run for run in sarif["runs"] if len(run["results"]) > 0]
 if len(runs) == 0:
-    print("error: snyk.sarif contains no runs", file=sys.stderr)
-    sys.exit(1)
+    # Keep at least one run so the upload is valid.
+    runs = [sarif["runs"][0]]
 
 num_chunks = (len(runs) + MAX_RUNS - 1) // MAX_RUNS
 if num_chunks > MAX_CHUNKS:
