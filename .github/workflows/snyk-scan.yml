@@ -59,7 +59,7 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out.sarif
+          sarif_file: out/
 
   provider-build-environment:
     name: Provider Build Environment
@@ -99,7 +99,7 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out.sarif
+          sarif_file: out/
 
   base:
     name: Base image
@@ -136,7 +136,7 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out.sarif
+          sarif_file: out/
 
   define-debian-matrix:
     runs-on: ubuntu-latest
@@ -189,7 +189,7 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out.sarif
+          sarif_file: out/
           category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64
       - name: Set image name - arm64
         run: |
@@ -207,7 +207,7 @@ jobs:
       - name: Upload result to GitHub Code Scanning - arm64
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out.sarif
+          sarif_file: out/
           category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64
 
   ubi-sdk:
@@ -244,4 +244,4 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out.sarif
+          sarif_file: out/
