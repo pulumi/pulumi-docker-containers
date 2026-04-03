@@ -59,7 +59,14 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out/
+          sarif_file: out_0.sarif
+          category: kitchen-sink${{ matrix.suffix }}-${{ matrix.arch }}-0
+      - name: Upload result to GitHub Code Scanning (overflow)
+        if: hashFiles('out_1.sarif') != ''
+        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        with:
+          sarif_file: out_1.sarif
+          category: kitchen-sink${{ matrix.suffix }}-${{ matrix.arch }}-1
 
   provider-build-environment:
     name: Provider Build Environment
@@ -99,7 +106,14 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out/
+          sarif_file: out_0.sarif
+          category: provider-build-environment-${{ matrix.arch }}-0
+      - name: Upload result to GitHub Code Scanning (overflow)
+        if: hashFiles('out_1.sarif') != ''
+        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        with:
+          sarif_file: out_1.sarif
+          category: provider-build-environment-${{ matrix.arch }}-1
 
   base:
     name: Base image
@@ -136,7 +150,14 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out/
+          sarif_file: out_0.sarif
+          category: base-${{ matrix.os }}-${{ matrix.arch }}-0
+      - name: Upload result to GitHub Code Scanning (overflow)
+        if: hashFiles('out_1.sarif') != ''
+        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        with:
+          sarif_file: out_1.sarif
+          category: base-${{ matrix.os }}-${{ matrix.arch }}-1
 
   define-debian-matrix:
     runs-on: ubuntu-latest
@@ -189,8 +210,14 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out/
-          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64
+          sarif_file: out_0.sarif
+          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64-0
+      - name: Upload result to GitHub Code Scanning (overflow)
+        if: hashFiles('out_1.sarif') != ''
+        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        with:
+          sarif_file: out_1.sarif
+          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64-1
       - name: Set image name - arm64
         run: |
           echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64" >> $GITHUB_ENV
@@ -207,8 +234,14 @@ jobs:
       - name: Upload result to GitHub Code Scanning - arm64
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out/
-          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64
+          sarif_file: out_0.sarif
+          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64-0
+      - name: Upload result to GitHub Code Scanning - arm64 (overflow)
+        if: hashFiles('out_1.sarif') != ''
+        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        with:
+          sarif_file: out_1.sarif
+          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64-1
 
   ubi-sdk:
     name: UBI SDK images
@@ -244,4 +277,11 @@ jobs:
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out/
+          sarif_file: out_0.sarif
+          category: ubi-${{ matrix.sdk }}-0
+      - name: Upload result to GitHub Code Scanning (overflow)
+        if: hashFiles('out_1.sarif') != ''
+        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
+        with:
+          sarif_file: out_1.sarif
+          category: ubi-${{ matrix.sdk }}-1
