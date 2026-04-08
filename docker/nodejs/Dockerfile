@@ -22,7 +22,7 @@ LABEL org.opencontainers.image.description="Pulumi CLI container for nodejs"
 WORKDIR /pulumi/projects
 
 # renovate: datasource=npm depName=npm
-ENV NPM_VERSION 10.5.1
+ENV NPM_VERSION 10.9.8
 
 # Install needed tools, like git
 RUN apt-get update -y && \
