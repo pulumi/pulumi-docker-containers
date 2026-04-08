@@ -9,7 +9,7 @@
     // Update `go install <module>@<version>` lines in Dockerfiles.
     {
       customType: "regex",
-      managerFilePatterns: ["/(^|/)Dockerfile$/"],
+      fileMatch: ["(^|/)Dockerfile$"],
       matchStrings: [
         "go install (?<depName>[^\\s@]+)@(?<currentValue>v\\S+)",
       ],
@@ -20,7 +20,7 @@
     //   # renovate: datasource=<ds> depName=<name> [extractVersion=<re>]
     {
       customType: "regex",
-      managerFilePatterns: ["/(^|/)Dockerfile(\\.\\w+)?$/"],
+      fileMatch: ["(^|/)Dockerfile(\\.\\w+)?$"],
       matchStrings: [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+ENV \\w+ (?<currentValue>\\S+)",
       ],
