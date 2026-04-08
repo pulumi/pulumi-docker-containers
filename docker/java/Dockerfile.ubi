@@ -16,7 +16,9 @@ FROM redhat/ubi9-minimal:latest@sha256:6fc28bcb6776e387d7a35a2056d9d2b985dc4e260
 LABEL org.opencontainers.image.description="Pulumi CLI container for Java"
 WORKDIR /pulumi/projects
 
+# renovate: datasource=github-tags depName=apache/maven extractVersion=^maven-(?<version>.+)$
 ENV MAVEN_VERSION 3.9.10
+# renovate: datasource=gradle-version depName=gradle
 ENV GRADLE_VERSION 8.14.2
 
 RUN microdnf upgrade -y && microdnf install -y \

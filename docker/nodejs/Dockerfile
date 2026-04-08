@@ -21,13 +21,16 @@ FROM node:${LANGUAGE_VERSION}-trixie-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for nodejs"
 WORKDIR /pulumi/projects
 
+# renovate: datasource=npm depName=npm
+ENV NPM_VERSION 10.5.1
+
 # Install needed tools, like git
 RUN apt-get update -y && \
     apt-get install -y \
     curl \
     git \
     ca-certificates && \
-    npm install -g npm@10.5.1 bun pnpm
+    npm install -g npm@${NPM_VERSION} bun pnpm
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
