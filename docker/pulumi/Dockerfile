@@ -209,12 +209,12 @@ FROM base AS build-environment
 
 ARG TARGETARCH
 
-# https://github.com/pulumi/pulumictl/releases
-ENV PULUMICTL_VERSION 0.0.50
-# https://github.com/golangci/golangci-lint/releases
-ENV GOLANGCI_LINT_VERSION 2.3.0
-# https://github.com/goreleaser/goreleaser/releases
-ENV GORELEASER_VERSION 2.11.1
+# renovate: datasource=github-releases depName=pulumi/pulumictl
+ENV PULUMICTL_VERSION v0.0.50
+# renovate: datasource=github-releases depName=golangci/golangci-lint
+ENV GOLANGCI_LINT_VERSION v2.3.0
+# renovate: datasource=github-releases depName=goreleaser/goreleaser
+ENV GORELEASER_VERSION v2.11.1
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
@@ -232,7 +232,7 @@ RUN \
     --fail \
     --verbose \
     --output "pulumictl.tar.gz" \
-    "https://github.com/pulumi/pulumictl/releases/download/v${PULUMICTL_VERSION}/pulumictl-v${PULUMICTL_VERSION}-linux-${TARGETARCH}.tar.gz" && \
+    "https://github.com/pulumi/pulumictl/releases/download/${PULUMICTL_VERSION}/pulumictl-${PULUMICTL_VERSION}-linux-${TARGETARCH}.tar.gz" && \
     mkdir pulumictl_extraction && \
     tar --extract --gunzip --verbose --directory pulumictl_extraction --file pulumictl.tar.gz && \
     mv pulumictl_extraction/pulumictl /usr/local/bin/pulumictl && \
@@ -247,7 +247,7 @@ RUN \
     --fail \
     --location \
     https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-    | sh -s -- -b "$(go env GOPATH)/bin" "v${GOLANGCI_LINT_VERSION}" && \
+    | sh -s -- -b "$(go env GOPATH)/bin" "${GOLANGCI_LINT_VERSION}" && \
     # Install goreleaser
     curl \
     --proto "=https" \
@@ -256,7 +256,7 @@ RUN \
     --fail \
     --verbose \
     --output "goreleaser.tar.gz" \
-    "https://github.com/goreleaser/goreleaser/releases/download/v${GORELEASER_VERSION}/goreleaser_Linux_${GORELEASER_ARCH}.tar.gz" && \
+    "https://github.com/goreleaser/goreleaser/releases/download/${GORELEASER_VERSION}/goreleaser_Linux_${GORELEASER_ARCH}.tar.gz" && \
     mkdir goreleaser_extraction && \
     tar --extract --gunzip --verbose --directory goreleaser_extraction --file goreleaser.tar.gz && \
     mv goreleaser_extraction/goreleaser /usr/local/bin/goreleaser && \
