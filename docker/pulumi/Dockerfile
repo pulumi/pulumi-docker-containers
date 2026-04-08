@@ -212,7 +212,7 @@ ARG TARGETARCH
 # renovate: datasource=github-releases depName=pulumi/pulumictl
 ENV PULUMICTL_VERSION v0.0.50
 # renovate: datasource=github-releases depName=golangci/golangci-lint
-ENV GOLANGCI_LINT_VERSION v2.3.0
+ENV GOLANGCI_LINT_VERSION v2.11.4
 # renovate: datasource=github-releases depName=goreleaser/goreleaser
 ENV GORELEASER_VERSION v2.11.1
 
