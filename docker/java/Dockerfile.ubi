@@ -17,7 +17,7 @@ LABEL org.opencontainers.image.description="Pulumi CLI container for Java"
 WORKDIR /pulumi/projects
 
 # renovate: datasource=github-tags depName=apache/maven extractVersion=^maven-(?<version>.+)$
-ENV MAVEN_VERSION 3.9.10
+ENV MAVEN_VERSION 3.9.14
 # renovate: datasource=gradle-version depName=gradle
 ENV GRADLE_VERSION 8.14.4
 
