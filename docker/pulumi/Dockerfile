@@ -1,6 +1,6 @@
 FROM golang:1.26-trixie as builder
 
-RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.7.4
+RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.7.13
 
 FROM debian:trixie AS base
 
