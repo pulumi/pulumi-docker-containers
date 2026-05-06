@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add Node.js 26 and drop 20
+  ([#703](https://github.com/pulumi/pulumi-docker-containers/pull/703))
+
+## 3.234.0
+
 - Update Go version to 1.26
   ([#651](https://github.com/pulumi/pulumi-docker-containers/pull/651))
 
