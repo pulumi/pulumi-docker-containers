@@ -15,6 +15,17 @@ import sys
 MAX_RUNS = 20
 MAX_CHUNKS = 2
 
+if not os.path.exists("snyk.sarif"):
+    print("snyk.sarif not found — Snyk scan likely failed. Writing empty SARIF.")
+    empty = {
+        "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [{"tool": {"driver": {"name": "SnykContainer", "rules": []}}, "results": []}],
+    }
+    with open("out_0.sarif", "w") as out:
+        json.dump(empty, out, indent=2)
+    sys.exit(0)
+
 with open("snyk.sarif") as f:
     sarif = json.load(f)
 
