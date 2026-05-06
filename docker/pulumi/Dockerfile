@@ -147,10 +147,10 @@ RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/usr/l
 ENV FNM_COREPACK_ENABLED="true"
 ENV FNM_VERSION_FILE_STRATEGY="recursive"
 ENV FNM_DIR=/usr/local/share/fnm
-RUN fnm install 20 && \
-  fnm install 22 && \
+RUN fnm install 22 && \
   fnm install 24 && \
-  fnm alias 24 default
+  fnm install 26 && \
+  fnm alias 26 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
 RUN npm install -g corepack bun && \
     corepack install -g pnpm yarn@1

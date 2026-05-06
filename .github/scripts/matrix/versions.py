@@ -7,8 +7,8 @@ unversioned = ["go", "java"]
 # The additional versions are used for the suffixed images `pulumi-python-3.10`, `pulumi-python-3.11`, ...
 versioned = {
     "nodejs": {
-        "default": "24",
-        "additional": ["20", "22"]
+        "default": "26",
+        "additional": ["22", "24"]
     },
     "python": {
         "default": "3.13",
