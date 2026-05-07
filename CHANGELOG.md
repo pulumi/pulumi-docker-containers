@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Pin pnpm to v10
+  ([#706](https://github.com/pulumi/pulumi-docker-containers/pull/706))
+
+## 3.234.0
+
 - Update Go version to 1.26
   ([#651](https://github.com/pulumi/pulumi-docker-containers/pull/651))
 
