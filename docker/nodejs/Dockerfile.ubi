@@ -17,6 +17,7 @@ WORKDIR /pulumi/projects
 RUN microdnf upgrade -y && microdnf install -y \
     ca-certificates \
     git \
+    libatomic \
     tar \
     unzip
 
