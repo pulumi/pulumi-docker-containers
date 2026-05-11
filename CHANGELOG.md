@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add Node.js 26 and drop 20
+  ([#703](https://github.com/pulumi/pulumi-docker-containers/pull/703))
+
+## 3.237.0
+
 - Pin pnpm to v10
   ([#706](https://github.com/pulumi/pulumi-docker-containers/pull/706))
 

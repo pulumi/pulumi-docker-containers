@@ -17,13 +17,13 @@ WORKDIR /pulumi/projects
 RUN microdnf upgrade -y && microdnf install -y \
     ca-certificates \
     git \
+    libatomic \
     tar \
     unzip
 
 # Install nodejs using fnm
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/usr/local/share/fnm" --skip-shell && \
     ln -s /usr/local/share/fnm/fnm /usr/local/bin/fnm
-ENV FNM_COREPACK_ENABLED="true"
 ENV FNM_DIR=/usr/local/share/fnm
 RUN fnm install ${LANGUAGE_VERSION} && \
     fnm alias ${LANGUAGE_VERSION} default

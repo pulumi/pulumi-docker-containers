@@ -30,7 +30,8 @@ RUN apt-get update -y && \
     curl \
     git \
     ca-certificates && \
-    npm install -g npm@${NPM_VERSION} bun pnpm@^10
+    npm install -g npm@${NPM_VERSION} bun pnpm@^10 corepack && \
+    corepack install -g yarn@1
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
