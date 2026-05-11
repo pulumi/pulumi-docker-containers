@@ -5,6 +5,6 @@ const version = semver.parse(process.version, {
   loose: true
 });
 
-if (version?.major != 24) {
-  throw new Error(`Expected node version 24.x.x, got ${process.version}`);
+if (version?.major != 26) {
+  throw new Error(`Expected node version 26.x.x, got ${process.version}`);
 }
