@@ -144,7 +144,6 @@ RUN ln -s /usr/local/share/uv/uvx /usr/local/bin/
 # Install default nodejs versions and associated tools
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/usr/local/share/fnm" --skip-shell && \
   ln -s /usr/local/share/fnm/fnm /usr/local/bin/fnm
-ENV FNM_COREPACK_ENABLED="true"
 ENV FNM_VERSION_FILE_STRATEGY="recursive"
 ENV FNM_DIR=/usr/local/share/fnm
 RUN fnm install 22 && \
