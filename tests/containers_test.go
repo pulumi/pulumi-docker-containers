@@ -212,6 +212,7 @@ func TestBunRuntime(t *testing.T) {
 	p := filepath.Join("testdata", "node-bun")
 	copyTestData(t, p)
 	integration.ProgramTest(t, &integration.ProgramTestOptions{
+		NoParallel:  true, // ProgramTest calls t.Parallel itself; we already did above.
 		Dir:         p,
 		Quick:       true,
 		SkipRefresh: true,
