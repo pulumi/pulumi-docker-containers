@@ -1,0 +1,3 @@
+name: node-bun
+runtime: bun
+description: A minimal Bun Pulumi program

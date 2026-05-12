@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Include `pulumi-language-bun` in the nodejs images so the Bun language runtime
+  can be used out of the box.
+  ([#709](https://github.com/pulumi/pulumi-docker-containers/issues/709))
+
 - Add Node.js 26 and drop 20
   ([#703](https://github.com/pulumi/pulumi-docker-containers/pull/703))
 
