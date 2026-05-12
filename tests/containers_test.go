@@ -172,6 +172,11 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 				// The `node-default` test is run first, so we skip it here.
 				t.Skip()
 			}
+			if dir.Name() == "node-bun" {
+				// The `node-bun` test is covered by TestBunRuntime, which runs on
+				// every container that has nodejs (including the kitchen sink).
+				t.Skip()
+			}
 			p := filepath.Join("testdata", dir.Name())
 			copyTestData(t, p)
 			integration.ProgramTest(t, &integration.ProgramTestOptions{
@@ -193,6 +198,34 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 			})
 		})
 	}
+}
+
+// TestBunRuntime verifies that a Pulumi program using the bun language runtime
+// can be installed and previewed on any container that ships nodejs. Regression
+// test for https://github.com/pulumi/pulumi-docker-containers/issues/709.
+func TestBunRuntime(t *testing.T) {
+	if !hasNodejs(t) {
+		t.Skip("Skipping test for images without nodejs")
+	}
+	t.Parallel()
+
+	p := filepath.Join("testdata", "node-bun")
+	copyTestData(t, p)
+	integration.ProgramTest(t, &integration.ProgramTestOptions{
+		NoParallel:  true, // ProgramTest calls t.Parallel itself; we already did above.
+		Dir:         p,
+		Quick:       true,
+		SkipRefresh: true,
+		PrepareProject: func(info *engine.Projinfo) error {
+			cmd := exec.Command("pulumi", "install")
+			cmd.Dir = info.Root
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				t.Logf("install failed: %s: %s", err, out)
+			}
+			return err
+		},
+	})
 }
 
 func TestCLIToolTests(t *testing.T) {

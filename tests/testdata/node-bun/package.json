@@ -1,0 +1,14 @@
+{
+    "name": "node-bun",
+    "main": "index.ts",
+    "type": "module",
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "dependencies": {
+        "@pulumi/pulumi": "^3.226.0"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    }
+}
