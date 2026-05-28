@@ -237,7 +237,11 @@ func TestCorepack(t *testing.T) {
 	if !hasNodejs(t) {
 		t.Skip("Skipping test for images without nodejs")
 	}
-	t.Parallel()
+	// Intentionally NOT parallel. On the kitchen sink this switches the container's
+	// global node version (via --use-language-version-tools), so running concurrently
+	// would corrupt the other node-version-dependent tests (TestKitchenSinkLanguageVersions,
+	// TestBunRuntime) and vice versa. Staying serial keeps it isolated and leaves the
+	// default version active when it finishes.
 
 	// The kitchen sink ships multiple node versions via fnm; corepack must work on
 	// each of them. Other nodejs images ship a single version, so we test the
