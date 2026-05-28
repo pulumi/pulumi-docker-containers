@@ -1,0 +1,6 @@
+name: node-corepack
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
+description: Verifies corepack is enabled and honors the packageManager field in package.json

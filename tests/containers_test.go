@@ -177,6 +177,11 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 				// every container that has nodejs (including the kitchen sink).
 				t.Skip()
 			}
+			if dir.Name() == "node-corepack" {
+				// The `node-corepack` test is covered by TestCorepack, which exercises
+				// corepack across every node version the image ships.
+				t.Skip()
+			}
 			p := filepath.Join("testdata", dir.Name())
 			copyTestData(t, p)
 			integration.ProgramTest(t, &integration.ProgramTestOptions{
@@ -226,6 +231,58 @@ func TestBunRuntime(t *testing.T) {
 			return err
 		},
 	})
+}
+
+func TestCorepack(t *testing.T) {
+	if !hasNodejs(t) {
+		t.Skip("Skipping test for images without nodejs")
+	}
+	t.Parallel()
+
+	// The kitchen sink ships multiple node versions via fnm; corepack must work on
+	// each of them. Other nodejs images ship a single version, so we test the
+	// default. An empty version means "use the image default, don't switch".
+	versions := []string{""}
+	if isKitchenSink(t) {
+		versions = []string{"22", "24", "26"}
+	}
+
+	for _, version := range versions {
+		version := version
+		name := "default"
+		if version != "" {
+			name = "node-" + version
+		}
+		t.Run(name, func(t *testing.T) {
+			p := filepath.Join("testdata", "node-corepack")
+			copyTestData(t, p)
+			if version != "" {
+				nodeVersion := filepath.Join(p, ".node-version")
+				require.NoError(t, os.WriteFile(nodeVersion, []byte(version+"\n"), os.ModePerm))
+			}
+			integration.ProgramTest(t, &integration.ProgramTestOptions{
+				// We can't run the node tests in parallel because setting the node
+				// version is global for the container.
+				NoParallel:  true,
+				Dir:         p,
+				Quick:       true,
+				SkipRefresh: true,
+				PrepareProject: func(info *engine.Projinfo) error {
+					args := []string{"install"}
+					if version != "" {
+						args = append(args, "--use-language-version-tools")
+					}
+					cmd := exec.Command("pulumi", args...)
+					cmd.Dir = info.Root
+					out, err := cmd.CombinedOutput()
+					if err != nil {
+						t.Logf("install failed: %s: %s", err, out)
+					}
+					return err
+				},
+			})
+		})
+	}
 }
 
 func TestCLIToolTests(t *testing.T) {

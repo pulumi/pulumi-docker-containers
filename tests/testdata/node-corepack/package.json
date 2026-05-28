@@ -1,0 +1,12 @@
+{
+    "name": "node-corepack",
+    "main": "index.ts",
+    "devDependencies": {
+        "@types/node": "^18",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "@pulumi/pulumi": "latest"
+    },
+    "packageManager": "pnpm@9.15.0"
+}
