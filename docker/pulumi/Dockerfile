@@ -151,8 +151,11 @@ RUN fnm install 22 && \
   fnm install 26 && \
   fnm alias 26 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
-RUN npm install -g corepack bun && \
-    corepack install -g pnpm@^10 yarn@1
+RUN npm install -g corepack bun
+RUN for bin in /usr/local/share/fnm/node-versions/*/installation/bin; do \
+      "$bin/node" "$bin/corepack" enable --install-directory "$bin"; \
+    done
+RUN corepack install -g pnpm@^10 yarn@1
 
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
 # of the SDK. Otherwise, we use whatever get.pulumi.com thinks is
