@@ -106,6 +106,14 @@ func TestPulumiTemplateTests(t *testing.T) {
 		// globally shared S3 namespace, so creates can fail with BucketAlreadyExists.
 		// Retrying generates a fresh name. https://github.com/pulumi/pulumi-docker-containers/issues/737
 		RetryFailedSteps: true,
+		// The aws-* and gcp-* templates name their bucket `my-bucket`, and S3/GCS bucket
+		// names are global across all accounts. The default 7-hex-char auto-name suffix
+		// collides with other users of these templates; widen it to 12. Azure is left on
+		// default naming because storage accounts forbid hyphens and cap names at 24 chars.
+		OrderedConfig: []integration.ConfigValue{
+			{Key: "pulumi:autonaming.providers.aws.pattern", Value: "${name}-${hex(12)}", Path: true},
+			{Key: "pulumi:autonaming.providers.gcp.pattern", Value: "${name}-${hex(12)}", Path: true},
+		},
 	}
 
 	for _, test := range testCases {
