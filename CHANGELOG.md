@@ -5,6 +5,11 @@
 - Fix corepack
   ([#725](https://github.com/pulumi/pulumi-docker-containers/pull/725))
 
+- Update `aws-iam-authenticator` to v0.7.17 in the `pulumi` image, and install
+  it from the upstream release binaries instead of `go install` since newer
+  releases can no longer be installed that way.
+  ([#681](https://github.com/pulumi/pulumi-docker-containers/pull/681))
+
 ## 3.234
 
 - Include `pulumi-language-bun` in the nodejs images so the Bun language runtime
