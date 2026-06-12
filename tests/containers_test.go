@@ -102,6 +102,10 @@ func TestPulumiTemplateTests(t *testing.T) {
 		Quick:                true,
 		SkipRefresh:          true,
 		NoParallel:           true, // we mark tests as Parallel manually when instantiating
+		// The aws-* templates create a bucket whose auto-named suffix draws from the
+		// globally shared S3 namespace, so creates can fail with BucketAlreadyExists.
+		// Retrying generates a fresh name. https://github.com/pulumi/pulumi-docker-containers/issues/737
+		RetryFailedSteps: true,
 	}
 
 	for _, test := range testCases {

@@ -157,6 +157,7 @@ jobs:
             -e RUN_CONTAINER_TESTS=true \
             -e IMAGE_VARIANT=pulumi${{ matrix.variant }} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
             -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
@@ -252,6 +253,7 @@ jobs:
             -e RUN_CONTAINER_TESTS=true \
             -e IMAGE_VARIANT=pulumi \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
             -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
@@ -403,6 +405,7 @@ jobs:
             -e LANGUAGE_VERSION=${{ matrix.language_version }} \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
             -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
@@ -522,6 +525,7 @@ jobs:
             -e LANGUAGE_VERSION=${{ matrix.language_version }} \
             -e SDKS_TO_TEST=${SDKS_TO_TEST} \
             -e PULUMI_ACCESS_TOKEN=${PULUMI_ACCESS_TOKEN} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PULUMI_ORG=${PULUMI_ORG} \
             -e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
             -e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
