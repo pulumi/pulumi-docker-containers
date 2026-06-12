@@ -1,7 +1,3 @@
-FROM golang:1.26-trixie as builder
-
-RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator@v0.7.4
-
 FROM debian:trixie AS base
 
 # These values are passed in by the build system automatically. The options are: arm64, amd64
@@ -16,6 +12,9 @@ LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker containe
 ENV GOLANG_VERSION 1.26.0
 ENV GOLANG_AMD64_SHA256 aac1b08a0fb0c4e0a7c1555beb7b59180b05dfc5a3d62e40e9de90cd42f88235
 ENV GOLANG_ARM64_SHA256 bd03b743eb6eb4193ea3c3fd3956546bf0e3ca5b7076c8226334afe6b75704cd
+
+# renovate: datasource=github-releases depName=kubernetes-sigs/aws-iam-authenticator
+ENV AWS_IAM_AUTHENTICATOR_VERSION v0.7.17
 
 # Install base dependencies
 RUN apt-get update -y && \
@@ -44,7 +43,6 @@ RUN apt-get update -y && \
   rm -rf /var/lib/apt/lists/*
 
 # Install cloud tools
-COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/aws-iam-authenticator
 RUN \
   # Setup environment variables for architecture-specific packages
   if [ "$TARGETARCH" = "arm64" ]; then \
@@ -52,6 +50,15 @@ RUN \
   else \
     AWSCLI_ARCH=x86_64; \
   fi && \
+  # aws-iam-authenticator, verified against the checksums published with the release
+  AUTHENTICATOR_FILE="aws-iam-authenticator_${AWS_IAM_AUTHENTICATOR_VERSION#v}_linux_${TARGETARCH}" && \
+  AUTHENTICATOR_BASE_URL="https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/${AWS_IAM_AUTHENTICATOR_VERSION}" && \
+  curl --proto "=https" --tlsv1.2 --fail --location --remote-name "${AUTHENTICATOR_BASE_URL}/${AUTHENTICATOR_FILE}" && \
+  curl --proto "=https" --tlsv1.2 --fail --location --silent --show-error \
+    "${AUTHENTICATOR_BASE_URL}/authenticator_${AWS_IAM_AUTHENTICATOR_VERSION#v}_checksums.txt" \
+    | grep " ${AUTHENTICATOR_FILE}\$" | sha256sum --check - && \
+  install --mode 755 "${AUTHENTICATOR_FILE}" /usr/bin/aws-iam-authenticator && \
+  rm "${AUTHENTICATOR_FILE}" && \
   # AWS v2 cli
   curl "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" -o "awscliv2.zip" && \
   unzip awscliv2.zip && \
