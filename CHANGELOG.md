@@ -10,6 +10,9 @@
   releases can no longer be installed that way.
   ([#681](https://github.com/pulumi/pulumi-docker-containers/pull/681))
 
+- Add yq to the `pulumi/pulumi` container
+  ([#756](https://github.com/pulumi/pulumi-docker-containers/pull/756))
+
 ## 3.234
 
 - Include `pulumi-language-bun` in the nodejs images so the Bun language runtime
