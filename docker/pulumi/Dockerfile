@@ -39,6 +39,7 @@ RUN apt-get update -y && \
   unzip  \
   wget \
   xz-utils \
+  yq \
   zlib1g-dev && \
   rm -rf /var/lib/apt/lists/*
 
