@@ -25,6 +25,7 @@ RUN apt-get update -y && \
     apt-get install -y \
     curl \
     git \
+    yq \
     ca-certificates
 
 # Install poetry
