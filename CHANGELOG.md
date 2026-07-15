@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a .NET10.0 container([#743](https://github.com/pulumi/pulumi-docker-containers/pull/743))
+
 - Fix corepack
   ([#725](https://github.com/pulumi/pulumi-docker-containers/pull/725))
 
