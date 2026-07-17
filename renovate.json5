@@ -2,9 +2,11 @@
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: [
     'github>pulumi/renovate-config//default.json5',
+    // Don't pin docker images to digests
     'default:pinDigestsDisabled',
   ],
   customManagers: [
+    // Update `go install <module>@<version>` lines in Dockerfiles.
     {
       customType: 'regex',
       managerFilePatterns: [
@@ -15,6 +17,9 @@
       ],
       datasourceTemplate: 'go',
     },
+    // Update `ENV <NAME>_VERSION <version>` lines in Dockerfiles when
+    // preceded by a Renovate inline comment of the form:
+    //   # renovate: datasource=<ds> depName=<name> [extractVersion=<re>]
     {
       customType: 'regex',
       managerFilePatterns: [
