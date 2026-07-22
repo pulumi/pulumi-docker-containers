@@ -62,6 +62,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache \
     apt-get install -y \
     curl \
     git \
+    yq \
     ca-certificates; \
     mkdir -p /go
 

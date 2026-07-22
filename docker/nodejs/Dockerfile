@@ -29,6 +29,7 @@ RUN apt-get update -y && \
     apt-get install -y \
     curl \
     git \
+    yq \
     ca-certificates && \
     npm install -g npm@${NPM_VERSION} bun pnpm@^10 corepack && \
     corepack install -g yarn@1
