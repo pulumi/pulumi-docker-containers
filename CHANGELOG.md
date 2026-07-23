@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add .NET 10 to the kitchen sink `pulumi/pulumi` image, alongside 8.0 and 9.0
+  ([#763](https://github.com/pulumi/pulumi-docker-containers/issues/763))
+
 - Add a .NET10.0 container([#743](https://github.com/pulumi/pulumi-docker-containers/pull/743))
 
 - Fix corepack
