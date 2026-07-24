@@ -6,17 +6,6 @@
     'default:pinDigestsDisabled',
   ],
   customManagers: [
-    // Update `go install <module>@<version>` lines in Dockerfiles.
-    {
-      customType: 'regex',
-      managerFilePatterns: [
-        '/(^|/)Dockerfile$/',
-      ],
-      matchStrings: [
-        'go install (?<depName>[^\\s@]+)@(?<currentValue>v\\S+)',
-      ],
-      datasourceTemplate: 'go',
-    },
     // Update `ENV <NAME>_VERSION <version>` lines in Dockerfiles when
     // preceded by a Renovate inline comment of the form:
     //   # renovate: datasource=<ds> depName=<name> [extractVersion=<re>]
