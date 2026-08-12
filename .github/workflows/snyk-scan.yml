@@ -1,13 +1,24 @@
-permissions: write-all # Equivalent to default permissions plus id-token: write
-# Snyk scanning steps are marked continue-on-error because there are often
-# vulnerabilities that may have no possible remediation (e.g. glibc
-# vulnerabilities in the Debian base).  We want to be *informed* about the
-# vulns, but we cannot have them be blockers to releasing images.
+# Snyk scanning steps are marked continue-on-error because Snyk exits with a
+# non-zero code whenever it finds vulnerabilities, and there are often
+# vulnerabilities that have no possible remediation (e.g. glibc
+# vulnerabilities in the Debian base). We want to be *informed* about the
+# vulns via GitHub code scanning, but we cannot have them be blockers to
+# releasing images. A genuine scan failure leaves no SARIF file behind, which
+# fails the "Merge SARIF runs" step so breakage is still surfaced.
+#
+# Each image is uploaded under a stable per-image category so that GitHub can
+# track alerts across scans and automatically close alerts that no longer
+# appear in the image's latest scan.
 name: Scan Docker images
 on:
   workflow_dispatch: {}
   schedule:
     - cron: "0 0 * * *"
+
+permissions:
+  contents: read # for checkout
+  security-events: write # to upload SARIF results and dismiss stale alerts
+  id-token: write # to fetch secrets from Pulumi ESC via OIDC
 
 env:
   DOCKER_ORG: pulumi
@@ -47,25 +58,20 @@ jobs:
         run: |
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Snyk scan
+        continue-on-error: true
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-${{ matrix.arch }}
           args: --severity-threshold=high --file=docker/pulumi/Dockerfile
-      - name: Filter Sarif File
-        run: python ./.github/scripts/filter-sarif.py
+      - name: Merge SARIF runs
+        run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out_0.sarif
-          category: kitchen-sink${{ matrix.suffix }}-${{ matrix.arch }}-0
-      - name: Upload result to GitHub Code Scanning (overflow)
-        if: hashFiles('out_1.sarif') != ''
-        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
-        with:
-          sarif_file: out_1.sarif
-          category: kitchen-sink${{ matrix.suffix }}-${{ matrix.arch }}-1
+          sarif_file: out.sarif
+          category: pulumi${{ matrix.suffix }}-${{ matrix.arch }}
 
   provider-build-environment:
     name: Provider Build Environment
@@ -100,19 +106,13 @@ jobs:
         with:
           image: ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
           args: --severity-threshold=high --file=docker/pulumi/Dockerfile
-      - name: Filter Sarif File
-        run: python ./.github/scripts/filter-sarif.py
+      - name: Merge SARIF runs
+        run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out_0.sarif
-          category: provider-build-environment-${{ matrix.arch }}-0
-      - name: Upload result to GitHub Code Scanning (overflow)
-        if: hashFiles('out_1.sarif') != ''
-        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
-        with:
-          sarif_file: out_1.sarif
-          category: provider-build-environment-${{ matrix.arch }}-1
+          sarif_file: out.sarif
+          category: pulumi-provider-build-environment-${{ matrix.arch }}
 
   base:
     name: Base image
@@ -144,19 +144,13 @@ jobs:
         with:
           image: ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }}
           args: --severity-threshold=high --file=docker/base/Dockerfile.${{ matrix.os }} --platform=linux/${{ matrix.arch }}
-      - name: Filter Sarif File
-        run: python ./.github/scripts/filter-sarif.py
+      - name: Merge SARIF runs
+        run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out_0.sarif
-          category: base-${{ matrix.os }}-${{ matrix.arch }}-0
-      - name: Upload result to GitHub Code Scanning (overflow)
-        if: hashFiles('out_1.sarif') != ''
-        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
-        with:
-          sarif_file: out_1.sarif
-          category: base-${{ matrix.os }}-${{ matrix.arch }}-1
+          sarif_file: out.sarif
+          category: pulumi-base-${{ matrix.os }}-${{ matrix.arch }}
 
   define-debian-matrix:
     runs-on: ubuntu-latest
@@ -193,54 +187,36 @@ jobs:
       - name: Set version
         run: |
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
-      - name: Set image name - amd64
-        run: |
-          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64" >> $GITHUB_ENV
       - name: Snyk scan - amd64
         continue-on-error: true
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
         with:
-          image: ${{ env.IMAGE_NAME }}
+          image: ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
           args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/amd64
-      - name: Filter Sarif File - amd64
-        run: python ./.github/scripts/filter-sarif.py
-      - name: Upload result to GitHub Code Scanning
+      - name: Merge SARIF runs - amd64
+        run: python ./.github/scripts/merge-sarif.py
+      - name: Upload result to GitHub Code Scanning - amd64
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out_0.sarif
-          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64-0
-      - name: Upload result to GitHub Code Scanning (overflow)
-        if: hashFiles('out_1.sarif') != ''
-        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
-        with:
-          sarif_file: out_1.sarif
-          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64-1
-      - name: Set image name - arm64
-        run: |
-          echo "IMAGE_NAME=${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64" >> $GITHUB_ENV
+          sarif_file: out.sarif
+          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64
       - name: Snyk scan - arm64
         continue-on-error: true
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
         with:
-          image: ${{ env.IMAGE_NAME }}
+          image: ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64
           args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/arm64
-      - name: Filter Sarif File - arm64
-        run: python ./.github/scripts/filter-sarif.py
+      - name: Merge SARIF runs - arm64
+        run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning - arm64
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out_0.sarif
-          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64-0
-      - name: Upload result to GitHub Code Scanning - arm64 (overflow)
-        if: hashFiles('out_1.sarif') != ''
-        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
-        with:
-          sarif_file: out_1.sarif
-          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64-1
+          sarif_file: out.sarif
+          category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-arm64
 
   ubi-sdk:
     name: UBI SDK images
@@ -271,16 +247,30 @@ jobs:
         with:
           image: ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
           args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.ubi --platform=linux/amd64
-      - name: Filter Sarif File
-        run: python ./.github/scripts/filter-sarif.py
+      - name: Merge SARIF runs
+        run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
         with:
-          sarif_file: out_0.sarif
-          category: ubi-${{ matrix.sdk }}-0
-      - name: Upload result to GitHub Code Scanning (overflow)
-        if: hashFiles('out_1.sarif') != ''
-        uses: github/codeql-action/upload-sarif@bffd034ab1518ad839a542b8a7356e13a240e076 # v3
-        with:
-          sarif_file: out_1.sarif
-          category: ubi-${{ matrix.sdk }}-1
+          sarif_file: out.sarif
+          category: pulumi-${{ matrix.sdk }}-ubi
+
+  cleanup-stale-alerts:
+    name: Dismiss alerts from stale categories
+    runs-on: ubuntu-latest
+    needs: [kitchen-sink, provider-build-environment, base, debian-sdk, ubi-sdk]
+    # Run even if some scan jobs failed: the script only dismisses alerts in
+    # categories that are not part of the current scan matrix, so alerts of
+    # images whose scan failed are left untouched.
+    #
+    # Only run on main: SARIF uploads are scoped to the ref, so a run from
+    # another branch doesn't refresh the alerts on main, and the script would
+    # see them all as stale and dismiss them. Dismissals are sticky, a
+    # dismissed alert is not reopened when a later scan finds it again.
+    if: always() && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@master
+      - name: Dismiss alerts in categories no longer scanned
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python ./.github/scripts/dismiss-stale-alerts.py
