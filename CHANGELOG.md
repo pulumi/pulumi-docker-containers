@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Install `kubectl` in the `pulumi/pulumi` image from the upstream release binaries
+  instead of apt, so it is version-stamped. The previous install could resolve to a
+  build reporting `v0.0.0-master+$Format:%H$`, which is not parseable as a version and
+  breaks tooling that checks the kubectl client version, such as `@pulumi/eks`.
+  ([#776](https://github.com/pulumi/pulumi-docker-containers/issues/776))
+
 - Add .NET 10 to the kitchen sink `pulumi/pulumi` image, alongside 8.0 and 9.0
   ([#763](https://github.com/pulumi/pulumi-docker-containers/issues/763))
 
