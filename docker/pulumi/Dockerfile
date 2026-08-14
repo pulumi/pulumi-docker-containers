@@ -65,17 +65,7 @@ RUN \
   ./aws/install && \
   rm -rf aws && \
   rm awscliv2.zip && \
-  # Add additional apt repos using modern keyrings approach
-  mkdir -p /etc/apt/keyrings && \
-  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
-  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/google-cloud.gpg && \
-  echo "deb [arch=${TARGETARCH} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list && \
-  echo "deb [signed-by=/etc/apt/keyrings/google-cloud.gpg] http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
-  # kubectl, from the official release binaries and verified against the published checksum.
-  # Installed this way rather than from apt so we get a version-stamped build: the Google Cloud
-  # SDK repo added above also publishes a `kubectl` package, and resolving between the two can
-  # yield a binary whose `kubectl version` reports `v0.0.0-master+$Format:%H$`, which breaks any
-  # tooling that parses the client version.
+  # kubectl from the official release binaries
   KUBE_LATEST=$(curl --proto "=https" --tlsv1.2 --fail --location --silent --show-error https://dl.k8s.io/release/stable.txt) && \
   KUBECTL_BASE_URL="https://dl.k8s.io/release/${KUBE_LATEST}/bin/linux/${TARGETARCH}" && \
   curl --proto "=https" --tlsv1.2 --fail --location --remote-name "${KUBECTL_BASE_URL}/kubectl" && \
@@ -83,6 +73,12 @@ RUN \
     | awk '{print $1"  kubectl"}' | sha256sum --check - && \
   install --mode 755 kubectl /usr/bin/kubectl && \
   rm kubectl && \
+  # Add additional apt repos using modern keyrings approach
+  mkdir -p /etc/apt/keyrings && \
+  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/google-cloud.gpg && \
+  echo "deb [arch=${TARGETARCH} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list && \
+  echo "deb [signed-by=/etc/apt/keyrings/google-cloud.gpg] http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
   # Install azure-cli (from Debian repos), docker, gcloud
   apt-get update -y && \
   apt-get install -y \
