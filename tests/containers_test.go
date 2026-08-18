@@ -377,6 +377,34 @@ func TestCLIToolTests(t *testing.T) {
 		}
 		require.Equal(t, project, projectNumber)
 	})
+
+	// kubectl must report a real, version-stamped build. A build without the version ldflags
+	// reports `v0.0.0-master+$Format:%H$`, which is not parseable as semver and breaks tooling
+	// that checks the client version (for example @pulumi/eks).
+	// https://github.com/pulumi/pulumi-docker-containers/issues/776
+	t.Run("Kubectl", func(t *testing.T) {
+		if !isKitchenSink(t) {
+			t.Skip("kubectl is only installed in the kitchen sink image")
+		}
+		t.Parallel()
+
+		cmd := exec.Command("kubectl", "version", "--client=true", "--output=json")
+		out, err := cmd.Output()
+		require.NoError(t, err)
+
+		var result struct {
+			ClientVersion struct {
+				GitVersion string `json:"gitVersion"`
+			} `json:"clientVersion"`
+		}
+		require.NoError(t, json.Unmarshal(out, &result))
+
+		gitVersion := result.ClientVersion.GitVersion
+		require.NotContains(t, gitVersion, "$Format:",
+			"kubectl is not version-stamped, got gitVersion %q", gitVersion)
+		require.Regexp(t, `^v\d+\.\d+\.\d+`, gitVersion,
+			"kubectl gitVersion %q is not parseable as a version", gitVersion)
+	})
 }
 
 func TestEnvironment(t *testing.T) {

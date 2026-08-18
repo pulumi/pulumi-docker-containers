@@ -65,23 +65,27 @@ RUN \
   ./aws/install && \
   rm -rf aws && \
   rm awscliv2.zip && \
+  # kubectl from the official release binaries
+  KUBE_LATEST=$(curl --proto "=https" --tlsv1.2 --fail --location --silent --show-error https://dl.k8s.io/release/stable.txt) && \
+  KUBECTL_BASE_URL="https://dl.k8s.io/release/${KUBE_LATEST}/bin/linux/${TARGETARCH}" && \
+  curl --proto "=https" --tlsv1.2 --fail --location --remote-name "${KUBECTL_BASE_URL}/kubectl" && \
+  curl --proto "=https" --tlsv1.2 --fail --location --silent --show-error "${KUBECTL_BASE_URL}/kubectl.sha256" \
+    | awk '{print $1"  kubectl"}' | sha256sum --check - && \
+  install --mode 755 kubectl /usr/bin/kubectl && \
+  rm kubectl && \
   # Add additional apt repos using modern keyrings approach
   mkdir -p /etc/apt/keyrings && \
   curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
   curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/google-cloud.gpg && \
   echo "deb [arch=${TARGETARCH} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list && \
   echo "deb [signed-by=/etc/apt/keyrings/google-cloud.gpg] http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
-  KUBE_LATEST=$(curl -L -s https://dl.k8s.io/release/stable.txt | awk 'BEGIN { FS="." } { printf "%s.%s", $1, $2 }') && \
-  curl -fsSL https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
-  echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBE_LATEST}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list && \
-  # Install azure-cli (from Debian repos), docker, gcloud, kubectl
+  # Install azure-cli (from Debian repos), docker, gcloud
   apt-get update -y && \
   apt-get install -y \
   azure-cli \
   docker-ce \
   google-cloud-cli \
-  google-cloud-cli-gke-gcloud-auth-plugin \
-  kubectl && \
+  google-cloud-cli-gke-gcloud-auth-plugin && \
   rm -rf /var/lib/apt/lists/*
 
 # Install Go
