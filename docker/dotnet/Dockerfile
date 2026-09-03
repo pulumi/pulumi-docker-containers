@@ -23,7 +23,8 @@ ARG LANGUAGE_VERSION
 RUN apt-get update -y && \
     apt-get install -y \
     git \
-    curl
+    curl \
+    yq
 
 # Install dotnet using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
