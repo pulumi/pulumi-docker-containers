@@ -59,12 +59,13 @@ jobs:
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Snyk scan
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: docker://snyk/snyk:docker
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
+          SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+          SNYK_INTEGRATION_VERSION: docker
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-${{ matrix.arch }}
-          args: --severity-threshold=high --file=docker/pulumi/Dockerfile
+          args: snyk container test ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.suffix }}-${{ matrix.arch }} --severity-threshold=high --file=docker/pulumi/Dockerfile --sarif-file-output=snyk.sarif
       - name: Merge SARIF runs
         run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning
@@ -100,12 +101,13 @@ jobs:
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Snyk scan
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: docker://snyk/snyk:docker
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
+          SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+          SNYK_INTEGRATION_VERSION: docker
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }}
-          args: --severity-threshold=high --file=docker/pulumi/Dockerfile
+          args: snyk container test ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} --severity-threshold=high --file=docker/pulumi/Dockerfile --sarif-file-output=snyk.sarif
       - name: Merge SARIF runs
         run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning
@@ -138,12 +140,13 @@ jobs:
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Snyk scan
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: docker://snyk/snyk:docker
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
+          SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+          SNYK_INTEGRATION_VERSION: docker
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }}
-          args: --severity-threshold=high --file=docker/base/Dockerfile.${{ matrix.os }} --platform=linux/${{ matrix.arch }}
+          args: snyk container test ${{ env.DOCKER_ORG }}/pulumi-base:${{ env.PULUMI_VERSION }}-${{ matrix.os }}-${{ matrix.arch }} --severity-threshold=high --file=docker/base/Dockerfile.${{ matrix.os }} --platform=linux/${{ matrix.arch }} --sarif-file-output=snyk.sarif
       - name: Merge SARIF runs
         run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning
@@ -189,12 +192,13 @@ jobs:
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Snyk scan - amd64
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: docker://snyk/snyk:docker
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
+          SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+          SNYK_INTEGRATION_VERSION: docker
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64
-          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/amd64
+          args: snyk container test ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-amd64 --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/amd64 --sarif-file-output=snyk.sarif
       - name: Merge SARIF runs - amd64
         run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning - amd64
@@ -204,12 +208,13 @@ jobs:
           category: pulumi-${{ matrix.sdk }}${{ matrix.suffix }}-debian-amd64
       - name: Snyk scan - arm64
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: docker://snyk/snyk:docker
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
+          SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+          SNYK_INTEGRATION_VERSION: docker
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64
-          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/arm64
+          args: snyk container test ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}${{ matrix.suffix }}:${{ env.PULUMI_VERSION }}-debian-arm64 --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.debian --platform=linux/arm64 --sarif-file-output=snyk.sarif
       - name: Merge SARIF runs - arm64
         run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning - arm64
@@ -241,12 +246,13 @@ jobs:
           [ -z "${{ env.DISPATCH_REF }}" ] && echo "PULUMI_VERSION=$(curl https://www.pulumi.com/latest-version)" >> $GITHUB_ENV || echo "PULUMI_VERSION=${{ env.DISPATCH_REF }}" >> $GITHUB_ENV
       - name: Snyk scan
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: docker://snyk/snyk:docker
         env:
           SNYK_TOKEN: ${{ steps.esc-secrets.outputs.SNYK_TOKEN }}
+          SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+          SNYK_INTEGRATION_VERSION: docker
         with:
-          image: ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi
-          args: --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.ubi --platform=linux/amd64
+          args: snyk container test ${{ env.DOCKER_ORG }}/pulumi-${{ matrix.sdk }}:${{ env.PULUMI_VERSION }}-ubi --severity-threshold=high --file=docker/${{ matrix.sdk }}/Dockerfile.ubi --platform=linux/amd64 --sarif-file-output=snyk.sarif
       - name: Merge SARIF runs
         run: python ./.github/scripts/merge-sarif.py
       - name: Upload result to GitHub Code Scanning
