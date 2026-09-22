@@ -1,0 +1,4 @@
+component: all
+kind: security
+body: Run apt-get upgrade to pick up updates not baked into the base image yet
+time: 2026-09-22T11:12:22.189793+02:00
