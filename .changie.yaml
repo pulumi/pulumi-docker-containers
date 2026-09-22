@@ -1,0 +1,38 @@
+changesDir: .changes
+unreleasedDir: unreleased
+headerPath: header.md
+changelogPath: CHANGELOG.md
+versionExt: md
+versionFormat: '## {{.Version}}'
+kindFormat: '### {{.Kind}}'
+changeFormat: '- [{{.Component}}] {{.Body}}'
+components:
+  - all
+  - pulumi
+  - pulumi-base
+  - pulumi-nodejs
+  - pulumi-python
+  - pulumi-go
+  - pulumi-dotnet
+  - pulumi-java
+  - pulumi-provider-build-environment
+kinds:
+  - label: Breaking Changes
+    key: breaking
+  - label: Features
+    key: feat
+  - label: Bug Fixes
+    key: fix
+  - label: Security
+    key: security
+  - label: Improvements
+    key: improvement
+body:
+  minLength: 1
+newlines:
+  beforeChangelogVersion: 1
+  afterChange: 0
+  beforeChange: 0
+  afterKind: 1
+  beforeKind: 1
+  endOfVersion: 1

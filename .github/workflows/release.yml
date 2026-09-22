@@ -794,7 +794,7 @@ jobs:
     # accept arbitrary parameters, as we would need to persist the tag_latest
     # option from a workflow_dispatch in this workflow to each of the sync
     # workflows.
-    if: ${{ github.event.inputs.force_release || github.event_name == 'repository_dispatch' }}
+    if: ${{ inputs.force_release || github.event_name == 'repository_dispatch' }}
     steps:
       - name: Fetch secrets from ESC
         id: esc-secrets
@@ -819,7 +819,7 @@ jobs:
         "ubi-sdk",
       ]
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.force_release || github.event_name == 'repository_dispatch' }}
+    if: ${{ inputs.force_release || github.event_name == 'repository_dispatch' }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -834,3 +834,81 @@ jobs:
           python ./.github/scripts/git/create_tags.py \
             --pulumi-version ${{ env.PULUMI_VERSION }} \
             ${{ (github.event.inputs.tag_latest || github.event_name == 'repository_dispatch') && '--tag-latest' || '' }}
+
+  release-notes:
+    name: Publish container release notes
+    needs: [create-git-tags, start-syncs]
+    if: ${{ inputs.force_release || github.event_name == 'repository_dispatch' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version: '1.24.x'
+          cache: false
+      - name: Install Changie
+        run: go install github.com/miniscruff/changie@v1.25.0
+      - name: Fetch secrets from ESC
+        uses: pulumi/esc-action@32dda43ffe7a2ab21e6bce11c781b44a3e5623cf # v3
+      - name: Prepare and publish notes from the build snapshot
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # Only batch fragments present in the commit used to build the images.
+          changie batch "$PULUMI_VERSION" --allow-no-changes
+          notes=".changes/${PULUMI_VERSION}.md"
+          cat >> "$notes" <<EOF
+
+          Includes [Pulumi CLI ${PULUMI_VERSION}](https://github.com/pulumi/pulumi/releases/tag/v${PULUMI_VERSION}).
+
+          Container source: \`${SOURCE_SHA}\`.
+          EOF
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$PULUMI_VERSION" --jq '.object.sha')" = "$SOURCE_SHA"
+          gh release create "$PULUMI_VERSION" --verify-tag --latest=false \
+            --title "Containers $PULUMI_VERSION" --notes-file "$notes"
+          git add .changes
+          git diff --cached --binary -- .changes > "$RUNNER_TEMP/container-changelog.patch"
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: main
+      - name: Update changelog on main
+        run: |
+          # Apply only this release's fragment removals and version notes.
+          git apply --index "$RUNNER_TEMP/container-changelog.patch"
+          changie merge
+      - name: Open or update changelog PR
+        id: changelog-pr
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ env.GITHUB_TOKEN }}
+          branch: automation/container-changelog-${{ env.PULUMI_VERSION }}
+          base: main
+          commit-message: 'chore: changelog for containers ${{ env.PULUMI_VERSION }}'
+          title: 'chore: changelog for containers ${{ env.PULUMI_VERSION }}'
+          body: |
+            Record container release ${{ env.PULUMI_VERSION }} and remove its included
+            fragments. Merge this PR before the next release to avoid duplicate entries.
+          add-paths: |
+            CHANGELOG.md
+            .changes/
+      - name: Approve changelog PR
+        if: steps.changelog-pr.outputs.pull-request-number
+        env:
+          # The Actions identity approves the PR created by the Pulumi bot.
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.changelog-pr.outputs.pull-request-number }}
+        run: gh pr review "$PR_NUMBER" --approve
+      - name: Enable changelog PR auto-merge
+        if: steps.changelog-pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.changelog-pr.outputs.pull-request-number }}
+        run: gh pr merge "$PR_NUMBER" --auto --squash
