@@ -14,7 +14,7 @@ ENV GO_RUNTIME_ARMV6L_SHA256 3f6b48d96f0d8dff77e4625aa179e0449f6bbe79b6986bfa711
 
 WORKDIR /golang
 RUN apt-get update -y && \
-    apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
     build-essential \
@@ -59,11 +59,13 @@ WORKDIR /pulumi/projects
 RUN --mount=target=/var/lib/apt/lists,type=cache \
     --mount=target=/var/cache/apt,type=cache \
     apt-get update -y && \
-    apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
-    ca-certificates; \
-    mkdir -p /go
+    ca-certificates
+
+RUN mkdir -p /go
 
 # Uses the workdir
 COPY --from=builder /golang/go /usr/local

@@ -6,8 +6,8 @@ ARG LANGUAGE_VERSION
 FROM debian:trixie-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
-    apt-get upgrade -y && \
-    apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     build-essential \
     git
@@ -22,7 +22,8 @@ WORKDIR /pulumi/projects
 
 # Install needed tools, like git
 RUN apt-get update -y && \
-    apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
     ca-certificates

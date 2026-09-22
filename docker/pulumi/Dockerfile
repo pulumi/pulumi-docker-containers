@@ -18,6 +18,7 @@ ENV AWS_IAM_AUTHENTICATOR_VERSION v0.7.17
 
 # Install base dependencies
 RUN apt-get update -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
   apt-transport-https \
   build-essential \
@@ -81,7 +82,7 @@ RUN \
   echo "deb [signed-by=/etc/apt/keyrings/google-cloud.gpg] http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -cs) main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list && \
   # Install azure-cli (from Debian repos), docker, gcloud
   apt-get update -y && \
-  apt-get install -y \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
   azure-cli \
   docker-ce \
   google-cloud-cli \

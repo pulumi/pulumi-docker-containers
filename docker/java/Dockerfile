@@ -17,6 +17,7 @@ LABEL org.opencontainers.image.description="Pulumi CLI container for java"
 WORKDIR /pulumi/projects
 
 RUN apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
