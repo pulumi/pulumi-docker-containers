@@ -54,6 +54,22 @@ env:
   BUILDX_GIT_LABELS: full
 
 jobs:
+  changelog:
+    name: Validate changelog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version: '1.24.x'
+          cache: false
+      - name: Install Changie
+        run: go install github.com/miniscruff/changie@v1.25.0
+      - name: Validate fragments
+        run: changie batch 99.0.0 --dry-run --allow-no-changes
+
   comment-notification:
     if: github.event_name == 'repository_dispatch' && github.event.client_payload.github.payload.issue.number
     runs-on: ubuntu-latest
@@ -546,7 +562,7 @@ jobs:
 
   ci-ok:
     name: ci-ok
-    needs: [kitchen-sink, provider-build-environment, base, debian-sdk, ubi-sdk]
+    needs: [changelog, kitchen-sink, provider-build-environment, base, debian-sdk, ubi-sdk]
     if: always()
     runs-on: ubuntu-latest
     steps:
