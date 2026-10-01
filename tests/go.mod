@@ -5,8 +5,8 @@ go 1.26.6
 replace github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.9.3
 
 require (
-	github.com/pulumi/pulumi/pkg/v3 v3.266.0
-	github.com/pulumi/pulumi/sdk/v3 v3.266.0
+	github.com/pulumi/pulumi/pkg/v3 v3.267.0
+	github.com/pulumi/pulumi/sdk/v3 v3.267.0
 	github.com/stretchr/testify v1.12.1
 )
 
@@ -199,7 +199,7 @@ require (
 	go.opentelemetry.io/otel/sdk/log v0.22.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
-	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.11.1 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
