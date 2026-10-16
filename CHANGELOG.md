@@ -5,6 +5,12 @@ Container versions follow the Pulumi CLI version. Entries describe container-spe
 See [legacy history](.changes/legacy.md) for the changelog before automated releases,
 including the original Unreleased section whose release assignments were not recorded.
 
+## 3.269.0
+
+Includes [Pulumi CLI 3.269.0](https://github.com/pulumi/pulumi/releases/tag/v3.269.0).
+
+Container source: `be529e65b3ee8409ad9284f0f3b91de51325ac7d`.
+
 ## 3.268.0
 
 Includes [Pulumi CLI 3.268.0](https://github.com/pulumi/pulumi/releases/tag/v3.268.0).
