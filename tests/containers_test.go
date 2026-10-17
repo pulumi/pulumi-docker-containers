@@ -625,6 +625,59 @@ func TestEnvironment(t *testing.T) {
 	})
 }
 
+// TestLanguagePluginsPreinstalled checks that each language runtime of the image works without a
+// download. The CLI downloads an unbundled runtime on first use, so a runtime that the CLI stops
+// bundling would otherwise pass every other test.
+func TestLanguagePluginsPreinstalled(t *testing.T) {
+	t.Parallel()
+
+	for _, language := range languagePlugins(t) {
+		t.Run(language, func(t *testing.T) {
+			t.Parallel()
+
+			dir := t.TempDir()
+			project := fmt.Sprintf("name: preinstalled-%s\nruntime: %s\n", language, language)
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "Pulumi.yaml"), []byte(project), 0o600))
+
+			cmd := exec.Command("pulumi", "about", "--json")
+			cmd.Dir = dir
+			cmd.Env = append(os.Environ(), "PULUMI_DISABLE_AUTOMATIC_PLUGIN_ACQUISITION=true")
+			out, err := cmd.Output()
+			require.NoError(t, err)
+
+			var about struct {
+				Runtime *struct {
+					Language string `json:"language"`
+				} `json:"runtime"`
+				Errors []string `json:"errors"`
+			}
+			require.NoError(t, json.Unmarshal(out, &about))
+			// `pulumi about` sets the runtime only when the language plugin loads and runs.
+			require.NotNil(t, about.Runtime, "errors: %v", about.Errors)
+			require.Equal(t, language, about.Runtime.Language)
+		})
+	}
+}
+
+// languagePlugins returns the language runtimes that the image under test must contain.
+func languagePlugins(t *testing.T) []string {
+	imageVariant := mustEnv(t, "IMAGE_VARIANT")
+	switch imageVariant {
+	case "pulumi", "pulumi-nonroot":
+		return []string{"bun", "dotnet", "go", "java", "nodejs", "python", "yaml"}
+	}
+	for _, prefix := range []string{"pulumi-debian-", "pulumi-ubi-"} {
+		if sdk, ok := strings.CutPrefix(imageVariant, prefix); ok {
+			if sdk == "nodejs" {
+				return []string{"bun", "nodejs"}
+			}
+			return []string{sdk}
+		}
+	}
+	t.Fatalf("Unknown IMAGE_VARIANT %q", imageVariant)
+	return nil
+}
+
 func requireOutput(t *testing.T, expected, cmd string, args ...string) {
 	c := exec.Command(cmd, args...)
 	t.Logf("Running %q", c.String())

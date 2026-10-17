@@ -28,7 +28,8 @@ RUN apt-get update -y && \
 
 # Uses the workdir, copies from pulumi interim container
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
-COPY --from=builder /root/.pulumi/bin/*-java* /pulumi/bin/
 ENV PATH "/pulumi/bin:${PATH}"
+
+RUN pulumi plugin install language java
 
 CMD ["pulumi"]

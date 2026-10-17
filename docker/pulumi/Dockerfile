@@ -181,6 +181,8 @@ RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION &&
 
 # Install the OPA policy analyzer plugin so OPA-based policy packs work out of the box.
 RUN pulumi plugin install analyzer policy-opa
+# The CLI does not bundle the Java language runtime.
+RUN pulumi plugin install language java
 ENV PATH="/pulumi/bin:${PATH}"
 
 # I think it's safe to say if we're using this mega image, we want pulumi
@@ -210,6 +212,8 @@ ENV XDG_CACHE_HOME=/home/pulumi/.cache
 # Re-run the helm setup for the non-root user
 RUN helm repo add stable https://charts.helm.sh/stable && \
   helm repo update
+# Re-install the Java language runtime for the non-root user
+RUN pulumi plugin install language java
 
 # Pulumi Bridged Terraform Provider Build Environment
 #
