@@ -629,7 +629,9 @@ func TestEnvironment(t *testing.T) {
 // download. The CLI downloads an unbundled runtime on first use, so a runtime that the CLI stops
 // bundling would otherwise pass every other test.
 func TestLanguagePluginsPreinstalled(t *testing.T) {
-	t.Parallel()
+	// Intentionally NOT parallel. On the kitchen sink, bun is only installed for the default
+	// node version, and TestKitchenSinkLanguageVersions switches the container's global node
+	// version. Staying serial runs this test before any parallel test switches it.
 
 	for _, language := range languagePlugins(t) {
 		t.Run(language, func(t *testing.T) {
