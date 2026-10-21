@@ -1,0 +1,4 @@
+component: all
+kind: security
+body: Update container certificate trust stores and Python packaging tools to address security findings.
+time: 2026-10-21T11:29:38+02:00

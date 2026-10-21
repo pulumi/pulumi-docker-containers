@@ -4,6 +4,7 @@
 FROM debian:trixie-slim AS builder
 ARG PULUMI_VERSION
 RUN apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl && \
     rm -rf /var/lib/apt/lists/*
