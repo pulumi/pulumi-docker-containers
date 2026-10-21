@@ -9,12 +9,12 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.26.0
-ENV GOLANG_AMD64_SHA256 aac1b08a0fb0c4e0a7c1555beb7b59180b05dfc5a3d62e40e9de90cd42f88235
-ENV GOLANG_ARM64_SHA256 bd03b743eb6eb4193ea3c3fd3956546bf0e3ca5b7076c8226334afe6b75704cd
+ENV GOLANG_VERSION 1.26.10
+ENV GOLANG_AMD64_SHA256 ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
+ENV GOLANG_ARM64_SHA256 3f4227ce7b206a513e794f1393adb473a07b46e94d18bd15d1c684bbb7319797
 
 # renovate: datasource=github-releases depName=kubernetes-sigs/aws-iam-authenticator
-ENV AWS_IAM_AUTHENTICATOR_VERSION v0.7.17
+ENV AWS_IAM_AUTHENTICATOR_VERSION v0.7.23
 
 # Install base dependencies
 RUN apt-get update -y && \
@@ -164,10 +164,14 @@ RUN fnm install 22 && \
   fnm install 26 && \
   fnm alias 26 default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
-RUN npm install -g corepack bun
-RUN for bin in /usr/local/share/fnm/node-versions/*/installation/bin; do \
+# renovate: datasource=npm depName=npm
+ENV NPM_VERSION 11.21.1
+RUN set -e; \
+    for bin in /usr/local/share/fnm/node-versions/*/installation/bin; do \
+      PATH="$bin:$PATH" "$bin/node" "$bin/npm" install -g --prefix "${bin%/bin}" npm@${NPM_VERSION} corepack; \
       "$bin/node" "$bin/corepack" enable --install-directory "$bin"; \
     done
+RUN npm install -g bun
 RUN corepack install -g pnpm@^10 yarn@1
 
 # Passing --build-arg PULUMI_VERSION=vX.Y.Z will use that version
@@ -231,9 +235,9 @@ ARG TARGETARCH
 # renovate: datasource=github-releases depName=pulumi/pulumictl
 ENV PULUMICTL_VERSION v0.0.50
 # renovate: datasource=github-releases depName=golangci/golangci-lint
-ENV GOLANGCI_LINT_VERSION v2.11.4
+ENV GOLANGCI_LINT_VERSION v2.15.0
 # renovate: datasource=github-releases depName=goreleaser/goreleaser
-ENV GORELEASER_VERSION v2.15.2
+ENV GORELEASER_VERSION v2.18.3
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
@@ -265,7 +269,7 @@ RUN \
     --show-error \
     --fail \
     --location \
-    https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+    https://golangci-lint.run/install.sh \
     | sh -s -- -b "$(go env GOPATH)/bin" "${GOLANGCI_LINT_VERSION}" && \
     # Install goreleaser
     curl \

@@ -1,0 +1,4 @@
+component: all
+kind: security
+body: Update Go to 1.26.10, npm to 11.21.1, GoReleaser to 2.18.3, golangci-lint to 2.15.0, and aws-iam-authenticator to 0.7.23.
+time: 2026-10-20T13:17:27.598353+02:00
