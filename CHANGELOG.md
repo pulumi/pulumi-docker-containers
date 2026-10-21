@@ -5,6 +5,22 @@ Container versions follow the Pulumi CLI version. Entries describe container-spe
 See [legacy history](.changes/legacy.md) for the changelog before automated releases,
 including the original Unreleased section whose release assignments were not recorded.
 
+## 3.271.0
+
+### Bug Fixes
+
+- [pulumi] Pre-install the Java language runtime, which the Pulumi CLI no longer bundles
+- [pulumi-java] Pre-install the Java language runtime, which the Pulumi CLI no longer bundles
+
+### Security
+
+- [all] Update Go to 1.26.10, npm to 11.21.1, GoReleaser to 2.18.3, golangci-lint to 2.15.0, and aws-iam-authenticator to 0.7.23.
+- [all] Update container certificate trust stores and Python packaging tools to address security findings.
+
+Includes [Pulumi CLI 3.271.0](https://github.com/pulumi/pulumi/releases/tag/v3.271.0).
+
+Container source: `0066e7922e7e2c6f994f9d71835e678b25968311`.
+
 ## 3.270.0
 
 Includes [Pulumi CLI 3.270.0](https://github.com/pulumi/pulumi/releases/tag/v3.270.0).
