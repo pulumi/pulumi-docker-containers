@@ -28,8 +28,12 @@ RUN apt-get update -y && \
     git \
     ca-certificates
 
+# Update pip's vendored CA bundle before installing Python tools.
+RUN python3 -m pip install --no-cache-dir --upgrade "pip>=26.2.2"
+
 # Install poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
+RUN /usr/local/share/pypoetry/venv/bin/python -m pip install --no-cache-dir --upgrade "pip>=26.2.2" "certifi>=2026.10.19"
 RUN ln -s /usr/local/share/pypoetry/bin/poetry /usr/local/bin/
 
 # Install uv

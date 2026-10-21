@@ -14,6 +14,7 @@ ENV GO_RUNTIME_ARMV6L_SHA256 7d89fd32259eb0ff647381e8c3465dc32ccfc7f71cb7b9bcd95
 
 WORKDIR /golang
 RUN apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
