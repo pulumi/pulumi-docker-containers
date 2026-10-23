@@ -45,6 +45,8 @@ jobs:
             images:
               - '!CHANGELOG.md'
               - '!.changes/**'
+              - '!**/README.md'
+              - '!.github/scripts/readme/**'
 
   changelog:
     name: Validate changelog
@@ -62,6 +64,16 @@ jobs:
       - name: Validate fragments
         run: changie batch 99.0.0 --dry-run --allow-no-changes
 
+  readmes:
+    name: Check READMEs are up to date
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Check generated READMEs
+        run: python ./.github/scripts/readme/gen-readmes.py --check
+
   images:
     needs: changes
     if: needs.changes.outputs.build-images == 'true'
@@ -72,7 +84,7 @@ jobs:
 
   ci-ok:
     name: ci-ok
-    needs: [changes, changelog, images]
+    needs: [changes, changelog, readmes, images]
     if: always()
     runs-on: ubuntu-latest
     permissions:

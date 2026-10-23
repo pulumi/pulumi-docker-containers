@@ -807,6 +807,8 @@ jobs:
         run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ecr ${{ env.PULUMI_VERSION }}
       - name: Kick off GHCR sync
         run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-ghcr ${{ env.PULUMI_VERSION }}
+      - name: Kick off README sync
+        run: pulumictl dispatch -r pulumi/pulumi-docker-containers -c sync-readmes ${{ env.PULUMI_VERSION }}
 
   create-git-tags:
     name: Create git tags for Docker releases
