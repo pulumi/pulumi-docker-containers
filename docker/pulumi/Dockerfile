@@ -247,7 +247,7 @@ ENV PULUMICTL_VERSION v0.0.50
 # renovate: datasource=github-releases depName=golangci/golangci-lint
 ENV GOLANGCI_LINT_VERSION v2.15.0
 # renovate: datasource=github-releases depName=goreleaser/goreleaser
-ENV GORELEASER_VERSION v2.18.3
+ENV GORELEASER_VERSION v2.19.0
 
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 
