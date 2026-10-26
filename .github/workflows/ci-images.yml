@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: Fetch secrets from ESC
         id: esc-secrets
-        uses: pulumi/esc-action@b061167a29bad21ea5ff1fca900addb89227c49b # v3
+        uses: pulumi/esc-action@eec71a90d9989af7ff14bd700b83fc72fae36119 # v4
       - name: Create URL to the run output
         id: vars
         run: echo run-url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID >> "$GITHUB_OUTPUT"
@@ -77,7 +77,7 @@ jobs:
       # case of a PR or merge to main), we use the latest production version:
       - name: Fetch secrets from ESC
         id: esc-secrets
-        uses: pulumi/esc-action@b061167a29bad21ea5ff1fca900addb89227c49b # v3
+        uses: pulumi/esc-action@eec71a90d9989af7ff14bd700b83fc72fae36119 # v4
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -177,7 +177,7 @@ jobs:
       # case of a PR or merge to main), we use the latest production version:
       - name: Fetch secrets from ESC
         id: esc-secrets
-        uses: pulumi/esc-action@b061167a29bad21ea5ff1fca900addb89227c49b # v3
+        uses: pulumi/esc-action@eec71a90d9989af7ff14bd700b83fc72fae36119 # v4
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -273,7 +273,7 @@ jobs:
       # case of a PR or merge to main), we use the latest production version:
       - name: Fetch secrets from ESC
         id: esc-secrets
-        uses: pulumi/esc-action@b061167a29bad21ea5ff1fca900addb89227c49b # v3
+        uses: pulumi/esc-action@eec71a90d9989af7ff14bd700b83fc72fae36119 # v4
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -298,7 +298,7 @@ jobs:
     steps:
       - name: Fetch secrets from ESC
         id: esc-secrets
-        uses: pulumi/esc-action@b061167a29bad21ea5ff1fca900addb89227c49b # v3
+        uses: pulumi/esc-action@eec71a90d9989af7ff14bd700b83fc72fae36119 # v4
       - uses: actions/checkout@master
       - name: Define Matrix
         id: define-matrix
@@ -319,7 +319,7 @@ jobs:
       # case of a PR or merge to main), we use the latest production version:
       - name: Fetch secrets from ESC
         id: esc-secrets
-        uses: pulumi/esc-action@b061167a29bad21ea5ff1fca900addb89227c49b # v3
+        uses: pulumi/esc-action@eec71a90d9989af7ff14bd700b83fc72fae36119 # v4
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
@@ -415,7 +415,7 @@ jobs:
     steps:
       - name: Fetch secrets from ESC
         id: esc-secrets
-        uses: pulumi/esc-action@b061167a29bad21ea5ff1fca900addb89227c49b # v3
+        uses: pulumi/esc-action@eec71a90d9989af7ff14bd700b83fc72fae36119 # v4
       - uses: actions/checkout@master
       - name: Define Matrix for UBI SDK Manifests
         id: define-matrix-sdk-manifests
@@ -436,7 +436,7 @@ jobs:
       # case of a PR or merge to main), we use the latest production version:
       - name: Fetch secrets from ESC
         id: esc-secrets
-        uses: pulumi/esc-action@b061167a29bad21ea5ff1fca900addb89227c49b # v3
+        uses: pulumi/esc-action@eec71a90d9989af7ff14bd700b83fc72fae36119 # v4
       - name: Set version to latest
         if: ${{ !env.PULUMI_VERSION }}
         run: |
