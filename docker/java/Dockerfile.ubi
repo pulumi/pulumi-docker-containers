@@ -4,35 +4,10 @@
 FROM redhat/ubi9-minimal:latest@sha256:6fc28bcb6776e387d7a35a2056d9d2b985dc4e26031e98a2bd35a7137cd6fd71 as builder
 ARG PULUMI_VERSION
 RUN microdnf upgrade -y && microdnf install -y \
-    p11-kit \
     ca-certificates \
     git \
     tar \
     unzip
-
-# eMudhra incident: block both trust paths until UBI ships updated roots.
-# https://bugzilla.redhat.com/show_bug.cgi?id=2556376
-# Check upstream without this workaround; both probes must exit 60 (certificate rejection).
-# A connection/DNS error does not confirm the fix. Remove the workaround once
-# upstream rejects both affected trust paths.
-# docker run --rm redhat/ubi9-minimal:latest sh -c '
-#   microdnf upgrade -y || exit 1
-#   for host in dv-g3b-emudhra dv-g3b-aaa-emudhra; do
-#     curl --connect-timeout 10 --max-time 30 "https://${host}.we-have-a-problem.com/"
-#     [ "$?" -eq 60 ] || exit 1
-#   done'
-RUN set -eu; \
-    blocklist=/etc/pki/ca-trust/source/blocklist; \
-    if [ ! -d "$blocklist" ]; then blocklist=/etc/pki/ca-trust/source/blacklist; fi; \
-    trust extract --overwrite --format=pem-bundle \
-      --filter='pkcs11:object=Comodo%20AAA%20Services%20root;type=cert' \
-      "$blocklist/Comodo_AAA_Services_root.pem"; \
-    [ -s "$blocklist/Comodo_AAA_Services_root.pem" ]; \
-    trust extract --overwrite --format=pem-bundle \
-      --filter='pkcs11:object=emSign%20ECC%20Root%20CA%20-%20G3;type=cert' \
-      "$blocklist/emSign_ECC_Root_CA_-_G3.pem"; \
-    [ -s "$blocklist/emSign_ECC_Root_CA_-_G3.pem" ]; \
-    update-ca-trust
 
 # Install the Pulumi SDK, including the CLI and language runtimes.
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
@@ -48,7 +23,6 @@ ENV MAVEN_VERSION 3.9.14
 ENV GRADLE_VERSION 8.14.4
 
 RUN microdnf upgrade -y && microdnf install -y \
-    p11-kit \
     git \
     tar \
     java-21-openjdk-devel \
@@ -58,30 +32,6 @@ RUN microdnf upgrade -y && microdnf install -y \
     ca-certificates \
     tzdata-java \
     && microdnf clean all && [ ! -d /var/cache/yum ] || rm -rf /var/cache/yum
-
-# eMudhra incident: block both trust paths until UBI ships updated roots.
-# https://bugzilla.redhat.com/show_bug.cgi?id=2556376
-# Check upstream without this workaround; both probes must exit 60 (certificate rejection).
-# A connection/DNS error does not confirm the fix. Remove the workaround once
-# upstream rejects both affected trust paths.
-# docker run --rm redhat/ubi9-minimal:latest sh -c '
-#   microdnf upgrade -y || exit 1
-#   for host in dv-g3b-emudhra dv-g3b-aaa-emudhra; do
-#     curl --connect-timeout 10 --max-time 30 "https://${host}.we-have-a-problem.com/"
-#     [ "$?" -eq 60 ] || exit 1
-#   done'
-RUN set -eu; \
-    blocklist=/etc/pki/ca-trust/source/blocklist; \
-    if [ ! -d "$blocklist" ]; then blocklist=/etc/pki/ca-trust/source/blacklist; fi; \
-    trust extract --overwrite --format=pem-bundle \
-      --filter='pkcs11:object=Comodo%20AAA%20Services%20root;type=cert' \
-      "$blocklist/Comodo_AAA_Services_root.pem"; \
-    [ -s "$blocklist/Comodo_AAA_Services_root.pem" ]; \
-    trust extract --overwrite --format=pem-bundle \
-      --filter='pkcs11:object=emSign%20ECC%20Root%20CA%20-%20G3;type=cert' \
-      "$blocklist/emSign_ECC_Root_CA_-_G3.pem"; \
-    [ -s "$blocklist/emSign_ECC_Root_CA_-_G3.pem" ]; \
-    update-ca-trust
 
 RUN curl -fsSL "https://get.sdkman.io" | bash \
     && bash -c ". /root/.sdkman/bin/sdkman-init.sh \

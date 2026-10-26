@@ -1,0 +1,4 @@
+component: all
+kind: fix
+body: Remove the temporary UBI CA trust workaround now that updated ca-certificates packages remove the affected eMudhra trust roots
+time: 2026-10-26T10:06:24.865031+01:00
