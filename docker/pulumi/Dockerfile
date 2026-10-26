@@ -14,7 +14,7 @@ ENV GOLANG_AMD64_SHA256 ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440a
 ENV GOLANG_ARM64_SHA256 3f4227ce7b206a513e794f1393adb473a07b46e94d18bd15d1c684bbb7319797
 
 # renovate: datasource=github-releases depName=kubernetes-sigs/aws-iam-authenticator
-ENV AWS_IAM_AUTHENTICATOR_VERSION v0.7.23
+ENV AWS_IAM_AUTHENTICATOR_VERSION v0.7.24
 
 # Install base dependencies
 RUN apt-get update -y && \
