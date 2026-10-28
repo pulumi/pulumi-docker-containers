@@ -5,6 +5,16 @@ Container versions follow the Pulumi CLI version. Entries describe container-spe
 See [legacy history](.changes/legacy.md) for the changelog before automated releases,
 including the original Unreleased section whose release assignments were not recorded.
 
+## 3.273.0
+
+### Bug Fixes
+
+- [all] Remove the temporary UBI CA trust workaround now that updated ca-certificates packages remove the affected eMudhra trust roots
+
+Includes [Pulumi CLI 3.273.0](https://github.com/pulumi/pulumi/releases/tag/v3.273.0).
+
+Container source: `8d69802ca81863d52d6c0baf4a1537165dacc638`.
+
 ## 3.272.0
 
 Includes [Pulumi CLI 3.272.0](https://github.com/pulumi/pulumi/releases/tag/v3.272.0).
