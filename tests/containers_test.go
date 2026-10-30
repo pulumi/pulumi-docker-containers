@@ -150,7 +150,10 @@ func TestKitchenSinkLanguageVersions(t *testing.T) {
 	if !isKitchenSink(t) {
 		t.Skip("Only language version tests on kitchen sink")
 	}
-	t.Parallel()
+	// Intentionally NOT parallel. The node subtests switch the container's global node
+	// version (via --use-language-version-tools). Some of those versions are installed
+	// on demand and have no corepack shims, so tests that run concurrently and look up
+	// node tools (e.g. TestEnvironment/Yarn) would intermittently fail.
 
 	dirs, err := testdata.ReadDir("testdata")
 	require.NoError(t, err)
