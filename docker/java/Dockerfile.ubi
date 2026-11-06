@@ -22,10 +22,13 @@ ENV MAVEN_VERSION 3.9.14
 # renovate: datasource=gradle-version depName=gradle
 ENV GRADLE_VERSION 8.14.4
 
+# Set from .github/scripts/matrix/versions.py by the build workflows.
+ARG LANGUAGE_VERSION
+
 RUN microdnf upgrade -y && microdnf install -y \
     git \
     tar \
-    java-21-openjdk-devel \
+    java-${LANGUAGE_VERSION:?}-openjdk-devel \
     unzip \
     zip \
     findutils \
@@ -45,9 +48,9 @@ RUN curl -fsSL "https://get.sdkman.io" | bash \
 COPY --from=builder /root/.pulumi/bin/pulumi /pulumi/bin/pulumi
 
 ENV PATH="/pulumi/bin:/root/.sdkman/candidates/maven/current/bin:/root/.sdkman/candidates/gradle/current/bin:${PATH}" \
-    JAVA_HOME="/usr/lib/jvm/jre-21-openjdk" \
+    JAVA_HOME="/usr/lib/jvm/jre-${LANGUAGE_VERSION}-openjdk" \
     JAVA_VENDOR="openjdk" \
-    JAVA_VERSION="21"
+    JAVA_VERSION="${LANGUAGE_VERSION}"
 
 RUN pulumi plugin install language java
 

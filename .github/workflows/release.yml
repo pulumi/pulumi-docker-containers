@@ -98,6 +98,7 @@ jobs:
             -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target base \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            $(python3 ./.github/scripts/matrix/build-args.py pulumi) \
             --load \
             docker/pulumi
       - name: Build nonroot variant
@@ -108,6 +109,7 @@ jobs:
             -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}-nonroot-${{ matrix.arch }} \
             --target nonroot \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            $(python3 ./.github/scripts/matrix/build-args.py pulumi) \
             --load \
             docker/pulumi
       - name: Install go
@@ -281,6 +283,7 @@ jobs:
             -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            $(python3 ./.github/scripts/matrix/build-args.py pulumi) \
             --load \
             docker/pulumi
       - name: Install go
@@ -528,6 +531,7 @@ jobs:
             -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
+            $(python3 ./.github/scripts/matrix/build-args.py ${{ matrix.sdk }}) \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go
@@ -756,6 +760,7 @@ jobs:
             -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
+            $(python3 ./.github/scripts/matrix/build-args.py ${{ matrix.sdk }}) \
             docker/${{ matrix.sdk }} \
             --load
       - name: Install go

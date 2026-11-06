@@ -106,6 +106,7 @@ jobs:
             -t ${{ env.DOCKER_ORG }}/pulumi:${{ env.PULUMI_VERSION }}${{ matrix.variant }}-${{ matrix.arch }} \
             --target $(if [ "${{ matrix.variant }}" = "-nonroot" ]; then echo "nonroot"; else echo "base"; fi) \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            $(python3 ./.github/scripts/matrix/build-args.py pulumi) \
             --load \
             docker/pulumi
       - name: Image Info
@@ -211,6 +212,7 @@ jobs:
             -t ${{ env.DOCKER_ORG }}/pulumi-provider-build-environment:${{ env.PULUMI_VERSION }}-${{ matrix.arch }} \
             --target build-environment \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
+            $(python3 ./.github/scripts/matrix/build-args.py pulumi) \
             --load \
             docker/pulumi
       - name: Image Info
@@ -367,6 +369,7 @@ jobs:
             -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
+            $(python3 ./.github/scripts/matrix/build-args.py ${{ matrix.sdk }}) \
             docker/${{ matrix.sdk }} \
             --load
       - name: Image Info
@@ -497,6 +500,7 @@ jobs:
             -t ${{ env.IMAGE_NAME }} \
             --build-arg PULUMI_VERSION=${{ env.PULUMI_VERSION }} \
             --build-arg LANGUAGE_VERSION=${{ matrix.language_version }} \
+            $(python3 ./.github/scripts/matrix/build-args.py ${{ matrix.sdk }}) \
             docker/${{ matrix.sdk }} \
             --load
       - name: Image Info
