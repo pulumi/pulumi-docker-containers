@@ -43,10 +43,6 @@ RUN apt-get update -y && \
   zlib1g-dev && \
   rm -rf /var/lib/apt/lists/*
 
-# Use the updated system trust store for cloud CLIs.
-ENV AWS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
-    CLOUDSDK_CORE_CUSTOM_CA_CERTS_FILE=/etc/ssl/certs/ca-certificates.crt
-
 # Install cloud tools
 RUN \
   # Setup environment variables for architecture-specific packages
