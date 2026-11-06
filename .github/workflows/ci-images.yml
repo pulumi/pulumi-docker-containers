@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -78,7 +78,7 @@ jobs:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -183,7 +183,7 @@ jobs:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -284,7 +284,7 @@ jobs:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -314,7 +314,7 @@ jobs:
       matrix: ${{ steps.define-matrix.outputs.matrix }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -340,7 +340,7 @@ jobs:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -441,7 +441,7 @@ jobs:
       matrix: ${{ steps.define-matrix-sdk-manifests.outputs.matrix }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -467,7 +467,7 @@ jobs:
       # If no version of Pulumi is supplied by the incoming event (e.g. in the
       # case of a PR or merge to main), we use the latest production version:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
