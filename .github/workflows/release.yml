@@ -69,7 +69,7 @@ jobs:
       id-token: write
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -195,7 +195,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -252,7 +252,7 @@ jobs:
       id-token: write
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -341,7 +341,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -385,7 +385,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -421,7 +421,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -471,7 +471,7 @@ jobs:
       matrix: ${{ steps.define-matrix.outputs.matrix }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -495,7 +495,7 @@ jobs:
       id-token: write
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -606,7 +606,7 @@ jobs:
       matrix: ${{ steps.define-matrix-sdk-manifests.outputs.matrix }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -628,7 +628,7 @@ jobs:
       matrix: ${{ fromJSON(needs.define-matrix-sdk-manifests.outputs.matrix) }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -697,7 +697,7 @@ jobs:
       matrix: ${{ steps.define-matrix.outputs.matrix }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -721,7 +721,7 @@ jobs:
       matrix: ${{ fromJSON(needs.define-ubi-matrix.outputs.matrix) }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -854,7 +854,7 @@ jobs:
     if: ${{ inputs.force_release || github.event_name == 'repository_dispatch' }}
     steps:
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
@@ -917,7 +917,7 @@ jobs:
       - name: Install Changie
         run: go install github.com/miniscruff/changie@v1.25.0
       - name: Authenticate with Pulumi Cloud
-        uses: pulumi/auth-actions@159c3e431aab767d4519b96f3f784d7d3d725622 # v2.1.1
+        uses: pulumi/auth-actions@273044cc19e63ea565285da8edd4e059126a0bdb # v2.1.2
         with:
           organization: pulumi
           requested-token-type: urn:pulumi:token-type:access_token:organization
