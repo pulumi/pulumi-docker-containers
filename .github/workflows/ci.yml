@@ -46,7 +46,9 @@ jobs:
               - '!CHANGELOG.md'
               - '!.changes/**'
               - '!**/README.md'
-              - '!.github/scripts/readme/**'
+              - '!.github/scripts/matrix/gen-readmes.py'
+              - '!.github/scripts/matrix/gen-sync-readmes-matrix.py'
+              - '!.github/scripts/matrix/images.py'
 
   changelog:
     name: Validate changelog
@@ -72,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Check generated READMEs
-        run: python ./.github/scripts/readme/gen-readmes.py --check
+        run: python ./.github/scripts/matrix/gen-readmes.py --check
 
   images:
     needs: changes

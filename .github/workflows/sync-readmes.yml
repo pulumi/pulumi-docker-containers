@@ -27,11 +27,11 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Check READMEs are up to date
-        run: python ./.github/scripts/readme/gen-readmes.py --check
+        run: python ./.github/scripts/matrix/gen-readmes.py --check
       - name: Define Matrix
         id: define-matrix
         run: |
-          echo "matrix=$(python ./.github/scripts/readme/gen-sync-readmes-matrix.py)" >> "$GITHUB_OUTPUT"
+          echo "matrix=$(python ./.github/scripts/matrix/gen-sync-readmes-matrix.py)" >> "$GITHUB_OUTPUT"
 
   sync-readme:
     name: ${{ matrix.repo }}

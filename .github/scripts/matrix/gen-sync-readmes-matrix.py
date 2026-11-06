@@ -13,14 +13,10 @@
 # }
 #
 import json
-import os
 import sys
 
-sys.dont_write_bytecode = True
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "matrix"))
-import versions  # noqa: E402
-
-import images  # noqa: E402
+import images
+import versions
 
 # Docker Hub rejects longer short descriptions.
 MAX_SHORT_DESCRIPTION = 100
