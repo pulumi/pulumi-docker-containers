@@ -17,12 +17,14 @@ FROM debian:trixie-slim
 LABEL org.opencontainers.image.description="Pulumi CLI container for java"
 WORKDIR /pulumi/projects
 
+# Set from .github/scripts/matrix/versions.py by the build workflows.
+ARG LANGUAGE_VERSION
 RUN apt-get update -y && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     curl \
     git \
-    openjdk-21-jdk \
+    openjdk-${LANGUAGE_VERSION:?}-jdk \
     maven \
     gradle && \
     rm -rf /var/lib/apt/lists/*
