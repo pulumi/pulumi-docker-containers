@@ -55,6 +55,20 @@ merged_results = []
 seen_results = set()
 for run in runs:
     for result in run.get("results", []):
+        # Snyk can emit insertedContent.text=false for unavailable fixes, which GitHub does not accept. Drop the
+        # suggested fix. The vulnerability result itself is kept.
+        if "fixes" in result:
+            result["fixes"] = [
+                fix for fix in result["fixes"]
+                if not any(
+                    "text" in replacement.get("insertedContent", {})
+                    and not isinstance(replacement["insertedContent"]["text"], str)
+                    for change in fix.get("artifactChanges", [])
+                    for replacement in change.get("replacements", [])
+                )
+            ]
+            if not result["fixes"]:
+                del result["fixes"]
         if "ruleId" in result:
             result["ruleIndex"] = rule_index_by_id[result["ruleId"]]
         key = json.dumps(result, sort_keys=True)
