@@ -5,6 +5,16 @@ Container versions follow the Pulumi CLI version. Entries describe container-spe
 See [legacy history](.changes/legacy.md) for the changelog before automated releases,
 including the original Unreleased section whose release assignments were not recorded.
 
+## 3.275.0
+
+### Improvements
+
+- [pulumi] Remove temporary AWS and Google Cloud CLI CA bundle overrides now that both CLIs include updated trust stores
+
+Includes [Pulumi CLI 3.275.0](https://github.com/pulumi/pulumi/releases/tag/v3.275.0).
+
+Container source: `f1a2a7bb9680d283eb9399ee416668dd867dcd57`.
+
 ## 3.274.1
 
 Includes [Pulumi CLI 3.274.1](https://github.com/pulumi/pulumi/releases/tag/v3.274.1).

@@ -1,4 +1,0 @@
-component: pulumi
-kind: improvement
-body: Remove temporary AWS and Google Cloud CLI CA bundle overrides now that both CLIs include updated trust stores
-time: 2026-11-06T15:30:00.612958+01:00
