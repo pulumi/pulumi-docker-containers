@@ -22,6 +22,23 @@ For contributors we use the [standard fork based workflow](https://gist.github.c
 
 For user-visible image changes, run `changie new` at the repository root and include the generated `.changes/unreleased/` fragment in your PR. Select the affected image family, or `all` for changes affecting every image. The shared changelog bot checks for an entry; maintainers can apply `impact/no-changelog-required` when none is needed.
 
+## Language versions
+
+The language versions in every image are set in [`.github/scripts/matrix/versions.py`](.github/scripts/matrix/versions.py).
+The Dockerfiles take them as build arguments, so update `versions.py` rather than the Dockerfiles.
+When updating Go, also update the archive checksums from [go.dev/dl](https://go.dev/dl/).
+
+To build an image locally, pass the same arguments the workflows do:
+
+```bash
+docker build \
+  --build-arg PULUMI_VERSION=3.274.1 \
+  $(python3 .github/scripts/matrix/build-args.py pulumi) \
+  docker/pulumi
+```
+
+The single language images also need `--build-arg LANGUAGE_VERSION=<version>`.
+
 ## Release process
 
 Upstream `pulumi/pulumi` releases trigger container builds and publication here using the same version. The workflow batches Changie fragments from the build's source commit and publishes a GitHub Release with those notes. It then opens a version-specific PR against `main` to update `CHANGELOG.md` and remove the included fragments, approves it, and enables auto-merge once required checks and review requirements are satisfied. Fragments added after the build's source commit remain pending.
