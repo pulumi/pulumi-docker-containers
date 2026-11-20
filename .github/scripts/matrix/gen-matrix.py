@@ -6,8 +6,8 @@
 #
 # matrix = {
 #     "include": [
-#         {"sdk": "go",     "arch": "amd64", "runner": "ubuntu-24.04",     "default": True},
-#         {"sdk": "go",     "arch": "arm64", "runner": "ubuntu-24.04-arm", "default": True},
+#         {"sdk": "go",     "arch": "amd64", "runner": "ubuntu-24.04",     "default": True,  "language_version": "1.26.10"},
+#         {"sdk": "go",     "arch": "arm64", "runner": "ubuntu-24.04-arm", "default": True,  "language_version": "1.26.10"},
 #         {"sdk": "python", "arch": "amd64", "runner": "ubuntu-24.04",     "default": True,  "language_version": "3.9",  "suffix": "-3.9"},
 #         {"sdk": "python", "arch": "arm64", "runner": "ubuntu-24.04-arm", "default": True,  "language_version": "3.9",  "suffix": "-3.9"},
 #         {"sdk": "python", "arch": "amd64", "runner": "ubuntu-24.04",     "default": False, "language_version": "3.10", "suffix": "-3.10"},
@@ -17,7 +17,6 @@
 # }
 #
 #  * `language_version` is the version of the language runtime to use, for example `3.9` for Python.
-#     For Java and Go, this field is omitted as we only have one version of the runtime.
 #  * `suffix` is an optional suffix to append to the image name, for example `-3.9` to generate `pulumi-python-3.9`.
 #  * `default` indicates that this is the default language_version. We will push two tags for the image, once
 #     with and once without the suffix in the name, for example `pulumi-python-3.9` and `pulumi-python`.
@@ -55,9 +54,9 @@ def make_entry(*, sdk, arch, default, language_version=None, suffix=None):
 
 for arch in archs:
 
-    for sdk in versions.unversioned:
+    for sdk, info in versions.unversioned.items():
         # Default (and only) version for unversioned SDKs
-        matrix["include"].append(make_entry(sdk=sdk, arch=arch, default=True))
+        matrix["include"].append(make_entry(sdk=sdk, arch=arch, language_version=info["version"], default=True))
 
     for sdk, info in versions.versioned.items():
         # Default version
