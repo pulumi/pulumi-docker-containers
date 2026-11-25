@@ -9,9 +9,16 @@ LABEL "homepage"="https://pulumi.com"
 LABEL "maintainer"="Pulumi Team <team@pulumi.com>"
 LABEL org.opencontainers.image.description="The Pulumi CLI, in a Docker container."
 
-ENV GOLANG_VERSION 1.26.10
-ENV GOLANG_AMD64_SHA256 ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
-ENV GOLANG_ARM64_SHA256 3f4227ce7b206a513e794f1393adb473a07b46e94d18bd15d1c684bbb7319797
+# Language versions, set from .github/scripts/matrix/versions.py by the build workflows. Lists are comma-separated.
+ARG GO_VERSION
+ARG GO_AMD64_SHA256
+ARG GO_ARM64_SHA256
+ARG JAVA_VERSION
+ARG DOTNET_VERSIONS
+ARG PYTHON_VERSIONS
+ARG PYTHON_DEFAULT
+ARG NODEJS_VERSIONS
+ARG NODEJS_DEFAULT
 
 # renovate: datasource=github-releases depName=kubernetes-sigs/aws-iam-authenticator
 ENV AWS_IAM_AUTHENTICATOR_VERSION v0.7.24
@@ -93,12 +100,12 @@ RUN \
 RUN \
   # Setup environment variables for architecture-specific packages
   if [ "$TARGETARCH" = "arm64" ]; then \
-    GOLANG_SHA256=$GOLANG_ARM64_SHA256; \
+    GO_SHA256=$GO_ARM64_SHA256; \
   else \
-    GOLANG_SHA256=$GOLANG_AMD64_SHA256; \
+    GO_SHA256=$GO_AMD64_SHA256; \
   fi && \
-  curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz && \
-  echo "${GOLANG_SHA256} /tmp/go.tgz" | sha256sum -c - && \
+  curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${GO_VERSION:?}.linux-${TARGETARCH}.tar.gz && \
+  echo "${GO_SHA256:?} /tmp/go.tgz" | sha256sum -c - && \
   tar -C /usr/local -xzf /tmp/go.tgz && \
   rm /tmp/go.tgz && \
   export PATH="/usr/local/go/bin:$PATH" && \
@@ -109,16 +116,16 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 # Install Java
 RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  openjdk-21-jdk \
+  openjdk-${JAVA_VERSION:?}-jdk \
   gradle \
   maven && \
   rm -rf /var/lib/apt/lists/*
 
-# Install dotnet 8.0, 9.0, and 10.0 using instructions from:
+# Install dotnet using instructions from:
 # https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0 --install-dir /usr/local/share/dotnet
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 9.0 --install-dir /usr/local/share/dotnet
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 10.0 --install-dir /usr/local/share/dotnet
+RUN for version in $(echo "${DOTNET_VERSIONS:?}" | tr , ' '); do \
+    curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel "$version" --install-dir /usr/local/share/dotnet || exit 1; \
+  done
 ENV PATH "/usr/local/share/dotnet:${PATH}"
 ENV DOTNET_ROOT /usr/local/share/dotnet
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT 1
@@ -140,17 +147,11 @@ RUN curl -L https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-
 RUN git clone --depth=1 https://github.com/pyenv/pyenv.git /usr/local/share/pyenv
 ENV PYENV_ROOT /usr/local/share/pyenv
 ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
-RUN pyenv install 3.14 && \
-  PYENV_VERSION="$(pyenv latest -k 3.14)" python3 -m pip install --no-cache-dir --upgrade "pip>=26.2.2"
-RUN pyenv install 3.13 && \
-  PYENV_VERSION="$(pyenv latest -k 3.13)" python3 -m pip install --no-cache-dir --upgrade "pip>=26.2.2"
-RUN pyenv install 3.12 && \
-  PYENV_VERSION="$(pyenv latest -k 3.12)" python3 -m pip install --no-cache-dir --upgrade "pip>=26.2.2"
-RUN pyenv install 3.11 && \
-  PYENV_VERSION="$(pyenv latest -k 3.11)" python3 -m pip install --no-cache-dir --upgrade "pip>=26.2.2"
-RUN pyenv install 3.10 && \
-  PYENV_VERSION="$(pyenv latest -k 3.10)" python3 -m pip install --no-cache-dir --upgrade "pip>=26.2.2"
-RUN pyenv global 3.13 # Default version
+RUN for version in $(echo "${PYTHON_VERSIONS:?}" | tr , ' '); do \
+    pyenv install "$version" && \
+    PYENV_VERSION="$(pyenv latest -k "$version")" python3 -m pip install --no-cache-dir --upgrade "pip>=26.2.2" || exit 1; \
+  done
+RUN pyenv global "${PYTHON_DEFAULT:?}"
 # Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local/share/pypoetry python3 -
 RUN /usr/local/share/pypoetry/venv/bin/python -m pip install --no-cache-dir --upgrade "pip>=26.2.2" "certifi>=2026.10.19"
@@ -165,10 +166,10 @@ RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/usr/l
   ln -s /usr/local/share/fnm/fnm /usr/local/bin/fnm
 ENV FNM_VERSION_FILE_STRATEGY="recursive"
 ENV FNM_DIR=/usr/local/share/fnm
-RUN fnm install 22 && \
-  fnm install 24 && \
-  fnm install 26 && \
-  fnm alias 26 default
+RUN for version in $(echo "${NODEJS_VERSIONS:?}" | tr , ' '); do \
+    fnm install "$version" || exit 1; \
+  done && \
+  fnm alias "${NODEJS_DEFAULT:?}" default
 ENV PATH=/usr/local/share/fnm/aliases/default/bin:$PATH
 # renovate: datasource=npm depName=npm
 ENV NPM_VERSION 11.21.1

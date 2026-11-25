@@ -10,13 +10,13 @@ RUN microdnf upgrade -y && microdnf install -y \
 # Install the Pulumi SDK, including the CLI and language runtimes.
 RUN curl -fsSL https://get.pulumi.com/ | bash -s -- --version $PULUMI_VERSION
 
-# Set go versions
-ARG RUNTIME_VERSION=1.26.10
-ENV RUNTIME_SHA256 ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
+# Set from .github/scripts/matrix/versions.py by the build workflows. UBI images are only built for amd64.
+ARG LANGUAGE_VERSION
+ARG GO_AMD64_SHA256
 
 WORKDIR /golang
-RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${RUNTIME_VERSION}.linux-amd64.tar.gz && \
-    echo "${RUNTIME_SHA256} /tmp/go.tgz" | sha256sum -c - && \
+RUN curl -fsSLo /tmp/go.tgz https://golang.org/dl/go${LANGUAGE_VERSION:?}.linux-amd64.tar.gz && \
+    echo "${GO_AMD64_SHA256:?} /tmp/go.tgz" | sha256sum -c - && \
     mkdir -p bin && \
     tar -C /golang -xzf /tmp/go.tgz && \
     rm /tmp/go.tgz && \
